@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver Oracle Debug UI
+Bundle-SymbolicName: org.jkiss.dbeaver.ext.oracle.debug.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Release-Date: 20240408
+Bundle-Vendor: DBeaver Corp
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.core.runtime,
+ org.jkiss.dbeaver.core,
+ org.jkiss.dbeaver.debug.core,
+ org.jkiss.dbeaver.debug.ui,
+ org.jkiss.dbeaver.ext.oracle,
+ org.jkiss.dbeaver.ext.oracle.ui,
+ org.jkiss.dbeaver.ext.oracle.debug.core,
+ org.eclipse.ui
+Automatic-Module-Name: org.jkiss.dbeaver.ext.oracle.debug.ui
