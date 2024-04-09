@@ -42,7 +42,7 @@
             <property name="subTitle" value="%productSubTitle"/>
             <property name="website" value="%productWebsite"/>
             <property name="email" value="%productEmail"/>
-            <property name="versionUpdateURL" value="https://dbeaver.io/product/version.xml"/>
+<!--            <property name="versionUpdateURL" value="https://dbeaver.io/product/version.xml"/>-->
             <property name="earlyAccessURL" value="https://dbeaver.io/files/ea"/>
             <property name="windowImages" value="/icons/dbeaver16.png,/icons/dbeaver32.png,/icons/dbeaver48.png,/icons/dbeaver64.png,/icons/dbeaver256.png"/>
             <property name="appName" value="DBeaver"/>
@@ -322,20 +322,20 @@
 
         <menuContribution allPopups="false" locationURI="menu:help">
             <separator name="misc" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.core.util.collectDiagnosticInfo" style="push"/>
+<!--            <command commandId="org.jkiss.dbeaver.core.util.collectDiagnosticInfo" style="push"/>-->
             <command commandId="org.jkiss.dbeaver.core.util.resetSettings" style="push"/>
             <command commandId="org.jkiss.dbeaver.core.util.clearHistory" style="push"/>
             <separator name="misc_end" visible="true"/>
         </menuContribution>
 
-        <menuContribution allPopups="false" locationURI="menu:help?after=org.jkiss.dbeaver.core.util.clearHistory">
-            <separator name="commercial" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.core.try.pro">
-                <visibleWhen checkEnabled="true">
-                    <test property="org.jkiss.dbeaver.ui.app.standalone.menu.configuration.isCommunity" value="true"/>
-                </visibleWhen>
-            </command>
-        </menuContribution>
+<!--        <menuContribution allPopups="false" locationURI="menu:help?after=org.jkiss.dbeaver.core.util.clearHistory">-->
+<!--            <separator name="commercial" visible="true"/>-->
+<!--            <command commandId="org.jkiss.dbeaver.core.try.pro">-->
+<!--                <visibleWhen checkEnabled="true">-->
+<!--                    <test property="org.jkiss.dbeaver.ui.app.standalone.menu.configuration.isCommunity" value="true"/>-->
+<!--                </visibleWhen>-->
+<!--            </command>-->
+<!--        </menuContribution>-->
 
         <!-- Main toolbar -->
 
@@ -453,9 +453,9 @@
         <config class="org.jkiss.dbeaver.ui.help.GitHubWikiHelpUI"/>
     </extension>
 
-    <extension point="org.jkiss.dbeaver.workbenchHandler">
-        <workbenchWindowInitializer class="org.jkiss.dbeaver.ui.app.standalone.WorkbenchInitializerNewConnection" priority="2"/>
-    </extension>
+<!--    <extension point="org.jkiss.dbeaver.workbenchHandler">-->
+<!--        <workbenchWindowInitializer class="org.jkiss.dbeaver.ui.app.standalone.WorkbenchInitializerNewConnection" priority="2"/>-->
+<!--    </extension>-->
 
     <extension point="org.eclipse.ui.activities">
         <activity id="hideE4Activity" name="%activity.hideE4Activity.name">
