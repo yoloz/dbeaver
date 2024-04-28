@@ -20,7 +20,9 @@ public class OracleDebugVariableValueEditor implements IVariableValueEditor {
     @Override
     public boolean editVariable(IVariable variable, Shell shell) {
         try {
-            InputDialog dialog = new InputDialog(shell, "Variable Expression", "Input:name,value(optional)]",
+            //输入一个字符串，如果name是初始化($i),则更新name名称，否则是设置值
+            //输入两者字符串，中间逗号分隔，则更新name名称并设置值
+            InputDialog dialog = new InputDialog(shell, "Variable Expression", "Input[name(optional),value(optional)]",
                     variable.getValue().getValueString(), null) {
                 @Override
                 protected Control createDialogArea(Composite parent) {
