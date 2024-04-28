@@ -40,7 +40,7 @@ public abstract class DBGJDBCSession implements DBGSession {
 
     protected volatile DBGJDBCWorker workerJob;
 
-    private final List<DBGBreakpointDescriptor> breakpoints = new ArrayList<>(1);
+    protected final List<DBGBreakpointDescriptor> breakpoints = new ArrayList<>(1);
 
     protected DBGJDBCSession(DBGBaseController controller) {
         this.controller = controller;

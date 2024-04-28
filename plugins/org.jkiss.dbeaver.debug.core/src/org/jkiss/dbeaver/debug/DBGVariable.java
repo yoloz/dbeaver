@@ -29,4 +29,6 @@ public interface DBGVariable<T> {
 
     int getLineNumber();
 
+    void setValue(String text);
+
 }

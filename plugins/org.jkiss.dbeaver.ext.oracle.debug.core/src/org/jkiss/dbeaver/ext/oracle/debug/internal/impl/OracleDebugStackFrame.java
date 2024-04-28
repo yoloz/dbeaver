@@ -23,19 +23,25 @@ import org.jkiss.dbeaver.debug.DBGStackFrame;
 
 public class OracleDebugStackFrame implements DBGStackFrame {
 
-    private final int level;
+    // The following fields are used when setting a breakpoint
+    private final Integer namespace;
     private final String name;
-    private final int oid;
-    private final int lineNo;
-    private final String args;
+    private final String owner;
+    //    private final String dblink;
+    private final Integer line;
+    // Read-only fields (set by Probe when doing a stack backtrace)
+    private final Integer libunittype;
+    //    private final String entrypointname;
+    private final int level;
 
-    public OracleDebugStackFrame(int level, String name, int oid, int lineNo, String args) {
+    public OracleDebugStackFrame(int namespace, String name, String owner, int lineNo, int libunittype, int level) {
         super();
-        this.level = level;
+        this.namespace = namespace;
         this.name = name;
-        this.oid = oid;
-        this.lineNo = lineNo;
-        this.args = args;
+        this.owner = owner;
+        this.line = lineNo;
+        this.libunittype = libunittype;
+        this.level = level;
     }
 
     public int getLevel() {
@@ -44,20 +50,12 @@ public class OracleDebugStackFrame implements DBGStackFrame {
 
     @Override
     public Object getSourceIdentifier() {
-        return getOid();
-    }
-
-    public int getOid() {
-        return oid;
+        return name;
     }
 
     @Override
     public int getLineNumber() {
-        return lineNo;
-    }
-
-    public String getArgs() {
-        return args;
+        return line;
     }
 
     @Override
@@ -65,10 +63,26 @@ public class OracleDebugStackFrame implements DBGStackFrame {
         return name;
     }
 
-    @Override
-    public String toString() {
-        return "PostgreDebugStackFrame [level=" + level + ", name=" + name + ", oid=" + oid + ", lineNo=" + lineNo
-                + ", args=" + args + "]";
+    public Integer getNamespace() {
+        return namespace;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+
+    public Integer getLibunittype() {
+        return libunittype;
+    }
+
+    @Override
+    public String toString() {
+        return "OracleDebugStackFrame{" +
+                "namespace=" + namespace +
+                ", name='" + name + '\'' +
+                ", owner='" + owner + '\'' +
+                ", line=" + line +
+                ", libunittype=" + libunittype +
+                '}';
+    }
 }

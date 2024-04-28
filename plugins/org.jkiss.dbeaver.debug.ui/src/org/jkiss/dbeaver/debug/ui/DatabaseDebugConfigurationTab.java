@@ -116,6 +116,7 @@ public class DatabaseDebugConfigurationTab extends AbstractLaunchConfigurationTa
         }
 
         DBPDataSourceContainer dataSource = connectionCombo.getSelectedItem();
+        DebugConfigurationPanelDescriptor panelOne = null;
         if (dataSource == null) {
             UIUtils.createInfoLabel(typesGroup, "Select a connection to see available debug types");
         } else {
@@ -123,6 +124,7 @@ public class DatabaseDebugConfigurationTab extends AbstractLaunchConfigurationTa
             if (CommonUtils.isEmpty(panels)) {
                 UIUtils.createInfoLabel(typesGroup, "Driver '" + dataSource.getDriver().getFullName() + "' doesn't support debugging");
             } else {
+                Button selectOne = null;
                 for (DebugConfigurationPanelDescriptor panel : panels) {
                     Button typeSelector = new Button(typesGroup, SWT.RADIO);
                     typeSelector.setText(panel.getName());
@@ -141,13 +143,20 @@ public class DatabaseDebugConfigurationTab extends AbstractLaunchConfigurationTa
                                 }
                             }
                         });
+                        if (panelOne == null) {
+                            panelOne = panel;
+                            selectOne = typeSelector;
+                        }
                     } else {
                         typeSelector.setEnabled(false);
                     }
                 }
+                if (selectOne != null) {
+                    selectOne.setSelection(true);
+                }
             }
         }
-        setDebugType(dataSource, null);
+        setDebugType(dataSource, panelOne);
         typesGroup.getParent().layout(true, true);
     }
 

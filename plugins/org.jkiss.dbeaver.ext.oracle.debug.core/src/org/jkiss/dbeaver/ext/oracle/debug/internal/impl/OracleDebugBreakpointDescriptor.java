@@ -20,7 +20,6 @@ package org.jkiss.dbeaver.ext.oracle.debug.internal.impl;
 
 import org.eclipse.core.resources.IMarker;
 import org.jkiss.dbeaver.debug.DBGBreakpointDescriptor;
-import org.jkiss.dbeaver.ext.oracle.debug.OracleDebugConstants;
 import org.jkiss.utils.CommonUtils;
 
 import java.util.HashMap;
@@ -28,62 +27,98 @@ import java.util.Map;
 
 /**
  * Oracle breakpoint. It contains Oracle-specific info for IDatabaseBreakpoint
+ * <br/>
+ * status:
+ * 1:breakpoint_status_active;
+ * 4:breakpoint_status_disabled;
+ * 8:breakpoint_status_remote;
  */
 public class OracleDebugBreakpointDescriptor implements DBGBreakpointDescriptor {
 
-	private final Object oid;
-	private final long lineNo;
-	private final boolean onStart;
-	private final long targetId;
-	private final boolean all;
+    private String unitName;           // Name of the program unit
+    private String unitOwner;          // Owner of the program unit
+    private String dblink;         // Database link, if remote
+    private final Integer lineNum;          // Line number
+    private Integer libunittype;   //NULL, unless this is a nested procedure or function
+    private Integer pointStatus;
+    private int pointNum;
 
-	public OracleDebugBreakpointDescriptor(Object oid, long lineNo) {
-		this.oid = oid;
-		this.lineNo = lineNo;
-		this.onStart = lineNo < 0;
-		this.targetId = -1;
-		this.all = true;
-	}
-
-	public Object getObjectId() {
-        return oid;
+    public OracleDebugBreakpointDescriptor(String unitName, String unitOwner, Integer lineNum) {
+        this.unitName = unitName;
+        this.unitOwner = unitOwner;
+        this.lineNum = lineNum;
     }
 
-	public long getLineNo() {
-		return lineNo;
-	}
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
+    }
 
-	public boolean isOnStart() {
-		return onStart;
-	}
+    public void setUnitOwner(String unitOwner) {
+        this.unitOwner = unitOwner;
+    }
 
-	public long getTargetId() {
-		return targetId;
-	}
+    public String getUnitName() {
+        return unitName;
+    }
 
-	public boolean isAll() {
-		return all;
-	}
+    public String getUnitOwner() {
+        return unitOwner;
+    }
 
-	@Override
-	public Map<String, Object> toMap() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(OracleDebugConstants.ATTR_FUNCTION_OID, String.valueOf(oid));
-		map.put("onStart", onStart);
-		map.put("targetId", String.valueOf(targetId));
-		map.put("all", all);
-		return map;
-	}
+    public String getDblink() {
+        return dblink;
+    }
 
-	public static DBGBreakpointDescriptor fromMap(Map<String, Object> attributes) {
-		long oid = CommonUtils.toLong(attributes.get(OracleDebugConstants.ATTR_FUNCTION_OID));
-		long parsed = CommonUtils.toLong(attributes.get(IMarker.LINE_NUMBER));
-		return new OracleDebugBreakpointDescriptor(oid, parsed);
-	}
+    public Integer getLineNum() {
+        return lineNum;
+    }
 
-	@Override
-	public String toString() {
-		return "OracleDebugBreakpointDescriptor [obj=" + oid + ", properties=" + toMap() + "]";
-	}
+    public Integer getLibunittype() {
+        return libunittype;
+    }
 
+    public Integer getPointStatus() {
+        return pointStatus;
+    }
+
+    public int getPointNum() {
+        return pointNum;
+    }
+
+    public void setPointNum(int pointNum) {
+        this.pointNum = pointNum;
+    }
+
+    @Override
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("unitName", getUnitName());
+        map.put("unitOwner", getUnitOwner());
+        map.put("dblink", getDblink());
+        map.put("lineNum", getLineNum());
+        map.put("libunittype", getLibunittype());
+        map.put("pointStatus", getPointStatus());
+        map.put("pointNum", getPointNum());
+        return map;
+    }
+
+    public static DBGBreakpointDescriptor fromMap(Map<String, Object> attributes) {
+        String name = CommonUtils.toString(attributes.get("unitName"));
+        String owner = CommonUtils.toString(attributes.get("unitOwner"));
+        int line = CommonUtils.toInt(attributes.get(IMarker.LINE_NUMBER));
+        return new OracleDebugBreakpointDescriptor(name, owner, line);
+    }
+
+    @Override
+    public String toString() {
+        return "OracleDebugBreakpointDescriptor{" +
+                "unitName='" + unitName + '\'' +
+                ", unitOwner='" + unitOwner + '\'' +
+                ", dblink='" + dblink + '\'' +
+                ", lineNum=" + lineNum +
+                ", libunittype=" + libunittype +
+                ", pointStatus=" + pointStatus +
+                ", pointNum=" + pointNum +
+                '}';
+    }
 }

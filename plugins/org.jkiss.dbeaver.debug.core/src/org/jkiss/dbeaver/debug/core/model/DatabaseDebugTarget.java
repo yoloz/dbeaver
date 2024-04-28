@@ -31,10 +31,9 @@ import org.jkiss.dbeaver.debug.core.DebugUtils;
 import org.jkiss.dbeaver.debug.internal.core.DebugCoreMessages;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.DefaultProgressMonitor;
+import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.utils.GeneralUtils;
-import org.jkiss.dbeaver.utils.RuntimeUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -187,16 +186,18 @@ public class DatabaseDebugTarget extends DatabaseDebugElement implements IDataba
         // Initiate breakpoints
         IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(modelIdentifier);
         if (breakpoints != null) {
-            for (IBreakpoint bp : breakpoints) {
-                DBGBreakpointDescriptor descriptor = describeBreakpoint(bp);
-                if (descriptor != null) {
-                    try {
-                        session.addBreakpoint(dbm, descriptor);
-                    } catch (DBGException e) {
-                        log.error("Can't add initial breakpoint", e);
-                    }
-                }
-            }
+            // 初次加載清空先前缓存断点
+            DebugPlugin.getDefault().getBreakpointManager().removeBreakpoints(breakpoints, true);
+//            for (IBreakpoint bp : breakpoints) {
+//                DBGBreakpointDescriptor descriptor = describeBreakpoint(bp);
+//                if (descriptor != null) {
+//                    try {
+//                        session.addBreakpoint(dbm, descriptor);
+//                    } catch (DBGException e) {
+//                        log.error("Can't add initial breakpoint", e);
+//                    }
+//                }
+//            }
         }
     }
 
@@ -309,15 +310,15 @@ public class DatabaseDebugTarget extends DatabaseDebugElement implements IDataba
                 return;
             }
 
-            RuntimeUtils.runTask(
-                monitor -> {
-                    try {
-                        session.addBreakpoint(monitor, descriptor);
-                    } catch (DBGException e) {
-                        throw new InvocationTargetException(e);
-                    }
-                },
-                "Add session breakpoint", BREAKPOINT_ACTION_TIMEOUT);
+//            RuntimeUtils.runTask(
+//                    monitor -> {
+            try {
+                session.addBreakpoint(new VoidProgressMonitor(), descriptor);
+            } catch (DBGException e) {
+                log.error("Add session breakpoint - error", e);
+            }
+//                    },
+//                    "Add session breakpoint", BREAKPOINT_ACTION_TIMEOUT);
         }
     }
 
@@ -329,15 +330,15 @@ public class DatabaseDebugTarget extends DatabaseDebugElement implements IDataba
                 log.error(NLS.bind("Unable to describe breakpoint {0}", breakpoint));
                 return;
             }
-            RuntimeUtils.runTask(
-                monitor -> {
-                    try {
-                        session.removeBreakpoint(monitor, descriptor);
-                    } catch (DBGException e) {
-                        throw new InvocationTargetException(e);
-                    }
-                },
-                "Remove session breakpoint", BREAKPOINT_ACTION_TIMEOUT);
+//            RuntimeUtils.runTask(
+//                    monitor -> {
+            try {
+                session.removeBreakpoint(new VoidProgressMonitor(), descriptor);
+            } catch (DBGException e) {
+                log.error("Remove session breakpoint - error", e);
+            }
+//                    },
+//                    "Remove session breakpoint", BREAKPOINT_ACTION_TIMEOUT);
         }
     }
 
@@ -371,9 +372,10 @@ public class DatabaseDebugTarget extends DatabaseDebugElement implements IDataba
     protected DBGBreakpointDescriptor describeBreakpoint(IBreakpoint breakpoint) {
         Map<String, Object> description = new HashMap<>();
         try {
-            Map<String, Object> attributes = breakpoint.getMarker().getAttributes();
-            Map<String, Object> remote = DebugUtils.toBreakpointDescriptor(attributes);
-            description.putAll(remote);
+//            Map<String, Object> attributes = breakpoint.getMarker().getAttributes();
+//            Map<String, Object> remote = DebugUtils.toBreakpointDescriptor(attributes);
+//            description.putAll(remote);
+            description = breakpoint.getMarker().getAttributes();
         } catch (CoreException e) {
             log.log(e.getStatus());
             return null;
@@ -389,15 +391,15 @@ public class DatabaseDebugTarget extends DatabaseDebugElement implements IDataba
     @Override
     public void disconnect() throws DebugException {
         if (session != null) {
-            RuntimeUtils.runTask(
-                monitor -> {
-                    try {
-                        session.closeSession(monitor);
-                    } catch (DBGException e) {
-                        throw new InvocationTargetException(e);
-                    }
-                },
-                "Close session", SESSION_ACTION_TIMEOUT);
+//            RuntimeUtils.runTask(
+//                    monitor -> {
+            try {
+                session.closeSession(new VoidProgressMonitor());
+            } catch (DBGException e) {
+                log.error("Close session - error", e);
+            }
+//                    },
+//                    "Close session", SESSION_ACTION_TIMEOUT);
             session = null;
         }
     }

@@ -14,5 +14,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.jkiss.dbeaver.ext.oracle,
  org.jkiss.dbeaver.ext.oracle.ui,
  org.jkiss.dbeaver.ext.oracle.debug.core,
- org.eclipse.ui
+ org.eclipse.ui,
+ com.google.gson
 Automatic-Module-Name: org.jkiss.dbeaver.ext.oracle.debug.ui

@@ -10,7 +10,9 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.core.runtime,
  org.jkiss.dbeaver.ext.oracle,
  org.jkiss.dbeaver.core,
- org.jkiss.dbeaver.debug.core
+ org.jkiss.dbeaver.debug.core,
+ com.google.gson
 Export-Package: org.jkiss.dbeaver.ext.oracle.debug,
- org.jkiss.dbeaver.ext.oracle.debug.core
+ org.jkiss.dbeaver.ext.oracle.debug.core,
+ org.jkiss.dbeaver.ext.oracle.debug.internal.impl
 Automatic-Module-Name: org.jkiss.dbeaver.ext.oracle.debug.core

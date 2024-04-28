@@ -24,22 +24,21 @@ import org.jkiss.dbeaver.ext.oracle.model.OracleProcedureStandalone;
 
 public class OracleBreakpointAdapterFactory implements IAdapterFactory {
 
-	private static final Class<?>[] CLASSES = new Class[] { DBGBreakpointDescriptor.class };
+    private static final Class<?>[] CLASSES = new Class[]{DBGBreakpointDescriptor.class};
 
-	@Override
-	public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
-		if (adapterType == DBGBreakpointDescriptor.class) {
-			if (adaptableObject instanceof OracleProcedureStandalone) {
-				return adapterType.cast(new OracleDebugBreakpointDescriptor(
-						((OracleProcedureStandalone) adaptableObject).getObjectId(), -1));
-			}
-		}
-		return null;
-	}
+    @Override
+    public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
+        if (adapterType == DBGBreakpointDescriptor.class) {
+            if (adaptableObject instanceof OracleProcedureStandalone object) {
+                return adapterType.cast(new OracleDebugBreakpointDescriptor(object.getName(), object.getSchema().getName(), 0));
+            }
+        }
+        return null;
+    }
 
-	@Override
-	public Class<?>[] getAdapterList() {
-		return CLASSES;
-	}
+    @Override
+    public Class<?>[] getAdapterList() {
+        return CLASSES;
+    }
 
 }

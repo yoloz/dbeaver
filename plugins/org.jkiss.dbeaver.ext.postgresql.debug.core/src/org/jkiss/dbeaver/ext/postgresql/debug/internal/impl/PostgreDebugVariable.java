@@ -80,6 +80,10 @@ public class PostgreDebugVariable implements DBGVariable<String> {
         return lineNumber;
     }
 
+    @Override
+    public void setValue(String text) {
+    }
+
     public boolean isUnique() {
         return unique;
     }

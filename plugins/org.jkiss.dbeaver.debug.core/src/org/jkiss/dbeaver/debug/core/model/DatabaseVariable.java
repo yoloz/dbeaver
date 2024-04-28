@@ -19,11 +19,18 @@
 package org.jkiss.dbeaver.debug.core.model;
 
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.osgi.util.NLS;
+import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.debug.DBGException;
 import org.jkiss.dbeaver.debug.DBGVariable;
+import org.jkiss.dbeaver.utils.GeneralUtils;
 
 public class DatabaseVariable extends DatabaseDebugElement implements IVariable {
+
+    Log log = Log.getLog(DatabaseVariable.class);
 
     private final DBGVariable<?> dbgVariable;
 
@@ -34,20 +41,25 @@ public class DatabaseVariable extends DatabaseDebugElement implements IVariable 
 
     @Override
     public void setValue(String expression) throws DebugException {
-        // TODO Auto-generated method stub
-
+        IDebugTarget iDebugTarget = getDebugTarget();
+        if (iDebugTarget instanceof IDatabaseDebugTarget databaseDebugTarget) {
+            try {
+                databaseDebugTarget.getSession().setVariableVal(dbgVariable, expression);
+            } catch (DBGException e) {
+                GeneralUtils.makeErrorStatus(NLS.bind("Error set value {0} - {1}", getName(), e.getMessage()));
+            }
+        }
     }
 
     @Override
     public void setValue(IValue value) throws DebugException {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public boolean supportsValueModification() {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override

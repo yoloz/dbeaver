@@ -22,25 +22,32 @@
     <extension point="org.jkiss.dbeaver.debug.ui.configurationPanels">
         <panel id="org.jkiss.dbeaver.ext.oracle.debug.function"
                name="Function"
-               description="PL/pgSQL function"
+               description="function or procedure"
                class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugPanelFunction">
             <datasource id="oracle"/>
         </panel>
         <panel id="org.jkiss.dbeaver.ext.oracle.debug.trigger"
                name="Trigger"
-               description="PL/pgSQL table trigger">
+               description="not support.">
             <datasource id="oracle"/>
         </panel>
     </extension>
 
     <extension point="org.eclipse.core.runtime.adapters">
-        <factory adaptableType="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor" class="org.jkiss.dbeaver.debug.ui.actions.DebugActionAdapterFactory">
+        <factory adaptableType="org.jkiss.dbeaver.ui.editors.entity.EntityEditor"
+                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">
             <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
         </factory>
-        <factory adaptableType="org.jkiss.dbeaver.model.DBPDataSourceContainer" class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugUIAdapterFactory">
+        <factory adaptableType="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor"
+                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">
+            <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
+        </factory>
+        <factory adaptableType="org.jkiss.dbeaver.model.DBPDataSourceContainer"
+                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugUIAdapterFactory">
             <adapter type="org.jkiss.dbeaver.debug.ui.DBGEditorAdvisor"/>
         </factory>
-        <factory adaptableType="java.lang.Object" class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugObjectAdapterFactory">
+        <factory adaptableType="java.lang.Object"
+                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugObjectAdapterFactory">
             <adapter type="org.jkiss.dbeaver.debug.DBGDebugObject"/>
         </factory>
     </extension>
@@ -50,16 +57,21 @@
             Breakpoin toggle contribution.
             TODO: move to core debug. Dunno how because we need specific targetID
         -->
-        <editorContribution id="org.jkiss.dbeaver.debug.ui.editorContribution" targetID="oracle.source.view">
+        <editorContribution id="org.jkiss.dbeaver.debug.ui.editorContribution" targetID="oracle.source.declaration">
             <action
                     actionID="RulerDoubleClick"
                     class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
                     icon="platform:/plugin/org.eclipse.debug.ui/$nl$/icons/full/obj16/brkp_obj.png"
-                    id="org.jkiss.dbeaver.debug.ui.actions.ManageBreakpointRulerAction"
+                    id="org.jkiss.dbeaver.debug.ui.actions.oracle.ManageBreakpointRulerAction"
                     label="%actions.ManageBreakpointRulerAction.label"
                     style="push">
             </action>
         </editorContribution>
+    </extension>
+
+    <extension point="org.eclipse.debug.ui.variableValueEditors">
+        <variableEditor modelId="org.jkiss.dbeaver.debug.core.database"
+                        class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugVariableValueEditor"/>
     </extension>
 
 </plugin>

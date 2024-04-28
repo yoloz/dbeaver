@@ -30,39 +30,34 @@ import java.util.Map;
 
 public class OracleSqlDebugCore {
 
-	public static final String BUNDLE_SYMBOLIC_NAME = "org.jkiss.dbeaver.ext.postgresql.debug.core"; //$NON-NLS-1$
+    public static final String BUNDLE_SYMBOLIC_NAME = "org.jkiss.dbeaver.ext.oracle.debug.core"; //$NON-NLS-1$
 
-	public static void saveFunction(OracleProcedureStandalone procedure, Map<String, Object> configuration) {
-		OracleDataSource dataSource = procedure.getDataSource();
-		DBPDataSourceContainer dataSourceContainer = dataSource.getContainer();
+    public static void saveFunction(OracleProcedureStandalone procedure, Map<String, Object> configuration) {
+        DBPDataSourceContainer dataSourceContainer = procedure.getDataSource().getContainer();
+        configuration.put(DBGConstants.ATTR_PROJECT_NAME, dataSourceContainer.getProject().getName());
+        configuration.put(DBGConstants.ATTR_DATASOURCE_ID, dataSourceContainer.getId());
+        configuration.put(DBGConstants.ATTR_DEBUG_TYPE, OracleDebugConstants.DEBUG_TYPE_FUNCTION);
+        configuration.put(OracleDebugConstants.ATTR_SCHEMA_NAME, procedure.getSchema().getName());
+        configuration.put(OracleDebugConstants.ATTR_FUNCTION_NAME, procedure.getName());
+    }
 
-		String schemaName = procedure.getSchema().getName();
-
-		configuration.put(DBGConstants.ATTR_PROJECT_NAME, dataSourceContainer.getProject().getName());
-		configuration.put(DBGConstants.ATTR_DATASOURCE_ID, dataSourceContainer.getId());
-		configuration.put(DBGConstants.ATTR_DEBUG_TYPE, OracleDebugConstants.DEBUG_TYPE_FUNCTION);
-		configuration.put(OracleDebugConstants.ATTR_SCHEMA_NAME, schemaName);
-		configuration.put(OracleDebugConstants.ATTR_FUNCTION_OID, String.valueOf(procedure.getObjectId()));
-		configuration.put(OracleDebugConstants.ATTR_FUNCTION_NAME, procedure.getName());
-	}
-
-	public static OracleProcedureStandalone resolveFunction(DBRProgressMonitor monitor,
-			DBPDataSourceContainer dsContainer, Map<String, Object> configuration) throws DBException {
-		if (!dsContainer.isConnected()) {
-			dsContainer.connect(monitor, true, true);
-		}
-		String functionName = String.valueOf(configuration.get(OracleDebugConstants.ATTR_FUNCTION_NAME));
-		String schemaName = (String) configuration.get(OracleDebugConstants.ATTR_SCHEMA_NAME);
-		OracleDataSource ds = (OracleDataSource) dsContainer.getDataSource();
-		OracleSchema schema = ds.getSchema(monitor, schemaName);
-		if (schema != null) {
-			OracleProcedureStandalone function = schema.getProcedure(monitor, functionName);
-			if (function != null) {
-				return function;
-			}
-			throw new DBException("Function " + functionName + " not found in schema " + schemaName);
-		} else {
-			throw new DBException("Schema '" + schemaName + "' not found ");
-		}
-	}
+    public static OracleProcedureStandalone resolveFunction(DBRProgressMonitor monitor, DBPDataSourceContainer dsContainer,
+                                                            Map<String, Object> configuration) throws DBException {
+        if (!dsContainer.isConnected()) {
+            dsContainer.connect(monitor, true, true);
+        }
+        String functionName = String.valueOf(configuration.get(OracleDebugConstants.ATTR_FUNCTION_NAME));
+        String schemaName = (String) configuration.get(OracleDebugConstants.ATTR_SCHEMA_NAME);
+        OracleDataSource ds = (OracleDataSource) dsContainer.getDataSource();
+        OracleSchema schema = ds.getSchema(monitor, schemaName);
+        if (schema != null) {
+            OracleProcedureStandalone function = schema.getProcedure(monitor, functionName);
+            if (function != null) {
+                return function;
+            }
+            throw new DBException("Function " + functionName + " not found in schema " + schemaName);
+        } else {
+            throw new DBException("Schema '" + schemaName + "' not found ");
+        }
+    }
 }

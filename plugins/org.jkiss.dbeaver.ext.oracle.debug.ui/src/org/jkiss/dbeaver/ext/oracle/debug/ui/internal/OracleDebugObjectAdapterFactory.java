@@ -17,6 +17,7 @@
 package org.jkiss.dbeaver.ext.oracle.debug.ui.internal;
 
 import org.eclipse.core.runtime.IAdapterFactory;
+import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.debug.DBGDebugObject;
 import org.jkiss.dbeaver.ext.oracle.model.OracleProcedureStandalone;
 import org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor;
@@ -33,19 +34,16 @@ public class OracleDebugObjectAdapterFactory implements IAdapterFactory {
     @Override
     public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
         if (adapterType == DBGDebugObject.class) {
-            if (adaptableObject instanceof OracleSourceDeclarationEditor &&
-                ((OracleSourceDeclarationEditor) adaptableObject).getSourceObject() instanceof OracleProcedureStandalone)
-            {
+            if (adaptableObject instanceof OracleSourceDeclarationEditor
+                    && ((OracleSourceDeclarationEditor) adaptableObject).getSourceObject() instanceof OracleProcedureStandalone) {
                 return adapterType.cast(DEBUG_OBJECT);
             }
             if (adaptableObject instanceof IDatabaseEditorInput &&
-                ((IDatabaseEditorInput) adaptableObject).getDatabaseObject() instanceof OracleProcedureStandalone)
-            {
+                    ((IDatabaseEditorInput) adaptableObject).getDatabaseObject() instanceof OracleProcedureStandalone) {
                 return adapterType.cast(DEBUG_OBJECT);
             }
             if (adaptableObject instanceof DBNDatabaseNode &&
-                ((DBNDatabaseNode) adaptableObject).getObject() instanceof OracleProcedureStandalone)
-            {
+                    ((DBNDatabaseNode) adaptableObject).getObject() instanceof OracleProcedureStandalone) {
                 return adapterType.cast(DEBUG_OBJECT);
             }
         }

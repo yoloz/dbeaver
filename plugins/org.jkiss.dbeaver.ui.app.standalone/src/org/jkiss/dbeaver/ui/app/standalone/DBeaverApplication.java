@@ -17,6 +17,8 @@
 package org.jkiss.dbeaver.ui.app.standalone;
 
 import org.apache.commons.cli.CommandLine;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -243,7 +245,7 @@ public class DBeaverApplication extends DesktopApplicationImpl implements DBPApp
         initializeConfiguration();
 
         // Debug logger
-        initDebugWriter();
+//        initDebugWriter();
 
         log.debug(GeneralUtils.getProductName() + " " + GeneralUtils.getProductVersion() + " is starting"); //$NON-NLS-1$
         log.debug("OS: " + System.getProperty(StandardConstants.ENV_OS_NAME) + " " + System.getProperty(StandardConstants.ENV_OS_VERSION) + " (" + System.getProperty(StandardConstants.ENV_OS_ARCH) + ")");
@@ -696,8 +698,27 @@ public class DBeaverApplication extends DesktopApplicationImpl implements DBPApp
             instance = null;
 
             log.debug("DBeaver shutdown completed"); //$NON-NLS-1$
+            clearPluginLaunch();
+//            stopDebugWriter();
+        }
+    }
 
-            stopDebugWriter();
+    private void clearPluginLaunch() {
+        IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+        Path pluginPath = Paths.get(path.toString(), ".metadata", ".plugins");
+        if (pluginPath.toFile().exists()) {
+            try (Stream<Path> walk = Files.walk(pluginPath)) {
+                walk.sorted(Comparator.reverseOrder())
+                        .forEach(p -> {
+                            try {
+                                Files.delete(p);
+                            } catch (IOException e) {
+                                log.warn(e.getMessage());
+                            }
+                        });
+            } catch (IOException e) {
+                log.debug(e.getMessage());
+            }
         }
     }
 

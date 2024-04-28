@@ -34,6 +34,9 @@
     </extension>
 
     <extension point="org.eclipse.core.runtime.adapters">
+        <factory adaptableType="org.jkiss.dbeaver.ui.editors.entity.EntityEditor" class="org.jkiss.dbeaver.debug.ui.actions.DebugActionAdapterFactory">
+            <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
+        </factory>
         <factory adaptableType="org.jkiss.dbeaver.ext.postgresql.ui.editors.PostgreSourceViewEditor" class="org.jkiss.dbeaver.debug.ui.actions.DebugActionAdapterFactory">
             <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
         </factory>
@@ -55,7 +58,7 @@
                     actionID="RulerDoubleClick"
                     class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
                     icon="platform:/plugin/org.eclipse.debug.ui/$nl$/icons/full/obj16/brkp_obj.png"
-                    id="org.jkiss.dbeaver.debug.ui.actions.ManageBreakpointRulerAction"
+                    id="org.jkiss.dbeaver.debug.ui.actions.pgsql.ManageBreakpointRulerAction"
                     label="%actions.ManageBreakpointRulerAction.label"
                     style="push">
             </action>

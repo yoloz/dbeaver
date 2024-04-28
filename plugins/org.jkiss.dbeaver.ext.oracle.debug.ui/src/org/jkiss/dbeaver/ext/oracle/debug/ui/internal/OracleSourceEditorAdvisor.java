@@ -21,11 +21,11 @@ import org.jkiss.dbeaver.debug.ui.DBGEditorAdvisor;
 
 public class OracleSourceEditorAdvisor implements DBGEditorAdvisor {
 
-    private static final String POSTGRESQL_SOURCE_VIEW = "oracle.source.view"; //$NON-NLS-1$
+    private static final String ORACLE_SOURCE_DECLARATION = "oracle.source.declaration"; //$NON-NLS-1$
 
     @Override
     public String getSourceFolderId() {
-        return POSTGRESQL_SOURCE_VIEW;
+        return ORACLE_SOURCE_DECLARATION;
     }
 
 }

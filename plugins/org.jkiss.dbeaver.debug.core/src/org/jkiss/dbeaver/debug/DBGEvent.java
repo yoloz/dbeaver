@@ -67,4 +67,36 @@ public class DBGEvent extends EventObject {
         return details;
     }
 
+    @Override
+    public String toString() {
+        return "DBGEvent{" +
+                "kind=" + toKind(kind) +
+                ", details=" + toDetail(details) +
+                '}';
+    }
+
+    private String toKind(int status) {
+        return switch (status) {
+            case 0x0001 -> "RESUME";
+            case 0x0002 -> "SUSPEND";
+            case 0x0004 -> "CREATE";
+            case 0x0008 -> "TERMINATE";
+            case 0x0010 -> "CHANGE";
+            case 0x0020 -> "MODEL_SPECIFIC";
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
+    }
+
+    private String toDetail(int status) {
+        return switch (status) {
+            case 0 -> "UNSPECIFIED";
+            case 0x0001 -> "STEP_INTO";
+            case 0x0002 -> "STEP_OVER";
+            case 0x0004 -> "STEP_RETURN";
+            case 0x0008 -> "STEP_END";
+            case 0x0010 -> "BREAKPOINT";
+            case 0x0020 -> "CLIENT_REQUEST";
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
+    }
 }

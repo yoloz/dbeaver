@@ -24,55 +24,36 @@ import org.jkiss.dbeaver.debug.DBGVariableType;
 
 public class OracleDebugVariable implements DBGVariable<String> {
 
-    private final String name;
+    private String name;
+    private String val;
+    private String dataType;
+    private int lineNumber;
+    private String kind;  //IN,OUT,IN_OUT,RETURN
 
-    private final String varclass;
-
-    private final int lineNumber;
-
-    private final boolean unique;
-
-    private final boolean constant;
-
-    private final boolean notnull;
-
-    private final int oid;
-
-    private final String val;
 
     @Override
     public String getVal() {
-
         return val;
     }
 
     @Override
     public String getName() {
-
         return name;
     }
 
     @Override
     public DBGVariableType getType() {
-        // TODO Auto-generated method stub
-        return DBGVariableType.TEXT;
+        String type = dataType.toLowerCase();
+        return switch (type) {
+            case "number", "integer", "binary_integer" -> DBGVariableType.NUMBER;
+            case "date", "timestamp" -> DBGVariableType.DATE;
+            case "raw", "blob" -> DBGVariableType.BLOB;
+            default -> DBGVariableType.TEXT;
+        };
     }
 
-    public OracleDebugVariable(String name, String varclass, int linenumber, boolean unique, boolean constant,
-            boolean notnull, int oid, String val) {
+    public OracleDebugVariable() {
         super();
-        this.name = name;
-        this.varclass = varclass;
-        this.lineNumber = linenumber;
-        this.unique = unique;
-        this.constant = constant;
-        this.notnull = notnull;
-        this.oid = oid;
-        this.val = val;
-    }
-
-    public String getVarclass() {
-        return varclass;
     }
 
     @Override
@@ -80,28 +61,46 @@ public class OracleDebugVariable implements DBGVariable<String> {
         return lineNumber;
     }
 
-    public boolean isUnique() {
-        return unique;
+    @Override
+    public void setValue(String text) {
+        this.val = text;
     }
 
-    public boolean isConstant() {
-        return constant;
+    public String getDataType() {
+        return dataType;
     }
 
-    public boolean isNotnull() {
-        return notnull;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public int getOid() {
-        return oid;
+    public void setVal(String val) {
+        this.val = val;
     }
 
-    @SuppressWarnings("nls")
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    public String getKind() {
+        return kind;
+    }
+
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+
     @Override
     public String toString() {
-        return "PostgreDebugVariable [name=" + name + ", val=" + val + ", varclass=" + varclass + ", lineNumber="
-                + lineNumber + ", unique=" + unique + ", constant=" + constant + ", notnull=" + notnull + ", oid=" + oid
-                + "]";
+        return "OracleDebugVariable{" +
+                "name='" + name + '\'' +
+                ", val='" + val + '\'' +
+                ", dataType='" + dataType + '\'' +
+                ", lineNumber=" + lineNumber +
+                '}';
     }
-
 }

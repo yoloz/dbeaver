@@ -25,7 +25,7 @@
     <includes id="org.jkiss.dbeaver.standalone.feature" version="0.0.0"/>
     <includes id="org.jkiss.dbeaver.app.local.feature" version="0.0.0"/>
     <includes id="org.jkiss.dbeaver.ui.extra.feature" version="0.0.0"/>
-
+    <includes id="org.jkiss.dbeaver.debug.feature" version="0.0.0"/>
     <plugin id="org.jkiss.dbeaver.ui.app.standalone" version="0.0.0"/>
 
 </feature>

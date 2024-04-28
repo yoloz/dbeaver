@@ -20,7 +20,6 @@ package org.jkiss.dbeaver.ext.oracle.debug.internal.impl;
 
 import org.jkiss.dbeaver.debug.DBGController;
 import org.jkiss.dbeaver.debug.DBGControllerFactory;
-import org.jkiss.dbeaver.debug.DBGException;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 
 import java.util.Map;
@@ -29,7 +28,7 @@ public class OracleDebugControllerFactory implements DBGControllerFactory {
 
 
     @Override
-    public DBGController createController(DBPDataSourceContainer dataSource, Map<String, Object> context) throws DBGException {
+    public DBGController createController(DBPDataSourceContainer dataSource, Map<String, Object> context) {
         return new OracleDebugController(dataSource, context);
     }
 }

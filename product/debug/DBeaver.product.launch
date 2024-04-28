@@ -290,6 +290,8 @@
         <setEntry value="org.jkiss.dbeaver.ext.netezza@default:default"/>
         <setEntry value="org.jkiss.dbeaver.ext.ocient@default:default"/>
         <setEntry value="org.jkiss.dbeaver.ext.opendistro@default:default"/>
+        <setEntry value="org.jkiss.dbeaver.ext.oracle.debug.core@default:default"/>
+        <setEntry value="org.jkiss.dbeaver.ext.oracle.debug.ui@default:default"/>
         <setEntry value="org.jkiss.dbeaver.ext.oracle.ui@default:default"/>
         <setEntry value="org.jkiss.dbeaver.ext.oracle@default:default"/>
         <setEntry value="org.jkiss.dbeaver.ext.phoenix@default:default"/>

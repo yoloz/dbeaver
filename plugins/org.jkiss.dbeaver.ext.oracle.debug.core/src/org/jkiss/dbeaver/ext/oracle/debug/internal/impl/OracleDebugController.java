@@ -23,9 +23,14 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.debug.DBGBaseController;
 import org.jkiss.dbeaver.debug.DBGBreakpointDescriptor;
 import org.jkiss.dbeaver.debug.DBGException;
+import org.jkiss.dbeaver.ext.oracle.debug.OracleDebugConstants;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.Map;
 
 public class OracleDebugController extends DBGBaseController {
@@ -38,28 +43,46 @@ public class OracleDebugController extends DBGBaseController {
 
     @Override
     public OracleDebugSession createSession(DBRProgressMonitor monitor, Map<String, Object> configuration)
-            throws DBGException
-    {
-        OracleDebugSession pgSession = null;
+            throws DBGException {
+        OracleDebugSession debugSession = null;
         try {
-            log.debug("Creating debug session");
-            pgSession = new OracleDebugSession(monitor,this);
-
-            log.debug("Attaching debug session");
-            pgSession.attach(monitor, configuration);
-
-            log.debug("Debug session created");
-            return pgSession;
+            debugSession = new OracleDebugSession(monitor, this);
+            try (Statement statement = debugSession.targetSessionContext.getConnection(monitor).createStatement()) {
+                statement.execute(OracleDebugConstants.SQL_SESSION_DEBUG);
+            } catch (SQLException e) {
+                throw new DBGException("SQL error", e);
+            }
+            String targetId;
+            try (CallableStatement statement = debugSession.targetSessionContext.getConnection(monitor)
+                    .prepareCall(OracleDebugConstants.SQL_QUERY_SESSION_ID)) {
+                statement.registerOutParameter("retvar", Types.VARCHAR);
+                statement.execute();
+                targetId = statement.getString("retvar");
+            } catch (SQLException e) {
+                throw new DBGException("SQL error", e);
+            }
+            try (CallableStatement statement = debugSession.targetSessionContext.getConnection(monitor)
+                    .prepareCall(OracleDebugConstants.SQL_DEBUG_ON)) {
+                statement.execute();
+            } catch (SQLException e) {
+                throw new DBGException("SQL error", e);
+            }
+            debugSession.attach(monitor, targetId);
+            log.debug("Attached target session.");
+            debugSession.executeFunction(monitor, configuration);
+            debugSession.debugSessionSynchronize(monitor);
+            log.debug("Debug session synchronize success.");
+            return debugSession;
         } catch (DBException e) {
-            if (pgSession != null) {
+            if (debugSession != null) {
                 try {
-                    pgSession.closeSession(monitor);
+                    debugSession.closeSession(monitor);
                 } catch (Exception e1) {
                     log.error(e1);
                 }
             }
             if (e instanceof DBGException) {
-                throw (DBGException)e;
+                throw (DBGException) e;
             }
             log.debug(String.format("Error attaching debug session %s", e.getMessage()));
             throw new DBGException("Error attaching debug session", e);

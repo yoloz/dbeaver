@@ -15,29 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jkiss.dbeaver.ext.oracle.debug.ui.internal;
 
 import org.eclipse.core.runtime.IAdapterFactory;
-import org.jkiss.dbeaver.debug.ui.DBGEditorAdvisor;
-import org.jkiss.dbeaver.ext.oracle.model.OracleDataSource;
-import org.jkiss.dbeaver.model.DBPDataSource;
-import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.eclipse.debug.ui.actions.ILaunchable;
+import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 
-public class OracleDebugUIAdapterFactory implements IAdapterFactory {
+public class OracleDebugActionAdapterFactory implements IAdapterFactory {
 
-    private static final Class<?>[] CLASSES = new Class[] { DBGEditorAdvisor.class };
-    
-    private DBGEditorAdvisor debugEditorAdvisor = new OracleSourceEditorAdvisor();
+    private static final Class<?>[] CLASSES = new Class[] { ILaunchable.class, IToggleBreakpointsTarget.class };
+
+    private static final ILaunchable LAUNCHABLE = new ILaunchable() {
+    };
+
+    private final IToggleBreakpointsTarget toggleBreakpointTarget = new OracleToggleProcedureBreakpointTarget();
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
-        if (adapterType == DBGEditorAdvisor.class) {
-            if (adaptableObject instanceof DBPDataSourceContainer sourceContainer) {
-                DBPDataSource dataSource = sourceContainer.getDataSource();
-                if (dataSource instanceof OracleDataSource) {
-                    return adapterType.cast(debugEditorAdvisor);
-                }
-            }
+        if (adapterType == ILaunchable.class) {
+            return (T) LAUNCHABLE;
+        }
+        if (adapterType == IToggleBreakpointsTarget.class) {
+            return (T) toggleBreakpointTarget;
         }
         return null;
     }
