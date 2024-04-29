@@ -26,11 +26,15 @@ import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.app.DBPProject;
 import org.jkiss.dbeaver.model.data.DBDDataFilter;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractExecutionSource;
 import org.jkiss.dbeaver.model.impl.DataSourceContextProvider;
+import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTable;
 import org.jkiss.dbeaver.model.meta.DBSerializable;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.DBRRunnableContext;
+import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.sql.SQLQuery;
 import org.jkiss.dbeaver.model.sql.SQLQueryContainer;
 import org.jkiss.dbeaver.model.sql.SQLScriptContext;
@@ -53,6 +57,7 @@ import org.jkiss.utils.CommonUtils;
 
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +188,21 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
         }
         DBPDataSource dataSource = databaseObject.getDataSource();
         assert (dataSource != null);
+
+        //check export data permit
+        String driverClassName = dataSource.getContainer().getDriver().getDriverClassName();
+        if ("com.zhds.dcap.jdbc.sdk.JdbcDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
+            try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dataSource, "Check export permission");
+                 JDBCStatement statement = session.createStatement()) {
+                String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
+                boolean bool = statement.execute("YZSecExport:" + resourceName);
+                if (!bool) {
+                    throw new DBException("No permission export data from:" + resourceName);
+                }
+            } catch (SQLException e) {
+                throw new DBException(e.getMessage());
+            }
+        }
 
         DBExecUtils.tryExecuteRecover(monitor1, dataSource, monitor -> {
             long readFlags = DBSDataContainer.FLAG_NONE;

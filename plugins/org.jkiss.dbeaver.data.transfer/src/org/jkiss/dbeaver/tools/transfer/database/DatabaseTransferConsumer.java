@@ -28,7 +28,10 @@ import org.jkiss.dbeaver.model.data.DBDInsertReplaceMethod;
 import org.jkiss.dbeaver.model.data.DBDValueHandler;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractExecutionSource;
+import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTable;
 import org.jkiss.dbeaver.model.impl.struct.AbstractAttribute;
 import org.jkiss.dbeaver.model.meta.DBSerializable;
 import org.jkiss.dbeaver.model.navigator.DBNDatabaseNode;
@@ -637,6 +640,21 @@ public class DatabaseTransferConsumer implements IDataTransferConsumer<DatabaseC
                 DBSObjectContainer container = settings.getContainer();
                 if (container == null) {
                     throw new DBException("No target datasource - can't create target objects");
+                }
+
+                //check import data permit
+                String driverClassName = container.getDataSource().getContainer().getDriver().getDriverClassName();
+                if ("com.zhds.dcap.jdbc.sdk.JdbcDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
+                    try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dbObject, "Check import permission");
+                         JDBCStatement statement = session.createStatement()) {
+                        String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
+                        boolean bool = statement.execute("YZSecExport:" + resourceName);
+                        if (!bool) {
+                            throw new DBException("No permission to import data to:" + resourceName);
+                        }
+                    } catch (SQLException e) {
+                        throw new DBException(e.getMessage());
+                    }
                 }
 
                 boolean hasNewObjects = createTargetDatabaseObjects(monitor, dbObject);
