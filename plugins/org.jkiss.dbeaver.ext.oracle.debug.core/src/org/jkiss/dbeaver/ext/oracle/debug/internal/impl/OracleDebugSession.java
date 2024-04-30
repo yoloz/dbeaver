@@ -434,9 +434,10 @@ public class OracleDebugSession extends DBGJDBCSession {
         Map<String, String> variablesMap;
         if (stack != null) {
             variablesMap = selectFrame(stack.getLevel());
-            try (CallableStatement statement = debugSessionContext.getConnection(voidMonitor).prepareCall(OracleDebugConstants.SQL_GET_VARS)) {
-                for (String variable : variablesMap.keySet()) {
-                    if (!this.pattern.matcher(variable).find()) {
+
+            for (String variable : variablesMap.keySet()) {
+                if (!this.pattern.matcher(variable).find()) {
+                    try (CallableStatement statement = debugSessionContext.getConnection(voidMonitor).prepareCall(OracleDebugConstants.SQL_GET_VARS)) {
                         statement.setString("variable", variable);
                         statement.registerOutParameter("1", Types.INTEGER);
                         statement.registerOutParameter("2", Types.VARCHAR);
@@ -449,10 +450,11 @@ public class OracleDebugSession extends DBGJDBCSession {
                         } else {
                             log.warn(variable + "=>:" + OracleDebugException.getMessage(result));
                         }
+                    } catch (SQLException e) {
+                        log.error("getVariables fail-->", e);
+                        variablesMap.put(variable, "");
                     }
                 }
-            } catch (SQLException e) {
-                throw new DBGException("SQL error", e);
             }
         } else {
             variablesMap = new HashMap<>();
