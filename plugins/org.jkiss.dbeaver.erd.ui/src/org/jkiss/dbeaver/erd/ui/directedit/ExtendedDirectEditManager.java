@@ -55,7 +55,7 @@ public class ExtendedDirectEditManager extends DirectEditManager {
      * @param editorType type of editor
      * @param locator    the CellEditorLocator
      */
-    public ExtendedDirectEditManager(GraphicalEditPart source, Class<?> editorType, CellEditorLocator locator,
+    public ExtendedDirectEditManager(GraphicalEditPart source, Class editorType, CellEditorLocator locator,
                                      IFigure figure, ICellEditorValidator validator) {
         super(source, editorType, locator);
         this.figure = figure;
