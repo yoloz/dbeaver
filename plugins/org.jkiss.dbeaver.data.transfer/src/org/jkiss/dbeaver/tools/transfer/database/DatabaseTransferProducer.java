@@ -191,7 +191,7 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
 
         //check export data permit
         String driverClassName = dataSource.getContainer().getDriver().getDriverClassName();
-        if ("com.zhds.dcap.jdbc.sdk.JdbcDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
+        if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
             try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dataSource, "Check export permission");
                  JDBCStatement statement = session.createStatement()) {
                 String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);

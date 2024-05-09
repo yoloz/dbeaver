@@ -644,7 +644,7 @@ public class DatabaseTransferConsumer implements IDataTransferConsumer<DatabaseC
 
                 //check import data permit
                 String driverClassName = container.getDataSource().getContainer().getDriver().getDriverClassName();
-                if ("com.zhds.dcap.jdbc.sdk.JdbcDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
+                if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
                     try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dbObject, "Check import permission");
                          JDBCStatement statement = session.createStatement()) {
                         String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
