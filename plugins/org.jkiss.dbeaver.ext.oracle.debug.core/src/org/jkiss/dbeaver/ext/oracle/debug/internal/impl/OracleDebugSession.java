@@ -433,11 +433,13 @@ public class OracleDebugSession extends DBGJDBCSession {
     public List<DBGVariable<?>> getVariables(DBGStackFrame stack) throws DBGException {
         Map<String, String> variablesMap;
         if (stack != null) {
+            String varname = null;
             variablesMap = selectFrame(stack.getLevel());
-
-            for (String variable : variablesMap.keySet()) {
-                if (!this.pattern.matcher(variable).find()) {
-                    try (CallableStatement statement = debugSessionContext.getConnection(voidMonitor).prepareCall(OracleDebugConstants.SQL_GET_VARS)) {
+            try (CallableStatement statement = debugSessionContext.getConnection(voidMonitor).prepareCall(OracleDebugConstants.SQL_GET_VARS)) {
+                for (String variable : variablesMap.keySet()) {
+                    varname = variable;
+                    if (!this.pattern.matcher(variable).find()) {
+                        statement.clearParameters();
                         statement.setString("variable", variable);
                         statement.registerOutParameter("1", Types.INTEGER);
                         statement.registerOutParameter("2", Types.VARCHAR);
@@ -450,10 +452,12 @@ public class OracleDebugSession extends DBGJDBCSession {
                         } else {
                             log.warn(variable + "=>:" + OracleDebugException.getMessage(result));
                         }
-                    } catch (SQLException e) {
-                        log.error("getVariables fail-->", e);
-                        variablesMap.put(variable, "");
                     }
+                }
+            } catch (Exception e) {
+                log.error("getVariables fail-->", e);
+                if (varname != null) {
+                    variablesMap.put(varname, "");
                 }
             }
         } else {
