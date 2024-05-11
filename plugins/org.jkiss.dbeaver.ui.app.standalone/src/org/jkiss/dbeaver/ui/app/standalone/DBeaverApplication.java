@@ -240,7 +240,10 @@ public class DBeaverApplication extends DesktopApplicationImpl implements DBPApp
         initializeConfiguration();
 
         // Debug logger
-//        initDebugWriter();
+        // initDebugWriter();
+
+        // clear log
+        clearLogFile();
 
         log.debug(GeneralUtils.getProductName() + " " + GeneralUtils.getProductVersion() + " is starting"); //$NON-NLS-1$
         log.debug("OS: " + System.getProperty(StandardConstants.ENV_OS_NAME) + " " + System.getProperty(StandardConstants.ENV_OS_VERSION) + " (" + System.getProperty(StandardConstants.ENV_OS_ARCH) + ")");
@@ -695,6 +698,25 @@ public class DBeaverApplication extends DesktopApplicationImpl implements DBPApp
             log.debug("DBeaver shutdown completed"); //$NON-NLS-1$
             clearPluginLaunch();
 //            stopDebugWriter();
+        }
+    }
+
+    private void clearLogFile() {
+        IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+        Path pluginPath = Paths.get(path.toString(), ".metadata");
+        if (pluginPath.toFile().exists()) {
+            try (Stream<Path> walk = Files.walk(pluginPath)) {
+                walk.map(Path::toString).filter(str -> str.endsWith(".log"))
+                        .forEach(str -> {
+                            try {
+                                Files.delete(Paths.get(str));
+                            } catch (IOException e) {
+                                log.warn(e.getMessage());
+                            }
+                        });
+            } catch (IOException e) {
+                log.debug(e.getMessage());
+            }
         }
     }
 
