@@ -16,8 +16,24 @@
  */
 package org.jkiss.dbeaver.ext.vertica;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider;
+import org.jkiss.dbeaver.ext.vertica.model.VerticaDataSource;
+import org.jkiss.dbeaver.ext.vertica.model.VerticaMetaModel;
+import org.jkiss.dbeaver.model.DBPDataSource;
+import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 
 public class VerticaDataSourceProvider extends GenericDataSourceProvider {
 
+    @NotNull
+    @Override
+    public DBPDataSource openDataSource(
+            @NotNull DBRProgressMonitor monitor,
+            @NotNull DBPDataSourceContainer container)
+            throws DBException {
+        VerticaMetaModel verticaMetaModel = new VerticaMetaModel();
+        return new VerticaDataSource(monitor, container, verticaMetaModel);
+    }
 }

@@ -17,11 +17,27 @@
 
 package org.jkiss.dbeaver.ext.dameng;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.ext.dameng.model.DamengDataSource;
+import org.jkiss.dbeaver.ext.dameng.model.DamengMetaModel;
 import org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider;
+import org.jkiss.dbeaver.model.DBPDataSource;
+import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 
 /**
  * @author Shengkai Bai
  */
 public class DamengDataSourceProvider extends GenericDataSourceProvider {
 
+    @NotNull
+    @Override
+    public DBPDataSource openDataSource(
+            @NotNull DBRProgressMonitor monitor,
+            @NotNull DBPDataSourceContainer container)
+            throws DBException {
+        DamengMetaModel damengMetaModel = new DamengMetaModel();
+        return new DamengDataSource(monitor, container, damengMetaModel);
+    }
 }

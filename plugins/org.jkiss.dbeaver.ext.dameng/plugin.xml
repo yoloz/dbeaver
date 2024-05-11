@@ -256,14 +256,33 @@
                     <file type="jar" path="drivers/dameng" bundle="drivers.dameng"/>
                     <file type="license" path="drivers/apache_lic/LICENSE.txt" bundle="drivers.dameng"/>
                 </driver>
+                <driver
+                        id="dameng_yzsec"
+                        label="Dameng(YZSec)"
+                        icon="icons/dm_icon.png"
+                        iconBig="icons/dm_icon_big.png"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        useURL="false"
+                        defaultPort="10000"
+                        defaultDataBase="SYSDBA"
+                        defaultUser="SYSDBA"
+                        webURL="https://eco.dameng.com/document/dm/zh-cn/pm/jdbc-rogramming-guide.html"
+                        description="YZSec JDBC driver for Dameng database"
+                        categories="sql">
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+<!--                    <file type="license" path="http://www.apache.org/licenses/LICENSE-2.0.txt" bundle="!drivers.dameng"/>-->
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+<!--                    <file type="license" path="drivers/apache_lic/LICENSE.txt" bundle="drivers.dameng"/>-->
+                </driver>
             </drivers>
 
         </datasource>
     </extension>
-    <extension point="org.jkiss.dbeaver.generic.meta">
-        <meta id="dameng" class="org.jkiss.dbeaver.ext.dameng.model.DamengMetaModel"
-              driverClass="dm.jdbc.driver.DmDriver"/>
-    </extension>
+<!--    <extension point="org.jkiss.dbeaver.generic.meta">-->
+<!--        <meta id="dameng" class="org.jkiss.dbeaver.ext.dameng.model.DamengMetaModel"-->
+<!--              driverClass="dm.jdbc.driver.DmDriver"/>-->
+<!--    </extension>-->
     <extension point="org.jkiss.dbeaver.objectManager">
         <manager class="org.jkiss.dbeaver.ext.dameng.edit.DamengSchemaManager"
                  objectType="org.jkiss.dbeaver.ext.dameng.model.DamengSchema"/>

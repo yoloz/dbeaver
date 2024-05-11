@@ -22,6 +22,7 @@ import org.jkiss.dbeaver.ext.mssql.model.SQLServerAuthentication;
 import org.jkiss.dbeaver.ext.mssql.model.SQLServerDataSource;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.jkiss.dbeaver.model.DatabaseURL;
 import org.jkiss.dbeaver.model.connection.DBPAuthModelDescriptor;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
 import org.jkiss.dbeaver.model.connection.DBPDriver;
@@ -66,8 +67,24 @@ public class SQLServerDataSourceProvider extends JDBCDataSourceProvider {
         boolean isJtds = SQLServerUtils.isDriverJtds(driver);
         boolean isSqlServer = SQLServerUtils.isDriverSqlServer(driver);
         boolean isDriverAzure = isSqlServer && SQLServerUtils.isDriverAzure(driver);
+        boolean isYZSec = SQLServerUtils.isDriverYZSec(driver);
 
-        if (isSqlServer) {
+        if (isYZSec) {
+            if (driver.isSampleURLApplicable()) {
+                return DatabaseURL.generateUrlByTemplate(driver, connectionInfo);
+            } else {
+                url.append("jdbc:yzsec://");
+                url.append(connectionInfo.getHostName());
+                if (!CommonUtils.isEmpty(connectionInfo.getHostPort())) {
+                    url.append(":").append(connectionInfo.getHostPort());
+                }
+                url.append("/");
+                if (!CommonUtils.isEmpty(connectionInfo.getDatabaseName())) {
+                    url.append(connectionInfo.getDatabaseName());
+                }
+                return url.toString();
+            }
+        } else if (isSqlServer) {
             // SQL Server
             if (isJtds) {
                 url.append("jdbc:jtds:sqlserver://");

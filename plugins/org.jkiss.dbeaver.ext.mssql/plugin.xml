@@ -268,6 +268,39 @@
                     <parameter name="jtds" value="true"/>
                 </driver>
 
+                <driver
+                        id="mssql_yzsec"
+                        label="SQL Server(YZSec)"
+                        icon="icons/mssql_icon.png"
+                        iconBig="icons/mssql_icon_big.png"
+                        category="MS SQL Server"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        useURL="false"
+                        defaultPort="10000"
+                        defaultDatabase="master"
+                        webURL="https://github.com/Microsoft/mssql-jdbc"
+                        description="YZSec JDBC driver for MSSQL database"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        promoted="1"
+                        categories="sql">
+
+                    <replace provider="mssql" driver="mssql_jdbc_ms_new"/>
+                    <replace provider="mssql" driver="mssql_jdbc_legacy"/>
+
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+<!--                    <file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>-->
+
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+<!--                    <file type="license" path="drivers/mssql/new/LICENSE.txt" bundle="drivers.mssql.new"/>-->
+
+                    <provider-properties>
+                        <propertyGroup label="Advanced">
+                            <property id="@dbeaver-show-all-schemas@" label="Show all schemas" type="boolean" description="Shows all database schemas. If disabled shows only non-empty schemas."/>
+<!--                            <property id="sslTrustServerCertificate" label="Trust Server Certificate" type="boolean" description="Trust Server Certificate"/>-->
+                        </propertyGroup>
+                    </provider-properties>
+                </driver>
             </drivers>
         </datasource>
 

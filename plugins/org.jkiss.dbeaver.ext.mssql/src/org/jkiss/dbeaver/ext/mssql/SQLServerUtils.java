@@ -59,6 +59,10 @@ public class SQLServerUtils {
         return driver.getSampleURL().contains(":sqlserver");
     }
 
+    public static boolean isDriverYZSec(DBPDriver driver) {
+        return driver.getSampleURL().contains(":yzsec");
+    }
+
     public static boolean isDriverGeneric(DBPDriver driver) {
         return driver.getId().contains("generic");
     }

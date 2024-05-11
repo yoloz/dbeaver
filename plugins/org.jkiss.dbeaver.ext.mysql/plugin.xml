@@ -309,6 +309,35 @@
                     <parameter name="supports-collations" value="false"/>
                     <parameter name="supportsClients" value="false"/>
                 </driver>
+                <driver
+                        id="mysql_yzsec"
+                        label="MySQL(YZSec)"
+                        icon="icons/mysql_icon.png"
+                        iconBig="icons/mysql_icon_big.png"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        useURL="false"
+                        defaultPort="10000"
+                        defaultUser="root"
+                        webURL="https://www.mysql.com/products/connector/"
+                        propertiesURL="https://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html"
+                        description="YZSec JDBC driver for MySQL database"
+                        promoted="1"
+                        categories="sql">
+                    <replace provider="mysql" driver="mysql3"/>
+
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+<!--                    <file type="license" path="https://www.gnu.org/licenses/old-licenses/lgpl-2.0.txt" bundle="!drivers.mysql"/>-->
+<!--                    <file type="license" path="drivers/mysql/LICENSE.txt" bundle="drivers.mysql"/>-->
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+                    <property name="connectTimeout" value="20000"/>
+                    <property name="rewriteBatchedStatements" value="true"/>
+                    <!-- https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-using-ssl.html -->
+                    <property name="enabledTLSProtocols" value="TLSv1,TLSv1.1,TLSv1.2,TLSv1.3"/>
+                    <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
+                    <property name="@dbeaver-default-resultset.format.datetime.native" value="true"/>
+                    <property name="@dbeaver-default-dataformat.type.timestamp.pattern" value="yyyy-MM-dd HH:mm:ss"/>
+                </driver>
                 <provider-properties drivers="*">
                     <propertyGroup label="Advanced">
                         <property id="@dbeaver-serverTimezone@" label="Server Time Zone" type="string"/>

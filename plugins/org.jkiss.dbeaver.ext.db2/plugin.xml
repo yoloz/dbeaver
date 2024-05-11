@@ -475,6 +475,37 @@
                     <file type="jar" path="drivers/db2" bundle="drivers.db2"/>
 
                 </driver>
+                <driver
+                        id="db2_yzsec"
+                        label="Db2 for LUW(YZSec)"
+                        category="Db2"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        useURL="false"
+                        icon="icons/db2_icon.png"
+                        iconBig="icons/db2_icon_big.png"
+                        defaultPort="10000"
+                        webURL="https://www-01.ibm.com/support/docview.wss?uid=swg21363866"
+                        propertiesURL="https://www.ibm.com/docs/en/db2/latest?topic=pdsdjs-common-data-server-driver-jdbc-sqlj-properties-all-database-products"
+                        description="YZSec JDBC driver for Db2 Linux/Unix/Windows"
+                        promoted="1"
+                        categories="sql">
+
+                    <property name="loginTimeout" value="20"/>
+                    <property name="connectionTimeout" value="20"/>
+                    <property name="maxStatements" value="50"/>
+                    <property name="progressiveStreaming" value="2"/>
+                    <property name="retrieveMessagesFromServerOnGetMessage" value="true"/>
+
+                    <property name="@dbeaver-default-dataformat.type.timestamp.pattern" value="yyyy-MM-dd-HH.mm.ss.ffffff"/>
+
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+
+<!--                    <file type="license" path="drivers/db2/LICENSE.txt" bundle="drivers.db2"/>-->
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+
+                </driver>
             </drivers>
         </datasource>
     </extension>

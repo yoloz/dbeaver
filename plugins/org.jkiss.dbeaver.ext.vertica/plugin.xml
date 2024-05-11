@@ -144,6 +144,37 @@
 
                     <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
                 </driver>
+                <driver
+                        id="vertica_yzsec"
+                        label="Vertica(YZSec)"
+                        icon="icons/vertica_icon.png"
+                        iconBig="icons/vertica_icon_big.png"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        defaultPort="10000"
+                        webURL="https://www.vertica.com/download/vertica/client-drivers/"
+                        description="YZSec JDBC driver for Vertica database"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        categories="sql,analytic,columns">
+                    <replace provider="generic" driver="vertica"/>
+                    <replace provider="vertica" driver="vertica-jdbc"/>
+                    <replace provider="vertica" driver="vertica-jdbc-6"/>
+
+<!--                    <file type="license" path="drivers/vertica/LICENSE.txt" bundle="drivers.vertica"/>-->
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+
+                    <parameter name="query-get-active-db" value="select current_schema()"/>
+                    <parameter name="query-set-active-db" value="SET search_path = ?,&quot;$user&quot;,public,v_catalog,v_monitor,v_internal"/>
+                    <parameter name="active-entity-type" value="schema"/>
+
+                    <parameter name="ddl-drop-column-short" value="true"/>
+                    <parameter name="supports-scroll" value="false"/>
+                    <!-- Limits affect INSERT INTO and other DML queries-->
+                    <parameter name="supports-limits" value="false"/>
+
+                    <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
+                </driver>
                 <provider-properties drivers="*">
                     <propertyGroup label="Settings">
                         <property id="disable-comments-reading@" label="Disable objects comments reading" type="boolean" description="Disable objects (tables/sequences/projections, etc.) comments reading. Reading this type of information can dramatically reduce data loading speed." supportedConfigurationTypes="MANUAL,URL"/>

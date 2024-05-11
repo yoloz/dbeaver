@@ -653,6 +653,38 @@
                     <property name="connectTimeout" value="20"/>
                 </driver>
 
+                <driver
+                        id="postgres_yzsec"
+                        label="PostgreSQL(YZSec)"
+                        icon="icons/postgresql_icon.png"
+                        iconBig="icons/postgresql_icon_big.png"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        useURL="false"
+                        defaultPort="10000"
+                        defaultDatabase="postgres"
+                        defaultUser="postgres"
+                        webURL="https://jdbc.postgresql.org/"
+                        propertiesURL="https://jdbc.postgresql.org/documentation/head/connect.html#connection-parameters"
+                        description="YZSec JDBC driver for PostgreSQL database"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        promoted="1"
+                        categories="sql"
+                        dialect="postgresql">
+                    <replace provider="generic" driver="postgresql"/>
+                    <replace provider="postgresql" driver="postgresql"/>
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+<!--                    <file type="license" path="https://raw.githubusercontent.com/pgjdbc/pgjdbc/master/LICENSE" bundle="!drivers.postgresql"/>-->
+
+<!--                    <file type="license" path="drivers/postgresql/LICENSE.txt" bundle="drivers.postgresql"/>-->
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+
+                    <parameter name="serverType" value="postgresql"/>
+                    <property name="loginTimeout" value="20"/>
+                    <property name="connectTimeout" value="20"/>
+                    <property name="escapeSyntaxCallMode" value="callIfNoReturn"/>
+                </driver>
+
                 <provider-properties drivers="*">
                     <propertyGroup label="Misc">
                         <property id="@dbeaver-chosen-role@" label="User role" type="string" description="User role for connection" supportedConfigurationTypes="MANUAL,URL"/>
