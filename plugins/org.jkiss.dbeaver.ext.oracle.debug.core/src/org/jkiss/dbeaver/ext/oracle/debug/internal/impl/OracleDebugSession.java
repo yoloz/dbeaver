@@ -112,15 +112,20 @@ public class OracleDebugSession extends DBGJDBCSession {
     // DBMS_OUTPUT.PUT_LINE('Return'||' = '|| RESULT); END;
     private String assembleExecSql(String owner, String objectName, List<OracleDebugVariable> parameters) {
         StringBuilder builder = new StringBuilder();
-        String output = null;
+        String returnName = null;
+        List<String> outputs = new ArrayList<>();
         // declare parameters
         if (parameters != null && !parameters.isEmpty()) {
             builder.append("DECLARE ");
             for (OracleDebugVariable variable : parameters) {
                 String pname = variable.getName();
                 String kind = variable.getKind();
-                if ("RETURN".equalsIgnoreCase(kind)) { // output result
-                    output = pname;
+                if ("OUT".equalsIgnoreCase(kind) || "IN/OUT".equalsIgnoreCase(kind)) {
+                    outputs.add(pname);
+                }
+                // function has return
+                if ("RETURN".equalsIgnoreCase(kind)) {
+                    returnName = pname;
                 } else {
                     pname = "\"" + pname + "\"";
                 }
@@ -141,14 +146,14 @@ public class OracleDebugSession extends DBGJDBCSession {
         if (parameters != null && !parameters.isEmpty()) {
             for (OracleDebugVariable variable : parameters) {
                 String kind = variable.getKind();
-                if (!"RETURN".equalsIgnoreCase(kind)) {
+                if ("IN".equalsIgnoreCase(kind) || "IN/OUT".equalsIgnoreCase(kind)) {
                     builder.append("\"").append(variable.getName()).append("\"").append(" := ").append("'").append(variable.getVal())
                             .append("'; ");
                 }
             }
         }
-        if (output != null) {
-            builder.append(output).append(" := ");
+        if (returnName != null) {
+            builder.append(returnName).append(" := ");
         }
         builder.append("\"").append(owner).append("\"").append(".").append("\"").append(objectName).append("\"(");
         if (parameters != null && !parameters.isEmpty()) {
@@ -163,8 +168,13 @@ public class OracleDebugSession extends DBGJDBCSession {
             builder.append(paramBuilder.substring(0, paramBuilder.length() - 1));
         }
         builder.append("); ");
-        if (output != null) {
-            builder.append("DBMS_OUTPUT.PUT_LINE('Return'||' = '|| ").append(output).append("); ");
+        if (returnName != null) {
+            builder.append("DBMS_OUTPUT.PUT_LINE('Return'||' = '|| ").append(returnName).append("); ");
+        }
+        if (!outputs.isEmpty()) {
+            for (String out : outputs) {
+                builder.append("DBMS_OUTPUT.PUT_LINE('").append(out).append("'||' = '|| ").append(out).append("); ");
+            }
         }
         builder.append("END;");
         return builder.toString();
