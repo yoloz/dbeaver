@@ -106,6 +106,19 @@ public class MySQLDataSourceProvider extends JDBCDataSourceProvider implements D
         if (driver.isSampleURLApplicable()) {
             return DatabaseURL.generateUrlByTemplate(driver, connectionInfo);
         }
+        if (driver.getSampleURL().contains(":yzsec")) {
+            StringBuilder url = new StringBuilder();
+            url.append("jdbc:yzsec://");
+            url.append(connectionInfo.getHostName());
+            if (!CommonUtils.isEmpty(connectionInfo.getHostPort())) {
+                url.append(":").append(connectionInfo.getHostPort());
+            }
+            url.append("/");
+            if (!CommonUtils.isEmpty(connectionInfo.getDatabaseName())) {
+                url.append(connectionInfo.getDatabaseName());
+            }
+            return url.toString();
+        }
 /*
         String trustStorePath = System.getProperty(StandardConstants.ENV_USER_HOME) + "/.keystore";
 

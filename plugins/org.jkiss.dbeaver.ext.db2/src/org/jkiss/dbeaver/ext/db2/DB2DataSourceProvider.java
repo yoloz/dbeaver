@@ -22,6 +22,7 @@ import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.db2.model.DB2DataSource;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.jkiss.dbeaver.model.DatabaseURL;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
 import org.jkiss.dbeaver.model.connection.DBPDriver;
 import org.jkiss.dbeaver.model.connection.DBPDriverConfigurationType;
@@ -69,6 +70,23 @@ public class DB2DataSourceProvider extends JDBCDataSourceProvider {
     public String getConnectionURL(DBPDriver driver, DBPConnectionConfiguration connectionInfo) {
         if (connectionInfo.getConfigurationType() == DBPDriverConfigurationType.URL) {
             return connectionInfo.getUrl();
+        }
+        if (driver.getSampleURL().contains(":yzsec")) {
+            if (driver.isSampleURLApplicable()) {
+                return DatabaseURL.generateUrlByTemplate(driver, connectionInfo);
+            } else {
+                StringBuilder url = new StringBuilder();
+                url.append("jdbc:yzsec://");
+                url.append(connectionInfo.getHostName());
+                if (!CommonUtils.isEmpty(connectionInfo.getHostPort())) {
+                    url.append(":").append(connectionInfo.getHostPort());
+                }
+                url.append("/");
+                if (!CommonUtils.isEmpty(connectionInfo.getDatabaseName())) {
+                    url.append(connectionInfo.getDatabaseName());
+                }
+                return url.toString();
+            }
         }
         StringBuilder url = new StringBuilder(128);
         url.append("jdbc:db2://").append(connectionInfo.getHostName());
