@@ -170,7 +170,9 @@ public abstract class JDBCTable<DATASOURCE extends DBPDataSource, CONTAINER exte
 
         String sqlQuery = query.toString();
         statistics.setQueryText(sqlQuery);
-
+        if(dataFilter.isYzSecExport()){
+            sqlQuery = "/*YZSecExport*/" + sqlQuery;
+        }
         monitor.subTask(ModelMessages.model_jdbc_fetch_table_data);
 
         try (DBCStatement dbStat = DBUtils.makeStatement(

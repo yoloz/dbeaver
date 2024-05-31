@@ -140,6 +140,7 @@ public class StreamConsumerSettings implements IDataTransferConsumerSettings {
     private final Map<DBSDataContainer, StreamMappingContainer> dataMappings = new LinkedHashMap<>();
     private final Map<String, Map<String, Object>> eventProcessors = new HashMap<>();
 
+    private String yzSecKey; // not null will compress and encrypt
 
     public void setDataFileConflictBehavior(@NotNull DataFileConflictBehavior dataFileConflictBehavior) {
         this.dataFileConflictBehavior = dataFileConflictBehavior;
@@ -242,6 +243,14 @@ public class StreamConsumerSettings implements IDataTransferConsumerSettings {
 
     public void setCompressResults(boolean compressResults) {
         this.compressResults = compressResults;
+    }
+
+    public String getYzSecKey() {
+        return yzSecKey;
+    }
+
+    public void setYzSecKey(String yzSecKey) {
+        this.yzSecKey = yzSecKey;
     }
 
     public boolean isSplitOutFiles() {

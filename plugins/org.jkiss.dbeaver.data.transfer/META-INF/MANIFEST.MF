@@ -27,5 +27,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.jkiss.dbeaver.model.sql,
  org.jkiss.dbeaver.registry,
  org.jkiss.dbeaver.model.jdbc
-Bundle-ClassPath: .
+Bundle-ClassPath: .,lib/zip4j.jar
 Automatic-Module-Name: org.jkiss.dbeaver.data.transfer

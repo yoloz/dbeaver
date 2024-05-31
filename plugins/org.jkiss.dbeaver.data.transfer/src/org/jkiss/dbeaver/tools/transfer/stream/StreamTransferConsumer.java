@@ -16,6 +16,8 @@
  */
 package org.jkiss.dbeaver.tools.transfer.stream;
 
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.eclipse.osgi.util.NLS;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
@@ -131,6 +133,7 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
 
     private OutputStream outputStream;
     private ZipOutputStream zipStream;
+    private net.lingala.zip4j.io.outputstream.ZipOutputStream zipEncryptStream;
     private PrintWriter writer;
     private int multiFileNumber;
     private long bytesWritten = 0;
@@ -507,10 +510,20 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
         this.outputStream = new BufferedOutputStream(stream, OUT_FILE_BUFFER_SIZE);
         this.outputStream = this.statStream = new StatOutputStream(outputStream);
 
-        if (settings.isCompressResults()) {
+        if (settings.isCompressResults() && CommonUtils.isEmpty(settings.getYzSecKey())) {
             this.zipStream = new ZipOutputStream(this.outputStream);
             this.zipStream.putNextEntry(new ZipEntry(getOutputFileName()));
             this.outputStream = zipStream;
+        }
+
+        if (!CommonUtils.isEmpty(settings.getYzSecKey())) {
+            this.zipEncryptStream = new net.lingala.zip4j.io.outputstream.ZipOutputStream(this.outputStream, settings.getYzSecKey().toCharArray());
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setEncryptFiles(true);
+            zipParameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
+            zipParameters.setFileNameInZip(getOutputFileName());
+            this.zipEncryptStream.putNextEntry(zipParameters);
+            this.outputStream = zipEncryptStream;
         }
 
         // If we need to split files - use stream wrapper to calculate file size
@@ -554,6 +567,20 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
             zipStream = null;
         }
 
+        // Finish zip encrypt stream
+        if (zipEncryptStream != null) {
+            try {
+                zipEncryptStream.closeEntry();
+            } catch (IOException e) {
+                log.debug(e);
+            }
+            try {
+                zipEncryptStream.close();
+            } catch (IOException e) {
+                log.debug(e);
+            }
+            zipEncryptStream = null;
+        }
         if (outputStream != null) {
             try {
                 outputStream.flush();
@@ -782,7 +809,7 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
             }
         }
         String fileName = getOutputFileName(suffix);
-        if (settings.isCompressResults()) {
+        if (settings.isCompressResults() || !CommonUtils.isEmpty(settings.getYzSecKey())) {
             fileName += ".zip";
         }
         return dir.resolve(fileName);

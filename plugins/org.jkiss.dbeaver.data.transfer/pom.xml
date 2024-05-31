@@ -13,4 +13,36 @@
     <version>2.0.114-SNAPSHOT</version>
     <packaging>eclipse-plugin</packaging>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-libraries</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <item>
+                                    <groupId>net.lingala.zip4j</groupId>
+                                    <artifactId>zip4j</artifactId>
+                                    <version>2.11.5</version>
+                                </item>
+                            </artifactItems>
+                            <outputDirectory>lib</outputDirectory>
+                            <stripVersion>true</stripVersion>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

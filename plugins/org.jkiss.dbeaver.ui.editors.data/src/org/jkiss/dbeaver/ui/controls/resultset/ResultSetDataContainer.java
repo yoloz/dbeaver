@@ -22,16 +22,25 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.DBPAdaptable;
 import org.jkiss.dbeaver.model.DBPContextProvider;
 import org.jkiss.dbeaver.model.DBPDataSource;
+import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.data.*;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.data.AttributeMetaDataProxy;
 import org.jkiss.dbeaver.model.impl.local.LocalResultSetMeta;
+import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTable;
+import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSDataContainer;
 import org.jkiss.dbeaver.model.struct.DBSObject;
+import org.jkiss.dbeaver.tools.transfer.stream.StreamTransferConsumer;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.utils.CommonUtils;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,6 +132,35 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
             statistics.setRowsFetched(resultCount);
             return statistics;
         } else {
+            //check export from resultSet
+            if(this.dataContainer instanceof JDBCTable<?, ?> jdbcTable){
+                String driverClassName = jdbcTable.getDataSource().getContainer().getDriver().getDriverClassName();
+                if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName)) {
+                    try (JDBCSession dbsession = DBUtils.openUtilSession(new VoidProgressMonitor(), jdbcTable.getDataSource(), "Check export");
+                         JDBCStatement statement = dbsession.createStatement()) {
+                        String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
+                        try(JDBCResultSet resultSet = statement.executeQuery("YZSecExport:" + resourceName)){
+                            if (resultSet.next()) {
+                                boolean enable = JDBCUtils.safeGetBoolean(resultSet, "enable");
+                                String exportKey = JDBCUtils.safeGetString(resultSet, "exportKey");
+                                if (!enable) {
+                                    throw new DBCException("No permission export data from:" + resourceName);
+                                }
+                                if(dataFilter!=null) {
+                                    dataFilter.setYzSecExport(true);
+                                }
+                                if(dataReceiver instanceof StreamTransferConsumer streamTransferConsumer){
+                                    streamTransferConsumer.getSettings().setYzSecKey(exportKey);
+                                }
+                            } else {
+                                throw new DBCException("No permission export data from:" + resourceName);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new DBCException("check export error",e);
+                    }
+                }
+            }
             return dataContainer.readData(source, session, dataReceiver, dataFilter, firstRow, maxRows, flags, fetchSize);
         }
     }

@@ -28,9 +28,11 @@ import org.jkiss.dbeaver.model.data.DBDInsertReplaceMethod;
 import org.jkiss.dbeaver.model.data.DBDValueHandler;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractExecutionSource;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTable;
 import org.jkiss.dbeaver.model.impl.struct.AbstractAttribute;
 import org.jkiss.dbeaver.model.meta.DBSerializable;
@@ -645,15 +647,21 @@ public class DatabaseTransferConsumer implements IDataTransferConsumer<DatabaseC
                 //check import data permit
                 String driverClassName = container.getDataSource().getContainer().getDriver().getDriverClassName();
                 if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
-                    try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dbObject, "Check import permission");
+                    try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dbObject, "Check import");
                          JDBCStatement statement = session.createStatement()) {
                         String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
-                        boolean bool = statement.execute("YZSecExport:" + resourceName);
-                        if (!bool) {
-                            throw new DBException("No permission to import data to:" + resourceName);
+                        try (JDBCResultSet resultSet = statement.executeQuery("YZSecImport:" + resourceName)){
+                            if (resultSet.next()) {
+                                boolean enable = JDBCUtils.safeGetBoolean(resultSet, "enable");
+                                if (!enable) {
+                                    throw new DBException("No permission to import data to:" + resourceName);
+                                }
+                            } else {
+                                throw new DBException("No permission to import data to:" + resourceName);
+                            }
                         }
                     } catch (SQLException e) {
-                        throw new DBException(e.getMessage());
+                        throw new DBException("check import error", e);
                     }
                 }
 

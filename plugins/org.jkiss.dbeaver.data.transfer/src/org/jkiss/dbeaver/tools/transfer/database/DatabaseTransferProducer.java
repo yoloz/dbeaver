@@ -26,10 +26,12 @@ import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.app.DBPProject;
 import org.jkiss.dbeaver.model.data.DBDDataFilter;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractExecutionSource;
 import org.jkiss.dbeaver.model.impl.DataSourceContextProvider;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTable;
 import org.jkiss.dbeaver.model.meta.DBSerializable;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -52,6 +54,7 @@ import org.jkiss.dbeaver.tools.transfer.IDataTransferProducer;
 import org.jkiss.dbeaver.tools.transfer.internal.DTMessages;
 import org.jkiss.dbeaver.tools.transfer.serialize.DTObjectSerializer;
 import org.jkiss.dbeaver.tools.transfer.serialize.SerializerContext;
+import org.jkiss.dbeaver.tools.transfer.stream.StreamTransferConsumer;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.utils.CommonUtils;
 
@@ -88,6 +91,7 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
     public DatabaseTransferProducer(@NotNull DBSDataContainer dataContainer)
     {
         this.dataContainer = dataContainer;
+        this.dataFilter = new DBDDataFilter();
     }
 
     public DatabaseTransferProducer(@NotNull DBSDataContainer dataContainer, @Nullable DBDDataFilter dataFilter)
@@ -189,18 +193,29 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
         DBPDataSource dataSource = databaseObject.getDataSource();
         assert (dataSource != null);
 
-        //check export data permit
+        //check export from navigator
         String driverClassName = dataSource.getContainer().getDriver().getDriverClassName();
-        if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName) && getDatabaseObject() instanceof JDBCTable<?, ?> jdbcTable) {
-            try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dataSource, "Check export permission");
+        if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName) && this.dataContainer instanceof JDBCTable<?, ?> jdbcTable) {
+            try (JDBCSession session = DBUtils.openUtilSession(new VoidProgressMonitor(), dataSource, "Check export");
                  JDBCStatement statement = session.createStatement()) {
                 String resourceName = jdbcTable.getFullyQualifiedName(DBPEvaluationContext.UI);
-                boolean bool = statement.execute("YZSecExport:" + resourceName);
-                if (!bool) {
-                    throw new DBException("No permission export data from:" + resourceName);
+                try(JDBCResultSet resultSet = statement.executeQuery("YZSecExport:" + resourceName)){
+                    if (resultSet.next()) {
+                        boolean enable = JDBCUtils.safeGetBoolean(resultSet, "enable");
+                        String exportKey = JDBCUtils.safeGetString(resultSet, "exportKey");
+                        if (!enable) {
+                            throw new DBException("No permission export data from:" + resourceName);
+                        }
+                        dataFilter.setYzSecExport(true);
+                        if(consumer instanceof StreamTransferConsumer streamTransferConsumer){
+                            streamTransferConsumer.getSettings().setYzSecKey(exportKey);
+                        }
+                    } else {
+                        throw new DBException("No permission export data from:" + resourceName);
+                    }
                 }
             } catch (SQLException e) {
-                throw new DBException(e.getMessage());
+                throw new DBException("check export error",e);
             }
         }
 

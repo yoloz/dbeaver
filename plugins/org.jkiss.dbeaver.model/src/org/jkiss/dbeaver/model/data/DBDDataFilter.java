@@ -33,6 +33,7 @@ public class DBDDataFilter {
     private boolean anyConstraint; // means OR condition
     private String order;
     private String where;
+    private boolean yzSecExport; // is export action
 
     public DBDDataFilter() {
         this.constraints = new ArrayList<>();
@@ -50,6 +51,7 @@ public class DBDDataFilter {
         this.order = source.order;
         this.where = source.where;
         this.anyConstraint = source.anyConstraint;
+        this.yzSecExport = source.yzSecExport;
     }
 
     public List<DBDAttributeConstraint> getConstraints() {
@@ -146,6 +148,14 @@ public class DBDDataFilter {
 
     public void setWhere(@Nullable String where) {
         this.where = where;
+    }
+
+    public boolean isYzSecExport() {
+        return yzSecExport;
+    }
+
+    public void setYzSecExport(boolean yzSecExport) {
+        this.yzSecExport = yzSecExport;
     }
 
     public boolean hasFilters() {
