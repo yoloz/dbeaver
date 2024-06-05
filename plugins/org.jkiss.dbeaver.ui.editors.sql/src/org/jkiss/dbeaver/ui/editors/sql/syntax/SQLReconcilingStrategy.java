@@ -436,9 +436,10 @@ public class SQLReconcilingStrategy implements IReconcilingStrategy, IReconcilin
         ) {
             this.annotationModel = annotationModel;
             if (this.annotationModel instanceof ISynchronizable) {
-                lockObject = ((ISynchronizable) this.annotationModel).getLockObject();
+                Object amLock = ((ISynchronizable) this.annotationModel).getLockObject();
+                lockObject = Objects.requireNonNullElse(amLock, this.annotationModel);
             } else {
-                lockObject = this.annotationModel;
+                lockObject = Objects.requireNonNullElse(this.annotationModel, this);
             }
             this.regionOffset = regionOffset;
             this.regionLength = regionLength;
@@ -461,6 +462,10 @@ public class SQLReconcilingStrategy implements IReconcilingStrategy, IReconcilin
             List<Annotation> toRemove = new ArrayList<>();
 
             synchronized (lockObject) {
+                if (annotationModel == null) {
+                    addedAnnotations = null;
+                    return;
+                }
                 Iterator<Annotation> iter = annotationModel.getAnnotationIterator();
                 while (iter.hasNext()) {
                     Annotation annotation = iter.next();
