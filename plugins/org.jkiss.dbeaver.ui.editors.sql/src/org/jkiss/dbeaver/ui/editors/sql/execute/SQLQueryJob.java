@@ -44,12 +44,17 @@ import org.jkiss.dbeaver.model.connection.DBPConnectionType;
 import org.jkiss.dbeaver.model.data.DBDDataFilter;
 import org.jkiss.dbeaver.model.data.DBDDataReceiver;
 import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractExecutionSource;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.local.StatResultSet;
 import org.jkiss.dbeaver.model.preferences.DBPPreferenceStore;
 import org.jkiss.dbeaver.model.qm.QMUtils;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.DBRRunnableParametrized;
+import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.sql.*;
 import org.jkiss.dbeaver.model.sql.data.SQLQueryDataContainer;
 import org.jkiss.dbeaver.model.sql.parser.SQLSemanticProcessor;
@@ -60,6 +65,7 @@ import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.runtime.jobs.DataSourceJob;
 import org.jkiss.dbeaver.runtime.ui.DBPPlatformUI;
 import org.jkiss.dbeaver.tools.transfer.IDataTransferConsumer;
+import org.jkiss.dbeaver.tools.transfer.stream.StreamTransferConsumer;
 import org.jkiss.dbeaver.ui.ISmartTransactionManager;
 import org.jkiss.dbeaver.ui.UITask;
 import org.jkiss.dbeaver.ui.UIUtils;
@@ -75,6 +81,7 @@ import org.jkiss.dbeaver.utils.RuntimeUtils;
 import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -588,6 +595,33 @@ public class SQLQueryJob extends DataSourceJob
     private void executeStatement(@NotNull DBCSession session, SQLQuery sqlQuery, long startTime, SQLQueryResult curResult) throws DBCException {
         AbstractExecutionSource source = new AbstractExecutionSource(dataContainer, session.getExecutionContext(), partSite.getPart(), sqlQuery);
         source.setScriptContext(scriptContext);
+        DBDDataReceiver dataReceiver = resultsConsumer.getDataReceiver(sqlQuery, resultSetNumber);
+        // display dataReceiver: org.jkiss.dbeaver.ui.controls.resultset.ResultSetDataReceiver
+        // export dataReceiver: org.jkiss.dbeaver.tools.transfer.stream.StreamTransferConsumer
+        if(dataReceiver != null && dataReceiver instanceof StreamTransferConsumer streamTransferConsumer){
+            String driverClassName = session.getDataSource().getContainer().getDriver().getDriverClassName();
+            if ("com.yzsec.dsg.sdk.jdbc.YzSecDriver".equals(driverClassName)) {
+                try (JDBCSession dbsession = DBUtils.openUtilSession(new VoidProgressMonitor(), session.getDataSource(), "Check export");
+                     JDBCStatement statement = dbsession.createStatement()) {
+                    try(JDBCResultSet jdbcResultSet = statement.executeQuery("YZSecExport:query:" + sqlQuery.getText())){
+                        if (jdbcResultSet.next()) {
+                            boolean enable = JDBCUtils.safeGetBoolean(jdbcResultSet, "enable");
+                            String exportKey = JDBCUtils.safeGetString(jdbcResultSet, "exportKey");
+                            if (!enable) {
+                                throw new DBCException("No permission export data by query:" + sqlQuery.getText());
+                            }
+                            String text = "/*YZSecExport*/" + sqlQuery.getText();
+                            sqlQuery.setText(text);
+                            streamTransferConsumer.getSettings().setYzSecKey(exportKey);
+                        } else {
+                            throw new DBCException("No permission export data by query:" + sqlQuery.getText());
+                        }
+                    }
+                } catch (SQLException e) {
+                    throw new DBCException("check export error",e);
+                }
+            }
+        }
         final DBCStatement dbcStatement = DBUtils.makeStatement(
             source,
             session,
@@ -659,7 +693,7 @@ public class SQLQueryJob extends DataSourceJob
                             // Kind of bug in the driver. It says it has resultset but returns null
                             break;
                         } else {
-                            DBDDataReceiver dataReceiver = resultsConsumer.getDataReceiver(sqlQuery, resultSetNumber);
+//                            DBDDataReceiver dataReceiver = resultsConsumer.getDataReceiver(sqlQuery, resultSetNumber);
                             if (dataReceiver != null) {
                                 try {
                                     hasResultSet = fetchQueryData(session, resultSet, curResult, curResult.addExecuteResult(true), dataReceiver, true);
