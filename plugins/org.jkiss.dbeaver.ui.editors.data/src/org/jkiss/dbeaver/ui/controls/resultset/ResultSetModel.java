@@ -518,8 +518,7 @@ public class ResultSetModel {
             }
             // Check composite type
             if (ownerValue != null) {
-                if (ownerValue instanceof DBDCollection) {
-                    DBDCollection collection = (DBDCollection) ownerValue;
+                if (ownerValue instanceof DBDCollection collection) {
                     if (collection.getItemCount() > 0) {
                         ownerValue = collection.getItem(0);
                     }
@@ -553,7 +552,7 @@ public class ResultSetModel {
                 try {
                     ((DBDComposite) ownerValue).setAttributeValue(attr.getAttribute(), value);
                 } catch (DBCException e) {
-                    e.printStackTrace();
+                    log.debug("Error setting attribute value", e);
                 }
             } else {
                 row.values[rootIndex] = value;
@@ -1048,7 +1047,7 @@ public class ResultSetModel {
                 // Also check that original visual pos is the same as current position.
                 // Otherwise this means that column was reordered visually and we must respect this change
 
-                // We check order position only when forceUpdate=true (otherwise all previosu filters will be reset, see #6311)
+                // We check order position only when forceUpdate=true (otherwise all previous filters will be reset, see #6311)
                 continue;
             }
             if (constraint.getOperator() != null) {

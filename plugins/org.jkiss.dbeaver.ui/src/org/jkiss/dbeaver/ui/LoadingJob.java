@@ -73,23 +73,17 @@ public class LoadingJob<RESULT>  extends AbstractJob {
     }
 
     @Override
-    protected IStatus run(DBRProgressMonitor monitor)
-    {
-        return run(monitor, true);
-    }
-
-    private IStatus run(DBRProgressMonitor monitor, boolean lazy)
-    {
+    protected IStatus run(DBRProgressMonitor monitor) {
         monitor = visualizer.overwriteMonitor(monitor);
-        if (this.loadingService instanceof AbstractLoadService) {
-            ((AbstractLoadService) this.loadingService).initService(monitor, this);
+        if (this.loadingService instanceof AbstractLoadService<?> als) {
+            als.initService(monitor, this);
         }
 
         LoadingUIJob<RESULT> updateUIJob = new LoadingUIJob<>(this);
         updateUIJob.schedule();
         Throwable error = null;
         RESULT result = null;
-        monitor.beginTask("Run service " + getName(), 1);
+        monitor.beginTask(getName(), 1);
         try {
             result = this.loadingService.evaluate(monitor);
         }
@@ -113,9 +107,8 @@ public class LoadingJob<RESULT>  extends AbstractJob {
         return family == loadingService.getFamily();
     }
 
-    public void syncRun()
-    {
-        run(new VoidProgressMonitor(), false);
+    public void syncRun() {
+        run(new VoidProgressMonitor());
     }
 
     private class LoadFinisher implements Runnable {
@@ -149,13 +142,13 @@ public class LoadingJob<RESULT>  extends AbstractJob {
         }
     }
 
-    class LoadingUIJob<RESULT> extends AbstractUIJob {
+    class LoadingUIJob<JOB_RESULT> extends AbstractUIJob {
 
         private static final long DELAY = 100;
 
-        private ILoadVisualizer<RESULT> visualizer;
+        private final ILoadVisualizer<JOB_RESULT> visualizer;
 
-        LoadingUIJob(LoadingJob<RESULT> loadingJob) {
+        LoadingUIJob(LoadingJob<JOB_RESULT> loadingJob) {
             super(loadingJob.getName());
             this.visualizer = loadingJob.getVisualizer();
             setSystem(true);
