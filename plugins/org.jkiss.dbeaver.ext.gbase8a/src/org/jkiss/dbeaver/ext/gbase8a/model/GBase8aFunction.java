@@ -76,7 +76,7 @@ public class GBase8aFunction extends AbstractProcedure<GBase8aDataSource, GBase8
                                 "BEGIN" + GeneralUtils.getDefaultLineSeparator() + GeneralUtils.getDefaultLineSeparator() +
                                 "END";
             } else {
-                try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read procedure declaration");
+                try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read function declaration");
                      JDBCPreparedStatement dbStat = session.prepareStatement("SHOW CREATE " + getProcedureType().name() + " " + getFullyQualifiedName(DBPEvaluationContext.DDL));
                      JDBCResultSet dbResult = dbStat.executeQuery()) {
                     if (dbResult.next()) {
@@ -96,7 +96,7 @@ public class GBase8aFunction extends AbstractProcedure<GBase8aDataSource, GBase8
                     }
                 } catch (SQLException e) {
                     this.clientBody = e.getMessage();
-                    throw new DBException(e, getDataSource());
+                    throw new DBException("Read function declaration failed", e);
                 }
             }
         }

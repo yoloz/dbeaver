@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class GBase8aTableBase extends JDBCTable<GBase8aDataSource, GBase8aCatalog> implements DBSObject,DBPNamedObject2, DBPRefreshableObject, GBase8aSourceObject {
+public abstract class GBase8aTableBase extends JDBCTable<GBase8aDataSource, GBase8aCatalog> implements DBSObject, DBPNamedObject2, DBPRefreshableObject, GBase8aSourceObject {
 
 //    private static final Log log = Log.getLog(GBase8aTableBase.class);
 
@@ -118,7 +118,7 @@ public abstract class GBase8aTableBase extends JDBCTable<GBase8aDataSource, GBas
                 }
             }
         } catch (SQLException ex) {
-            throw new DBException(ex, getDataSource());
+            throw new DBException("Retrieve table DDL failed", ex);
         }
     }
 }

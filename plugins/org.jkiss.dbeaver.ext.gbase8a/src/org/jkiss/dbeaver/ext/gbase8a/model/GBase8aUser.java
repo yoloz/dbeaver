@@ -159,7 +159,7 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
             this.grants = new ArrayList<>();
             return this.grants;
         }
-        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read catalog privileges")) {
+        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read user privileges")) {
             try (JDBCPreparedStatement dbStat = session.prepareStatement("SHOW GRANTS FOR " + getFullName())) {
                 try (JDBCResultSet dbResult = dbStat.executeQuery()) {
                     List<GBase8aGrant> grants = new ArrayList<>();
@@ -214,7 +214,7 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
                 }
             }
         } catch (SQLException e) {
-            throw new DBException(e, getDataSource());
+            throw new DBException("Read user privileges failed", e);
         }
     }
 

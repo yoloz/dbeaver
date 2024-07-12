@@ -89,7 +89,7 @@ public class GBase8aProcedure extends AbstractProcedure<GBase8aDataSource, GBase
                     }
                 } catch (SQLException e) {
                     this.clientBody = e.getMessage();
-                    throw new DBException(e, getDataSource());
+                    throw new DBException("Read procedure declaration failed", e);
                 }
             }
         }

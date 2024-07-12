@@ -38,7 +38,7 @@ public class GBase8aSessionManager implements DBAServerSessionManager<GBase8aSes
                 list.add(new GBase8aSession(dbResult));
             }
         } catch (SQLException e) {
-            throw new DBException(e, session.getDataSource());
+            throw new DBException("SHOW FULL PROCESSLIST failed", e);
         }
         return list;
     }
@@ -51,7 +51,7 @@ public class GBase8aSessionManager implements DBAServerSessionManager<GBase8aSes
                         "KILL CONNECTION " + sessionType.getPid()))) {
             dbStat.execute();
         } catch (SQLException e) {
-            throw new DBException(e, session.getDataSource());
+            throw new DBException("alter session failed", e);
         }
     }
 }

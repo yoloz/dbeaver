@@ -418,7 +418,7 @@ public class GBase8aDataSource extends JDBCDataSource {
                 list.add(new GBase8aPrivilege(this, resultSet));
             }
         } catch (SQLException ex) {
-            throw new DBException(ex, this);
+            throw new DBException("Load privileges failed", ex);
         }
         return list;
     }
@@ -466,7 +466,7 @@ public class GBase8aDataSource extends JDBCDataSource {
                 }
             }
         } catch (SQLException ex) {
-            throw new DBException(ex, this);
+            throw new DBException("Load status failed", ex);
         }
     }
 
