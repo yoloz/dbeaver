@@ -71,11 +71,17 @@ public class GotoObjectDialog extends FilteredItemsSelectionDialog {
     private final Map<String, Boolean> enabledTypes = new HashMap<>();
     private boolean hasMoreResults;
 
+    private boolean showInvalidObjects = false;  // oracle support search all invalid objects
+    private boolean searchInvalidObjects = false;
+
     public GotoObjectDialog(Shell shell, DBCExecutionContext context, DBSObject container) {
         super(shell, true);
         this.context = context;
         this.container = container;
 
+        if ("org.jkiss.dbeaver.ext.oracle.model.OracleDataSource".equals(context.getDataSource().getClass().getName())) {
+            showInvalidObjects = true;
+        }
         setTitle(NLS.bind(UINavigatorMessages.dialog_project_goto_object_title, context.getDataSource().getContainer().getName()));
         setListLabelProvider(new ObjectLabelProvider());
         setDetailsLabelProvider(new DetailsLabelProvider());
@@ -139,7 +145,34 @@ public class GotoObjectDialog extends FilteredItemsSelectionDialog {
                 }
             });
         }
-
+        if (showInvalidObjects) {
+            Group group = new Group(parent, SWT.NONE);
+//            group.setText("Global invalid objects:");
+            RowLayout layout = new RowLayout(SWT.HORIZONTAL);
+            layout.wrap = true;
+            group.setLayout(layout);
+            group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            Button button = new Button(group, SWT.CHECK);
+            button.setText("Search Invalid Objects");
+            button.setSelection(false);
+            Control searchText = super.getPatternControl();
+            button.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    searchInvalidObjects = button.getSelection();
+                    if (button.getSelection()) {
+                        searchText.setEnabled(false);
+                        ((Text) searchText).setText("search invalid objects");
+                        cbGroup.setVisible(false);
+                    } else {
+                        ((Text) searchText).setText("");
+                        searchText.setEnabled(true);
+                        searchText.setFocus();
+                        cbGroup.setVisible(true);
+                    }
+                }
+            });
+        }
         return cbGroup;
     }
 
@@ -292,6 +325,9 @@ public class GotoObjectDialog extends FilteredItemsSelectionDialog {
 
         @Override
         public boolean matchItem(Object item) {
+            if(searchInvalidObjects){
+                return true;
+            }
             if (item instanceof DBPNamedObject) {
                 String objectName = ((DBPNamedObject) item).getName();
                 //String pattern = getPattern().replaceAll("[\\*\\%\\?]", "");
@@ -371,6 +407,7 @@ public class GotoObjectDialog extends FilteredItemsSelectionDialog {
                         typesToSearch.toArray(new DBSObjectType[0]),
                         nameMask
                 );
+                params.setSearchInvalidObjects(searchInvalidObjects);
                 params.setParentObject(container);
                 params.setGlobalSearch(true);
                 params.setMaxResults(MAX_RESULT_COUNT);

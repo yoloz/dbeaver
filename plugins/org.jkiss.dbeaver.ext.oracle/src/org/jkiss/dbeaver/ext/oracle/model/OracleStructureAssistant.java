@@ -28,6 +28,7 @@ import org.jkiss.dbeaver.model.exec.DBCExecutionPurpose;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.struct.AbstractObjectReference;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -113,19 +114,22 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
 
         try (JDBCSession session = executionContext.openSession(monitor, DBCExecutionPurpose.META, "Find objects by name")) {
             List<DBSObjectReference> objects = new ArrayList<>();
-
-            if (ArrayUtils.containsAny(params.getObjectTypes(), OracleObjectType.CONSTRAINT, OracleObjectType.FOREIGN_KEY)) {
-                // Search constraints
-                findConstraintsByMask(session, schema, params, objects);
-                if (!containsOnlyConstraintOrFK(params.getObjectTypes())) {
+            if (params.isSearchInvalidObjects()) {
+                searchAllInvalidObjects(session, params, objects);
+            } else {
+                if (ArrayUtils.containsAny(params.getObjectTypes(), OracleObjectType.CONSTRAINT, OracleObjectType.FOREIGN_KEY)) {
+                    // Search constraints
+                    findConstraintsByMask(session, schema, params, objects);
+                    if (!containsOnlyConstraintOrFK(params.getObjectTypes())) {
+                        searchAllObjects(session, schema, params, objects);
+                    }
+                } else {
+                    // Search all objects
                     searchAllObjects(session, schema, params, objects);
                 }
-            } else {
-                // Search all objects
-                searchAllObjects(session, schema, params, objects);
-            }
-            if (params.isSearchInComments()) {
-                searchInTableComments(session, schema, params, objects);
+                if (params.isSearchInComments()) {
+                    searchInTableComments(session, schema, params, objects);
+                }
             }
 
             // Sort objects. Put ones in the current schema first
@@ -321,6 +325,35 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
                         objectType = OracleObjectType.PACKAGE;
                     }
                     if (objectType != null && objectType.isBrowsable() && oracleObjectTypes.contains(objectType)) {
+                        OracleSchema objectSchema = this.dataSource.getSchema(session.getProgressMonitor(), schemaName);
+                        if (objectSchema == null) {
+                            log.debug("Schema '" + schemaName + "' not found. Probably was filtered");
+                            continue;
+                        }
+                        addObjectReference(objects, objectName, objectSchema, objectType, objectTypeName, schemaName, session);
+                    }
+                }
+            }
+        }
+    }
+
+    private void searchAllInvalidObjects(final JDBCSession session, @NotNull ObjectsSearchParams params, List<DBSObjectReference> objects)
+            throws SQLException, DBException {
+        String query = "SELECT DISTINCT OWNER,OBJECT_NAME,OBJECT_TYPE FROM " +
+                "(SELECT OWNER,OBJECT_NAME,OBJECT_TYPE FROM ALL_OBJECTS WHERE STATUS='INVALID') ORDER BY OBJECT_NAME";
+        try (JDBCStatement dbStat = session.createStatement()) {
+            dbStat.setFetchSize(DBConstants.METADATA_FETCH_SIZE);
+            try (JDBCResultSet dbResult = dbStat.executeQuery(query)) {
+                while (!session.getProgressMonitor().isCanceled() && objects.size() < params.getMaxResults() && dbResult.next()) {
+                    final String schemaName = JDBCUtils.safeGetString(dbResult, OracleConstants.COL_OWNER);
+                    final String objectName = JDBCUtils.safeGetString(dbResult, OracleConstants.COLUMN_OBJECT_NAME);
+                    final String objectTypeName = JDBCUtils.safeGetString(dbResult, OracleConstants.COLUMN_OBJECT_TYPE);
+                    OracleObjectType objectType = OracleObjectType.getByType(objectTypeName);
+                    if (objectType == OracleObjectType.PACKAGE_BODY) {
+                        // We do not store bodies as separate objects
+                        objectType = OracleObjectType.PACKAGE;
+                    }
+                    if (objectType != null && objectType.isBrowsable()) {
                         OracleSchema objectSchema = this.dataSource.getSchema(session.getProgressMonitor(), schemaName);
                         if (objectSchema == null) {
                             log.debug("Schema '" + schemaName + "' not found. Probably was filtered");

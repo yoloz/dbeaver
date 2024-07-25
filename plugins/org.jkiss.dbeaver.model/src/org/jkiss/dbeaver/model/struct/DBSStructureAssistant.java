@@ -83,6 +83,7 @@ public interface DBSStructureAssistant<CONTEXT extends DBCExecutionContext> {
         private boolean searchInDefinitions;
         private boolean globalSearch;
         private boolean isLikeCondition;
+        private boolean searchInvalidObjects;
 
         public ObjectsSearchParams(@NotNull DBSObjectType[] objectTypes, @NotNull String mask) {
             this.objectTypes = objectTypes;
@@ -158,6 +159,14 @@ public interface DBSStructureAssistant<CONTEXT extends DBCExecutionContext> {
 
         public void setLikeCondition(boolean likeCondition) {
             isLikeCondition = likeCondition;
+        }
+
+        public boolean isSearchInvalidObjects() {
+            return searchInvalidObjects;
+        }
+
+        public void setSearchInvalidObjects(boolean searchInvalidObjects) {
+            this.searchInvalidObjects = searchInvalidObjects;
         }
     }
 }
