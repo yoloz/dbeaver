@@ -99,6 +99,7 @@ public class SQLQueryJob extends DataSourceJob
 
     public static final Object STATS_RESULTS = new Object();
     private static final int MAX_QUERY_PREVIEW_LENGTH = 8192;
+    private static final int MAX_UPDATE_COUNT_READS = 1000;
 
     private final DBSDataContainer dataContainer;
     private final List<SQLScriptElement> queries;
@@ -324,6 +325,10 @@ public class SQLQueryJob extends DataSourceJob
                     QMUtils.getDefaultHandler().handleScriptEnd(session);
                 }
 
+                if (listener != null) {
+                    listener.onEndSqlJob(session, getSqlJobResult());
+                }
+
                 // Return success
                 return new Status(
                     Status.OK,
@@ -348,6 +353,17 @@ public class SQLQueryJob extends DataSourceJob
                     log.error(e);
                 }
             }
+        }
+    }
+
+    @NotNull
+    private SqlJobResult getSqlJobResult() {
+        if (queries.get(queries.size() - 1) == lastGoodQuery && lastError == null) {
+            return SqlJobResult.SUCCESS;
+        } else if (lastGoodQuery != null) {
+            return SqlJobResult.PARTIAL_SUCCESS;
+        } else {
+            return SqlJobResult.FAILURE;
         }
     }
 
@@ -657,6 +673,7 @@ public class SQLQueryJob extends DataSourceJob
             // Some databases (especially NoSQL) may produce a lot of
             // result sets, we should warn user because it may lead to UI freeze
             int resultSetCounter = 0;
+            int updateCountReads = 0;
             boolean confirmed = false;
             while (true) {
                 // Fetch data only if we have to fetch all results or if it is rs requested
@@ -719,6 +736,7 @@ public class SQLQueryJob extends DataSourceJob
                         if (updateCount >= 0) {
                             executeResult.setUpdateCount(updateCount);
                             statistics.addRowsUpdated(updateCount);
+                            updateCountReads++;
                         }
                     } catch (DBCException e) {
                         // In some cases we can't read update count
@@ -731,23 +749,35 @@ public class SQLQueryJob extends DataSourceJob
                     resultSetNumber++;
                     fetchResultSetNumber = resultSetNumber;
                 }
-                if (!hasResultSet && updateCount < 0) {
-                    // Nothing else to fetch
-                    break;
+                if (!hasResultSet) {
+                    if (updateCount <= 0 && updateCountReads >= MAX_UPDATE_COUNT_READS) {
+                        // Exhausted all read attempts with no success
+                        break;
+                    }
+                    if (updateCount < 0) {
+                        // Nothing else to fetch
+                        break;
+                    }
                 }
 
-                if (session.getDataSource().getInfo().supportsMultipleResults()) {
-                    try {
-                        hasResultSet = dbcStatement.nextResults();
-                    } catch (DBCException e) {
-                        if (session.getDataSource().getInfo().isMultipleResultsFetchBroken()) {
-                            statistics.addWarning(e);
-                            statistics.setError(e);
-                            // #2792: Check this twice. Some drivers (e.g. Sybase jConnect)
-                            // throw error on n'th result fetch - but it still can keep fetching next results
+                DBPDataSourceInfo dataSourceInfo = session.getDataSource().getInfo();
+                if (dataSourceInfo.supportsMultipleResults()) {
+                    if (hasLimits() && rowsFetched >= rsMaxRows && dataSourceInfo.isMultipleResultsFailsOnMaxRows()) {
+                        log.trace("Max rows exceeded. Additional resultsets extraction is disabled");
+                        hasResultSet = false;
+                    } else {
+                        try {
                             hasResultSet = dbcStatement.nextResults();
-                        } else {
-                            throw e;
+                        } catch (DBCException e) {
+                            if (dataSourceInfo.isMultipleResultsFetchBroken()) {
+                                statistics.addWarning(e);
+                                statistics.setError(e);
+                                // #2792: Check this twice. Some drivers (e.g. Sybase jConnect)
+                                // throw error on n'th result fetch - but it still can keep fetching next results
+                                hasResultSet = dbcStatement.nextResults();
+                            } else {
+                                throw e;
+                            }
                         }
                     }
                     updateCount = hasResultSet ? -1 : 0;
@@ -824,17 +854,17 @@ public class SQLQueryJob extends DataSourceJob
             // Multiple statements - show script statistics
             fakeResultSet.addColumn("Queries", DBPDataKind.NUMERIC);
             fakeResultSet.addColumn("Updated Rows", DBPDataKind.NUMERIC);
-            fakeResultSet.addColumn("Execute time (ms)", DBPDataKind.NUMERIC);
-            fakeResultSet.addColumn("Fetch time (ms)", DBPDataKind.NUMERIC);
-            fakeResultSet.addColumn("Total time (ms)", DBPDataKind.NUMERIC);
+            fakeResultSet.addColumn("Execute time", DBPDataKind.NUMERIC);
+            fakeResultSet.addColumn("Fetch time", DBPDataKind.NUMERIC);
+            fakeResultSet.addColumn("Total time", DBPDataKind.NUMERIC);
             fakeResultSet.addColumn("Start time", DBPDataKind.DATETIME);
             fakeResultSet.addColumn("Finish time", DBPDataKind.DATETIME);
             fakeResultSet.addRow(
                 statistics.getStatementsCount(),
                 statistics.getRowsUpdated() < 0 ? 0 : statistics.getRowsUpdated(),
-                statistics.getExecuteTime(),
-                statistics.getFetchTime(),
-                statistics.getTotalTime(),
+                RuntimeUtils.formatExecutionTime(statistics.getExecuteTime()),
+                RuntimeUtils.formatExecutionTime(statistics.getFetchTime()),
+                RuntimeUtils.formatExecutionTime(statistics.getTotalTime()),
                 new SimpleDateFormat(DBConstants.DEFAULT_TIMESTAMP_FORMAT).format(new Date(statistics.getStartTime())),
                 new SimpleDateFormat(DBConstants.DEFAULT_TIMESTAMP_FORMAT).format(new Date()));
             executeResult.setResultSetName(SQLEditorMessages.editors_sql_statistics);
@@ -1009,6 +1039,11 @@ public class SQLQueryJob extends DataSourceJob
         session.getProgressMonitor().subTask(CommonUtils.truncateString(query.getText(), 512));
 
         boolean result = executeSingleQuery(session, query, fireEvents);
+
+        if (listener != null) {
+            listener.onEndSqlJob(session, getSqlJobResult());
+        }
+
         if (!result && lastError != null) {
             if (lastError instanceof DBCException dbce) {
                 throw dbce;

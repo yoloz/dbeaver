@@ -26,6 +26,7 @@ import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.AbstractResultSet;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCTrace;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.qm.QMUtils;
 
 import java.io.InputStream;
@@ -43,13 +44,13 @@ public class JDBCResultSetImpl extends AbstractResultSet<JDBCSession, JDBCStatem
 
     private static final Log log = Log.getLog(JDBCResultSetImpl.class);
 
-    private ResultSet original;
+    private final ResultSet original;
     private final String description;
     private JDBCResultSetMetaData metaData;
     private long rowsFetched;
     private long maxRows = -1;
-    private boolean fake;
-    private boolean disableLogging;
+    private final boolean fake;
+    private final boolean disableLogging;
 
     public static JDBCResultSet makeResultSet(@NotNull JDBCSession session, @Nullable JDBCStatement statement, @NotNull ResultSet original, String description, boolean disableLogging)
         throws SQLException
@@ -94,10 +95,19 @@ public class JDBCResultSetImpl extends AbstractResultSet<JDBCSession, JDBCStatem
         // FIXME: starte/end block. Do we need them here?
         //this.session.getProgressMonitor().startBlock(statement, null);
         //QMUtils.getDefaultHandler().handleResultSetFetch(this);
+        this.session.getExecutionContext().lockQueryExecution();
     }
 
     protected void afterFetch()
     {
+        this.session.getExecutionContext().unlockQueryExecution();
+        if (JDBCUtils.LOG_JDBC_WARNINGS) {
+            try {
+                JDBCUtils.reportWarnings(getSession(), this.getWarnings());
+            } catch (Throwable e) {
+                log.debug("Error reading JDBC warnings: " + e.getMessage());
+            }
+        }
         //this.session.getProgressMonitor().endBlock();
     }
 

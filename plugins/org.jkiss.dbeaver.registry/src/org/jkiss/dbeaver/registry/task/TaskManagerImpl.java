@@ -18,6 +18,7 @@ package org.jkiss.dbeaver.registry.task;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -32,10 +33,10 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.app.DBPProject;
 import org.jkiss.dbeaver.model.data.json.JSONUtils;
+import org.jkiss.dbeaver.model.impl.app.BaseProjectImpl;
 import org.jkiss.dbeaver.model.rm.RMConstants;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.task.*;
-import org.jkiss.dbeaver.registry.BaseProjectImpl;
 import org.jkiss.dbeaver.registry.timezone.TimezoneRegistry;
 import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.utils.GeneralUtils;
@@ -59,7 +60,7 @@ public class TaskManagerImpl implements DBTTaskManager {
     private static final Log log = Log.getLog(TaskManagerImpl.class);
 
     private static final Gson CONFIG_GSON = new GsonBuilder()
-        .setLenient()
+        .setStrictness(Strictness.LENIENT)
         .serializeNulls()
         .setPrettyPrinting()
         .create();
@@ -561,7 +562,7 @@ public class TaskManagerImpl implements DBTTaskManager {
             }
             JSONUtils.field(jsonWriter, TaskConstants.TAG_CREATE_TIME, systemDateFormat.format(task.getCreateTime()));
             JSONUtils.field(jsonWriter, TaskConstants.TAG_UPDATE_TIME, systemDateFormat.format(task.getUpdateTime()));
-            JSONUtils.serializeProperties(jsonWriter, TaskConstants.TAG_STATE, task.getProperties());
+            JSONUtils.serializeProperties(jsonWriter, TaskConstants.TAG_STATE, task.getProperties(), true);
             if (task.getMaxExecutionTime() > 0) {
                 JSONUtils.field(jsonWriter, TaskConstants.TAG_MAX_EXEC_TIME, task.getMaxExecutionTime());
             }

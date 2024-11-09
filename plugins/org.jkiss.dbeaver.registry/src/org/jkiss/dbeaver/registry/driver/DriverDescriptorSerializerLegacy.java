@@ -138,6 +138,9 @@ public class DriverDescriptorSerializerLegacy extends DriverDescriptorSerializer
             if (!driver.isSupportsDistributedMode()) {
                 xml.addAttribute(RegistryConstants.ATTR_SUPPORTS_DISTRIBUTED_MODE, driver.isSupportsDistributedMode());
             }
+            if (driver.isThreadSafeDriver() != driver.isOrigThreadSafeDriver()) {
+                xml.addAttribute("threadSafe", driver.isThreadSafeDriver());
+            }
 
             // Libraries
             for (DBPDriverLibrary lib : driver.getDriverLibraries()) {
@@ -285,7 +288,10 @@ public class DriverDescriptorSerializerLegacy extends DriverDescriptorSerializer
                     if (curDriver == null) {
                         curDriver = new DriverDescriptor(curProvider, idAttr);
                         curProvider.addDriver(curDriver);
+                    } else if (DBWorkbench.isDistributed()) {
+                        curDriver.resetDriverInstance();
                     }
+
                     if (providedDrivers || curProvider.isDriversManagable()) {
                         String category = atts.getValue(RegistryConstants.ATTR_CATEGORY);
                         if (!CommonUtils.isEmpty(category)) {
@@ -306,6 +312,7 @@ public class DriverDescriptorSerializerLegacy extends DriverDescriptorSerializer
                         curDriver.setAnonymousAccess(CommonUtils.getBoolean(atts.getValue(RegistryConstants.ATTR_ANONYMOUS), curDriver.isAnonymousAccess()));
                         curDriver.setAllowsEmptyPassword(CommonUtils.getBoolean(atts.getValue("allowsEmptyPassword"), curDriver.isAllowsEmptyPassword()));
                         curDriver.setInstantiable(CommonUtils.getBoolean(atts.getValue(RegistryConstants.ATTR_INSTANTIABLE), curDriver.isInstantiable()));
+                        curDriver.setThreadSafeDriver(CommonUtils.getBoolean(atts.getValue("threadSafe"), curDriver.isThreadSafeDriver()));
                     }
                     if (atts.getValue(RegistryConstants.ATTR_CUSTOM_DRIVER_LOADER) != null) {
                         curDriver.setCustomDriverLoader((

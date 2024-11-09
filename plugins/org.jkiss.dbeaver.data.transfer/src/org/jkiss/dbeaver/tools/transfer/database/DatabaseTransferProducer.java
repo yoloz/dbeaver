@@ -136,7 +136,7 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
     @Override
     public String getObjectContainerName() {
         DBPDataSourceContainer container = getDataSourceContainer();
-        return container != null ? container.getName() : objectId;
+        return container != null ? container.getName() : CommonUtils.notNull(objectId, "?");
     }
 
     @Override
@@ -153,7 +153,8 @@ public class DatabaseTransferProducer implements IDataTransferProducer<DatabaseP
     @Override
     public DBPDataSourceContainer getDataSourceContainer() {
         if (dataContainer != null) {
-            return dataContainer.getDataSource().getContainer();
+            DBPDataSource dataSource = dataContainer.getDataSource();
+            return dataSource == null ? null : dataSource.getContainer();
         }
         return dataSourceContainer;
     }
