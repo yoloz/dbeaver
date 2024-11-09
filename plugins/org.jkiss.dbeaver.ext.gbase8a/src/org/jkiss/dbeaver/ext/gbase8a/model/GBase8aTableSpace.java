@@ -1,6 +1,7 @@
 package org.jkiss.dbeaver.ext.gbase8a.model;
 
 import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPRefreshableObject;
 import org.jkiss.dbeaver.model.DBPSaveableObject;
@@ -13,8 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class GBase8aTableSpace implements DBSObject, DBPRefreshableObject, DBPSaveableObject {
-    private GBase8aDataSource dataSource;
-    private GBase8aCatalog catalog;
+    private final GBase8aDataSource dataSource;
+    private final GBase8aCatalog catalog;
     private String name;
     private String path;
     private boolean isDefault;
@@ -39,7 +40,6 @@ public class GBase8aTableSpace implements DBSObject, DBPRefreshableObject, DBPSa
         this.catalog = catalog;
         this.dataSource = catalog.getDataSource();
     }
-
 
     @Property(viewable = true, editable = false, updatable = false, order = 11)
     public String getName() {
@@ -114,17 +114,17 @@ public class GBase8aTableSpace implements DBSObject, DBPRefreshableObject, DBPSa
         return null;
     }
 
-
+    @Override
     public String getDescription() {
         return null;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
         return this.dataSource;
     }
 
-
+    @Override
     public DBPDataSource getDataSource() {
         return this.dataSource;
     }
@@ -136,13 +136,13 @@ public class GBase8aTableSpace implements DBSObject, DBPRefreshableObject, DBPSa
         }
         long oldSizeNum = Long.parseLong(sizeNum);
         if (oldSizeNum / 1024L / 1024L / 1024L / 1024L > 0L && oldSizeNum % 256L == 0L) {
-            oldSize = String.valueOf(oldSizeNum / 1024L / 1024L / 1024L / 1024L) + "T";
+            oldSize = oldSizeNum / 1024L / 1024L / 1024L / 1024L + "T";
         } else if (oldSizeNum / 1024L / 1024L / 1024L > 0L && oldSizeNum % 1073741824L == 0L) {
-            oldSize = String.valueOf(oldSizeNum / 1024L / 1024L / 1024L) + "G";
+            oldSize = oldSizeNum / 1024L / 1024L / 1024L + "G";
         } else if (oldSizeNum / 1024L / 1024L > 0L && oldSizeNum % 1048576L == 0L) {
-            oldSize = String.valueOf(oldSizeNum / 1024L / 1024L) + "M";
+            oldSize = oldSizeNum / 1024L / 1024L + "M";
         } else if (oldSizeNum / 1024L > 0L && oldSizeNum % 1024L == 0L) {
-            oldSize = String.valueOf(oldSizeNum / 1024L) + "K";
+            oldSize = oldSizeNum / 1024L + "K";
         } else {
             oldSize = "0";
         }

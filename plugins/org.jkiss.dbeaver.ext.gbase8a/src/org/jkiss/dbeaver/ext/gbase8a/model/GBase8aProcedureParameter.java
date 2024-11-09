@@ -13,7 +13,9 @@ public class GBase8aProcedureParameter extends JDBCAttribute implements DBSProce
     private GBase8aProcedure procedure;
     private DBSProcedureParameterKind parameterKind;
 
-    public GBase8aProcedureParameter(GBase8aProcedure procedure, String columnName, String typeName, int valueType, int ordinalPosition, long columnSize, int scale, int precision, boolean notNull, DBSProcedureParameterKind parameterKind) {
+    public GBase8aProcedureParameter(GBase8aProcedure procedure, String columnName, String typeName, int valueType,
+                                     int ordinalPosition, long columnSize, int scale, int precision, boolean notNull,
+                                     DBSProcedureParameterKind parameterKind) {
         super(columnName, typeName, valueType, ordinalPosition, columnSize, scale, precision, notNull, false);
         this.procedure = procedure;
         this.parameterKind = parameterKind;
@@ -21,24 +23,27 @@ public class GBase8aProcedureParameter extends JDBCAttribute implements DBSProce
 
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
-        return (GBase8aDataSource) this.procedure.getDataSource();
+        return this.procedure.getDataSource();
     }
 
-
+    @Override
     public GBase8aProcedure getParentObject() {
         return this.procedure;
     }
 
 
-    @Property(viewable = true, order = 10)
     @NotNull
+    @Override
+    @Property(viewable = true, order = 10, name = "parameterKind")
     public DBSProcedureParameterKind getParameterKind() {
         return this.parameterKind;
     }
 
 
     @NotNull
+    @Override
     public DBSTypedObject getParameterType() {
         return this;
     }

@@ -3,14 +3,16 @@ package org.jkiss.dbeaver.ext.gbase8a.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBPNamedObject2;
 import org.jkiss.dbeaver.model.DBPRefreshableObject;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTableIndex;
-import org.jkiss.dbeaver.model.meta.Association;
+import org.jkiss.dbeaver.model.meta.IPropertyValueListProvider;
 import org.jkiss.dbeaver.model.meta.Property;
+import org.jkiss.dbeaver.model.meta.PropertyLength;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.rdb.DBSIndexType;
@@ -23,7 +25,8 @@ import java.util.List;
 
 
 public class GBase8aTableFullIndex extends JDBCTableIndex<GBase8aCatalog, GBase8aTable> implements DBPNamedObject2, DBPRefreshableObject {
-    private final boolean nonUnique;
+
+    private boolean nonUnique;
     private String additionalInfo;
     private final String indexComment;
     private long cardinality;
@@ -35,6 +38,7 @@ public class GBase8aTableFullIndex extends JDBCTableIndex<GBase8aCatalog, GBase8
         this.indexComment = comment;
     }
 
+    // Copy constructor
     GBase8aTableFullIndex(DBRProgressMonitor monitor, GBase8aTable table, DBSTableIndex source) throws DBException {
         super(table.getContainer(), table, source, false);
         this.nonUnique = !source.isUnique();
@@ -45,7 +49,7 @@ public class GBase8aTableFullIndex extends JDBCTableIndex<GBase8aCatalog, GBase8
         }
         List<? extends DBSTableIndexColumn> columns = source.getAttributeReferences(monitor);
         if (columns != null) {
-            this.columns = new ArrayList<GBase8aTableFullIndexColumn>(columns.size());
+            this.columns = new ArrayList<>(columns.size());
             for (DBSTableIndexColumn sourceColumn : columns) {
                 this.columns.add(new GBase8aTableFullIndexColumn(monitor, this, sourceColumn));
             }
@@ -54,40 +58,47 @@ public class GBase8aTableFullIndex extends JDBCTableIndex<GBase8aCatalog, GBase8
 
     public GBase8aTableFullIndex(GBase8aTable parent, String indexName, DBSIndexType indexType, ResultSet dbResult) {
         super(parent.getContainer(), parent, indexName, indexType, true);
-        this.nonUnique = (JDBCUtils.safeGetInt(dbResult, "NON_UNIQUE") != 0);
-        this.cardinality = JDBCUtils.safeGetLong(dbResult, "cardinality");
-        this.indexComment = JDBCUtils.safeGetString(dbResult, "INDEX_COMMENT");
-        this.additionalInfo = JDBCUtils.safeGetString(dbResult, "COMMENT");
+        this.nonUnique = (JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_NON_UNIQUE) != 0);
+        this.cardinality = JDBCUtils.safeGetLong(dbResult, "CARDINALITY");
+        this.indexComment = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COMMENT);
+        this.additionalInfo = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COMMENT);
     }
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
         return getTable().getDataSource();
     }
 
-    @Property(viewable = true, order = 5)
+    @Override
+    @Property(viewable = true, editable = true, updatable = true, order = 5)
     public boolean isUnique() {
         return !this.nonUnique;
     }
 
-    @Property(viewable = true, order = 100)
+    public void setUnique(boolean unique) {
+        this.nonUnique = !unique;
+    }
+
     @Nullable
+    @Override
+    @Property(viewable = true, length = PropertyLength.MULTILINE, order = 100)
     public String getDescription() {
-        return this.indexComment;
+        return indexComment;
     }
 
     @Property(viewable = true, order = 20)
     public long getCardinality() {
-        return this.cardinality;
+        return cardinality;
     }
 
     @Property(viewable = false, order = 30)
     public String getAdditionalInfo() {
-        return this.additionalInfo;
+        return additionalInfo;
     }
 
-    @Association
-    public List<GBase8aTableFullIndexColumn> getAttributeReferences(DBRProgressMonitor monitor) {
+    @Override
+    public List<GBase8aTableFullIndexColumn> getAttributeReferences(@NotNull DBRProgressMonitor monitor) {
         return this.columns;
     }
 
@@ -101,17 +112,47 @@ public class GBase8aTableFullIndex extends JDBCTableIndex<GBase8aCatalog, GBase8
 
     public void addColumn(GBase8aTableFullIndexColumn column) {
         if (this.columns == null) {
-            this.columns = new ArrayList<GBase8aTableFullIndexColumn>();
+            this.columns = new ArrayList<>();
         }
         this.columns.add(column);
     }
 
     @NotNull
     public String getFullyQualifiedName(DBPEvaluationContext context) {
-        return DBUtils.getFullQualifiedName(getDataSource(), getTable().getContainer(), this);
+        return DBUtils.getFullQualifiedName(getDataSource(), (getTable()).getContainer(), this);
     }
 
     public DBSObject refreshObject(DBRProgressMonitor monitor) throws DBException {
         return null;
+    }
+
+    @NotNull
+    @Override
+    @Property(viewable = true, editable = true, updatable = true, order = 3, listProvider = IndexTypeModifyListProvider.class)
+    public DBSIndexType getIndexType() {
+        return super.getIndexType();
+    }
+
+    @Override
+    public String toString() {
+        return DBUtils.getQuotedIdentifier(getTable()) + "." + DBUtils.getQuotedIdentifier(this);
+    }
+
+    public boolean isUniqueKeyIndex(DBRProgressMonitor monitor) throws DBException {
+        GBase8aTableConstraint uniqueKey = getTable().getConstraint(monitor, getName());
+        return uniqueKey != null;
+    }
+
+    public static class IndexTypeModifyListProvider implements IPropertyValueListProvider<GBase8aTableFullIndex> {
+
+        @Override
+        public boolean allowCustomValue() {
+            return false;
+        }
+
+        @Override
+        public Object[] getPossibleValues(GBase8aTableFullIndex object) {
+            return object.getDataSource().supportedIndexTypes().toArray();
+        }
     }
 }

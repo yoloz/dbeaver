@@ -1,25 +1,27 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2024 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jkiss.dbeaver.ext.gbase8a.ui.views;
 
-import org.jkiss.dbeaver.ext.gbase8a.data.GBase8aMessages;
-import org.jkiss.dbeaver.ext.gbase8a.ui.internal.GBase8aUIActivator;
-import org.jkiss.dbeaver.model.DBPDataSourceContainer;
-import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
-import org.jkiss.dbeaver.model.connection.DBPDriver;
-import org.jkiss.dbeaver.ui.IDialogPageProvider;
-import org.jkiss.dbeaver.ui.UIUtils;
-import org.jkiss.dbeaver.ui.dialogs.connection.ClientHomesSelector;
-import org.jkiss.dbeaver.ui.dialogs.connection.ConnectionPageAbstract;
-import org.jkiss.dbeaver.ui.dialogs.connection.DriverPropertiesDialogPage;
-import org.jkiss.utils.CommonUtils;
-
-import java.util.Locale;
-
 import org.eclipse.jface.dialogs.IDialogPage;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -27,103 +29,149 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
+import org.jkiss.dbeaver.ext.gbase8a.ui.internal.GBase8aUIMessages;
+import org.jkiss.dbeaver.model.DBPDataSourceContainer;
+import org.jkiss.dbeaver.model.DBPImage;
+import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
+import org.jkiss.dbeaver.model.connection.DBPDriver;
+import org.jkiss.dbeaver.model.connection.DBPDriverConfigurationType;
+import org.jkiss.dbeaver.ui.DBeaverIcons;
+import org.jkiss.dbeaver.ui.IDialogPageProvider;
+import org.jkiss.dbeaver.ui.UIUtils;
+import org.jkiss.dbeaver.ui.dialogs.connection.ConnectionPageWithAuth;
+import org.jkiss.dbeaver.ui.dialogs.connection.DriverPropertiesDialogPage;
+import org.jkiss.dbeaver.ui.internal.UIConnectionMessages;
+import org.jkiss.utils.CommonUtils;
 
+import java.util.Locale;
 
-public class GBase8aConnectionPage extends ConnectionPageAbstract implements IDialogPageProvider {
+/**
+ * GBase8aConnectionPage
+ */
+public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDialogPageProvider {
+
+    private Text urlText;
     private Text hostText;
     private Text portText;
     private Text dbText;
-    private Text usernameText;
-    private Text passwordText;
-    private ClientHomesSelector homesSelector;
     private Button isSpecifiedVC;
     private Text vcName;
     private boolean activated = false;
-    private static final ImageDescriptor GBASE8A_LOGO_IMG = GBase8aUIActivator.getImageDescriptor("icons/gbase8a_logo.png");
-    private static final ImageDescriptor DB_LOGO_IMG = GBase8aUIActivator.getImageDescriptor("icons/db_logo.png");
 
+    private final Image LOGO_GBase8a;
+    private boolean needsPort;
 
-    public void dispose() {
-        super.dispose();
+    public GBase8aConnectionPage() {
+        LOGO_GBase8a = createImage("icons/mgbase8a_logo.png");
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        UIUtils.dispose(LOGO_GBase8a);
+    }
+
+    @Override
+    public Image getImage() {
+        // We set image only once at activation
+        // There is a bug in Eclipse which leads to SWTException after wizard image change
+        DBPDriver driver = getSite().getDriver();
+        DBPImage logoImage = driver.getLogoImage();
+        if (logoImage != null) {
+            return DBeaverIcons.getImage(logoImage);
+        }
+        return LOGO_GBase8a;
+    }
+
+    @Override
     public void createControl(Composite composite) {
-        ModifyListener textListener = new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                if (GBase8aConnectionPage.this.activated) {
-                    GBase8aConnectionPage.this.saveSettings(GBase8aConnectionPage.this.site.getActiveDataSource());
-                    GBase8aConnectionPage.this.site.updateButtons();
-                }
+        ModifyListener textListener = e -> {
+            if (activated) {
+                updateUrl();
+                site.updateButtons();
             }
         };
-        int fontHeight = UIUtils.getFontHeight(composite);
 
-        Composite addrGroup = UIUtils.createPlaceholder(composite, 2);
-        GridLayout gl = new GridLayout(2, false);
-        addrGroup.setLayout(gl);
-        GridData gd = new GridData(1808);
+        Composite addrGroup = new Composite(composite, SWT.NONE);
+        addrGroup.setLayout(new GridLayout(1, false));
+        GridData gd = new GridData(GridData.FILL_BOTH);
         addrGroup.setLayoutData(gd);
 
-        Label hostLabel = UIUtils.createControlLabel(addrGroup, GBase8aMessages.dialog_connection_host);
-        hostLabel.setLayoutData(new GridData(128));
+        Group serverGroup = UIUtils.createControlGroup(
+                addrGroup,
+                UIConnectionMessages.dialog_connection_server_label,
+                4,
+                GridData.FILL_HORIZONTAL,
+                0);
 
-        this.hostText = new Text(addrGroup, 2048);
-        this.hostText.setLayoutData(new GridData(768));
-        this.hostText.addModifyListener(textListener);
+        SelectionAdapter typeSwitcher = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                setupConnectionModeSelection(urlText, typeURLRadio.getSelection(), GROUP_CONNECTION_ARR);
+                updateUrl();
+            }
+        };
+        createConnectionModeSwitcher(serverGroup, typeSwitcher);
 
-        Label portLabel = UIUtils.createControlLabel(addrGroup, GBase8aMessages.dialog_connection_port);
-        portLabel.setLayoutData(new GridData(128));
+        UIUtils.createControlLabel(serverGroup, UIConnectionMessages.dialog_connection_url_label);
+        urlText = new Text(serverGroup, SWT.BORDER);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 3;
+        gd.grabExcessHorizontalSpace = true;
+        gd.widthHint = 355;
+        urlText.setLayoutData(gd);
+        urlText.addModifyListener(e -> site.updateButtons());
 
-        this.portText = new Text(addrGroup, 2048);
-        gd = new GridData(32);
-        gd.widthHint = fontHeight * 10;
-        this.portText.setLayoutData(gd);
-        this.portText.addVerifyListener(UIUtils.getIntegerVerifyListener(Locale.getDefault()));
-        this.portText.addModifyListener(textListener);
+        DBPDriver driver = getSite().getDriver();
+        needsPort = CommonUtils.getBoolean(driver.getDriverParameter("needsPort"), true);
 
-        Label dbLabel = UIUtils.createControlLabel(addrGroup, GBase8aMessages.dialog_connection_database);
-        dbLabel.setLayoutData(new GridData(128));
+        Label hostLabel = UIUtils.createControlLabel(serverGroup,
+                needsPort ? GBase8aUIMessages.dialog_connection_host : GBase8aUIMessages.dialog_connection_instance);
+        addControlToGroup(GROUP_CONNECTION, hostLabel);
 
-        this.dbText = new Text(addrGroup, 2048);
-        this.dbText.setLayoutData(new GridData(768));
-        this.dbText.addModifyListener(textListener);
+        hostText = new Text(serverGroup, SWT.BORDER);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.grabExcessHorizontalSpace = true;
+        hostText.setLayoutData(gd);
+        hostText.addModifyListener(textListener);
+        addControlToGroup(GROUP_CONNECTION, hostText);
 
-        Label usernameLabel = UIUtils.createControlLabel(addrGroup, GBase8aMessages.dialog_connection_user_name);
-        usernameLabel.setLayoutData(new GridData(128));
+        if (needsPort) {
+            Label portLabel = UIUtils.createControlLabel(serverGroup, GBase8aUIMessages.dialog_connection_port);
+            addControlToGroup(GROUP_CONNECTION, portLabel);
+            portText = new Text(serverGroup, SWT.BORDER);
+            gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+            gd.widthHint = UIUtils.getFontHeight(portText) * 10;
+            portText.addVerifyListener(UIUtils.getIntegerVerifyListener(Locale.getDefault()));
+            portText.addModifyListener(textListener);
+            addControlToGroup(GROUP_CONNECTION, portText);
+        } else {
+            gd.horizontalSpan = 3;
+        }
 
-        this.usernameText = new Text(addrGroup, 2048);
-        gd = new GridData(32);
-        gd.widthHint = fontHeight * 20;
-        this.usernameText.setLayoutData(gd);
-        this.usernameText.addModifyListener(textListener);
+        Label dbLabel = UIUtils.createControlLabel(serverGroup, GBase8aUIMessages.dialog_connection_database);
+        addControlToGroup(GROUP_CONNECTION, dbLabel);
+        dbText = new Text(serverGroup, SWT.BORDER);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.grabExcessHorizontalSpace = true;
+        gd.horizontalSpan = 3;
+        dbText.setLayoutData(gd);
+        dbText.addModifyListener(textListener);
+        addControlToGroup(GROUP_CONNECTION, dbText);
 
-        Label passwordLabel = UIUtils.createControlLabel(addrGroup, GBase8aMessages.dialog_connection_password);
-        passwordLabel.setLayoutData(new GridData(128));
+        createAuthPanel(addrGroup, 1);
 
-        this.passwordText = new Text(addrGroup, 4196352);
-        gd = new GridData(32);
-        gd.widthHint = fontHeight * 20;
-        this.passwordText.setLayoutData(gd);
-        this.passwordText.addModifyListener(textListener);
+        Group advancedGroup = UIUtils.createControlGroup(
+                addrGroup,
+                GBase8aUIMessages.dialog_connection_group_advanced,
+                2,
+                GridData.HORIZONTAL_ALIGN_BEGINNING,
+                0);
 
-
-        Composite clientPanel = UIUtils.createPlaceholder(addrGroup, 1);
-        gd = new GridData(768);
-        gd.horizontalSpan = 2;
-        clientPanel.setLayoutData(gd);
-
-        UIUtils.createHorizontalLine(clientPanel);
-
-        this.homesSelector = new ClientHomesSelector(clientPanel, GBase8aMessages.dialog_connection_local_client);
-        gd = new GridData(800);
-        this.homesSelector.getPanel().setLayoutData(gd);
-
-
-        this.isSpecifiedVC = new Button(addrGroup, 32);
-        this.isSpecifiedVC.setText(GBase8aMessages.dialog_connection_is_specified_vc);
+        this.isSpecifiedVC = new Button(advancedGroup, 32);
+        this.isSpecifiedVC.setText(GBase8aUIMessages.dialog_connection_is_specified_vc);
         this.isSpecifiedVC.addSelectionListener(new SelectionAdapter() {
-
-
             public void widgetSelected(SelectionEvent e) {
                 GBase8aConnectionPage.this.vcName.setEnabled(GBase8aConnectionPage.this.isSpecifiedVC.getSelection());
                 if (!GBase8aConnectionPage.this.isSpecifiedVC.getSelection()) {
@@ -133,78 +181,75 @@ public class GBase8aConnectionPage extends ConnectionPageAbstract implements IDi
         });
 
 
-        Group vcNameGroup = new Group(addrGroup, 0);
+        Group vcNameGroup = new Group(advancedGroup, 0);
         gd = new GridData(768);
         gd.horizontalSpan = 2;
         vcNameGroup.setLayoutData(gd);
         vcNameGroup.setLayout(new GridLayout(2, false));
 
-        Label vcNameLabel = UIUtils.createControlLabel(vcNameGroup, GBase8aMessages.dialog_connection_vc_name);
+        Label vcNameLabel = UIUtils.createControlLabel(vcNameGroup, GBase8aUIMessages.dialog_connection_vc_name);
         vcNameLabel.setLayoutData(new GridData(128));
 
         this.vcName = new Text(vcNameGroup, 2048);
         gd = new GridData(32);
-        gd.widthHint = fontHeight * 20;
+        gd.widthHint = UIUtils.getFontHeight(vcName) * 20;
         this.vcName.setLayoutData(gd);
         this.vcName.setEnabled(false);
         this.vcName.addModifyListener(textListener);
-
 
         createDriverPanel(addrGroup);
         setControl(addrGroup);
     }
 
-
-    public boolean isComplete() {
-        return (this.hostText != null && this.portText != null &&
-                !CommonUtils.isEmpty(this.hostText.getText()) &&
-                !CommonUtils.isEmpty(this.portText.getText()));
+    private void updateUrl() {
+        DBPDataSourceContainer dataSourceContainer = site.getActiveDataSource();
+        saveSettings(dataSourceContainer);
+        if (typeURLRadio != null && typeURLRadio.getSelection()) {
+            urlText.setText(dataSourceContainer.getConnectionConfiguration().getUrl());
+        } else {
+            urlText.setText(dataSourceContainer.getDriver().getConnectionURL(site.getActiveDataSource().getConnectionConfiguration()));
+        }
     }
 
+    @Override
+    public boolean isComplete() {
+        if (isCustomURL()) {
+            return !CommonUtils.isEmpty(urlText.getText());
+        }
+        return super.isComplete() &&
+                hostText != null &&
+                !CommonUtils.isEmpty(hostText.getText()) &&
+                (!needsPort || !CommonUtils.isEmpty(portText.getText()));
+    }
 
+    @Override
     public void loadSettings() {
         super.loadSettings();
-
-        DBPDriver driver = getSite().getDriver();
-        if (!this.activated) {
-
-            if (driver != null && driver.getId().equalsIgnoreCase("mariaDB")) {
-                setImageDescriptor(DB_LOGO_IMG);
-            } else {
-                setImageDescriptor(GBASE8A_LOGO_IMG);
-            }
-        }
-
-
-        DBPConnectionConfiguration connectionInfo = this.site.getActiveDataSource().getConnectionConfiguration();
-        if (this.hostText != null) {
+        DBPConnectionConfiguration connectionInfo = site.getActiveDataSource().getConnectionConfiguration();
+        // Load values from new connection info
+        if (hostText != null) {
             if (!CommonUtils.isEmpty(connectionInfo.getHostName())) {
-                this.hostText.setText(connectionInfo.getHostName());
+                hostText.setText(connectionInfo.getHostName());
             } else {
-                this.hostText.setText("localhost");
+                hostText.setText(
+                        CommonUtils.toString(site.getDriver().getDefaultHost(), GBase8aConstants.DEFAULT_HOST));
             }
         }
-        if (this.portText != null) {
+        if (portText != null) {
             if (!CommonUtils.isEmpty(connectionInfo.getHostPort())) {
-                this.portText.setText(String.valueOf(connectionInfo.getHostPort()));
-            } else if (this.site.getDriver().getDefaultPort() != null) {
-                this.portText.setText(this.site.getDriver().getDefaultPort());
+                portText.setText(connectionInfo.getHostPort());
+            } else if (site.getDriver().getDefaultPort() != null) {
+                portText.setText(site.getDriver().getDefaultPort());
             } else {
-                this.portText.setText("");
+                portText.setText("");
             }
         }
-        if (this.dbText != null) {
-            this.dbText.setText(CommonUtils.notEmpty(connectionInfo.getDatabaseName()));
+        if (dbText != null) {
+            dbText.setText(CommonUtils.toString(connectionInfo.getDatabaseName(), CommonUtils.notEmpty(site.getDriver().getDefaultDatabase())));
         }
-        if (this.usernameText != null) {
-            this.usernameText.setText(CommonUtils.notEmpty(connectionInfo.getUserName()));
-        }
-        if (this.passwordText != null) {
-            this.passwordText.setText(CommonUtils.notEmpty(connectionInfo.getUserPassword()));
-        }
-        this.homesSelector.populateHomes(this.site.getDriver(), connectionInfo.getClientHomeId(), false);
-        String vcNameStr = connectionInfo.getProperty("vcName");
-        if (vcNameStr != null && !vcNameStr.equals("")) {
+
+        String vcNameStr = connectionInfo.getProperty(GBase8aConstants.PROP_VC_NAME);
+        if (vcNameStr != null && !vcNameStr.isEmpty()) {
             this.isSpecifiedVC.setSelection(true);
             this.vcName.setEnabled(true);
             this.vcName.setText(CommonUtils.notEmpty(vcNameStr));
@@ -212,40 +257,45 @@ public class GBase8aConnectionPage extends ConnectionPageAbstract implements IDi
             this.isSpecifiedVC.setSelection(false);
             this.vcName.setEnabled(false);
         }
-        this.activated = true;
+
+        final boolean useURL = connectionInfo.getConfigurationType() == DBPDriverConfigurationType.URL;
+        if (useURL) {
+            urlText.setText(connectionInfo.getUrl());
+        }
+        setupConnectionModeSelection(urlText, useURL, GROUP_CONNECTION_ARR);
+        // updateUrl里会调用saveSettings，如果有自定义Properties需要在此之前加载
+        updateUrl();
+        activated = true;
     }
 
-
+    @Override
     public void saveSettings(DBPDataSourceContainer dataSource) {
         DBPConnectionConfiguration connectionInfo = dataSource.getConnectionConfiguration();
-        if (this.hostText != null) {
-            connectionInfo.setHostName(this.hostText.getText().trim());
+        if (typeURLRadio != null) {
+            connectionInfo.setConfigurationType(
+                    typeURLRadio.getSelection() ? DBPDriverConfigurationType.URL : DBPDriverConfigurationType.MANUAL);
         }
-        if (this.portText != null) {
-            connectionInfo.setHostPort(this.portText.getText().trim());
+        if (hostText != null) {
+            connectionInfo.setHostName(hostText.getText().trim());
         }
-        if (this.dbText != null) {
-            connectionInfo.setDatabaseName(this.dbText.getText().trim());
+        if (portText != null) {
+            connectionInfo.setHostPort(portText.getText().trim());
         }
-        if (this.usernameText != null) {
-            connectionInfo.setUserName(this.usernameText.getText().trim());
+        if (dbText != null) {
+            connectionInfo.setDatabaseName(dbText.getText().trim());
         }
-        if (this.passwordText != null) {
-            connectionInfo.setUserPassword(this.passwordText.getText());
+        if (typeURLRadio != null && typeURLRadio.getSelection()) {
+            connectionInfo.setUrl(urlText.getText());
         }
-        if (this.homesSelector != null) {
-            connectionInfo.setClientHomeId(this.homesSelector.getSelectedHome());
-        }
-
         if (this.vcName != null) {
-            connectionInfo.setProperty("vcName", this.vcName.getText());
+            connectionInfo.setProperty(GBase8aConstants.PROP_VC_NAME, this.vcName.getText());
         }
         super.saveSettings(dataSource);
     }
 
     @Override
     public IDialogPage[] getDialogPages(boolean extrasOnly, boolean forceCreate) {
-        return new IDialogPage[]{new DriverPropertiesDialogPage(this)
-        };
+        return new IDialogPage[]{new DriverPropertiesDialogPage(this)};
     }
+
 }

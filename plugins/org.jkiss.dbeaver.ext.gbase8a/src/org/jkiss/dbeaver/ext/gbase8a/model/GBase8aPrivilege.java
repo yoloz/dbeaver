@@ -6,33 +6,35 @@ import org.jkiss.dbeaver.model.access.DBAPrivilege;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.struct.DBSObject;
-import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 
 import java.sql.ResultSet;
 
+/**
+ * GBase8a Privilege
+ */
 public class GBase8aPrivilege implements DBAPrivilege {
+
     public static final String GRANT_PRIVILEGE = "Grant Option";
     public static final String ALL_PRIVILEGES = "All Privileges";
-    private GBase8aDataSource dataSource;
-    private String name;
-    private static final Log log = Log.getLog(GBase8aPrivilege.class);
-    private String context;
-    private String comment;
-    private Kind kind;
 
     public enum Kind {
         OBJECTS,
         DDL,
         ADMIN,
-        MISC;
+        MISC
     }
 
+    private GBase8aDataSource dataSource;
+    private String name;
+    private String context;
+    private String comment;
+    private Kind kind;
 
-    public GBase8aPrivilege(GBase8aDataSource dataSource, ResultSet resultSet) {
+    public GBase8aPrivilege(@NotNull GBase8aDataSource dataSource, @NotNull String context, @NotNull ResultSet resultSet) {
         this.dataSource = dataSource;
         this.name = JDBCUtils.safeGetString(resultSet, "privilege");
-        this.context = JDBCUtils.safeGetString(resultSet, "context");
+        this.context = context;
         this.comment = JDBCUtils.safeGetString(resultSet, "comment");
 
         if (this.context.contains("Admin")) {
@@ -46,48 +48,60 @@ public class GBase8aPrivilege implements DBAPrivilege {
         }
     }
 
+    public GBase8aPrivilege(GBase8aDataSource dataSource, String name, String context, String comment, Kind kind) {
+        this.dataSource = dataSource;
+        this.name = name;
+        this.context = context;
+        this.comment = comment;
+        this.kind = kind;
+    }
 
     public Kind getKind() {
         return this.kind;
     }
 
 
-    @Property(viewable = true, order = 1)
     @NotNull
+    @Override
+    @Property(viewable = true, order = 1)
     public String getName() {
-        return this.name;
+        return name;
     }
-
 
     @Property(viewable = true, order = 2)
     public String getContext() {
-        return this.context;
+        return context;
     }
-
 
     @Nullable
+    @Override
     public String getDescription() {
-        return this.comment;
+        return comment;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
-        return (DBSObject) this.dataSource;
+        return dataSource;
     }
-
 
     @NotNull
+    @Override
     public JDBCDataSource getDataSource() {
-        return this.dataSource;
+        return dataSource;
     }
 
-
+    @Override
     public boolean isPersisted() {
         return true;
     }
 
-
     public boolean isGrantOption() {
-        return this.name.equalsIgnoreCase("Grant Option");
+        return name.equalsIgnoreCase(GRANT_PRIVILEGE);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

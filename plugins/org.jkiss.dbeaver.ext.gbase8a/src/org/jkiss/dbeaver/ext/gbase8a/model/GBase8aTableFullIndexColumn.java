@@ -13,7 +13,7 @@ import java.util.Collections;
 
 public class GBase8aTableFullIndexColumn extends AbstractTableIndexColumn {
 
-    private Log log = Log.getLog(GBase8aTableFullIndexColumn.class);
+    private final Log log = Log.getLog(GBase8aTableFullIndexColumn.class);
 
     private final GBase8aTableFullIndex index;
     private GBase8aTableColumn tableColumn;
@@ -23,12 +23,13 @@ public class GBase8aTableFullIndexColumn extends AbstractTableIndexColumn {
     private String subPart;
     private String path;
 
+
     public GBase8aTableFullIndexColumn(GBase8aTableFullIndex index, GBase8aTableColumn tableColumn, int ordinalPosition,
                                        boolean ascending, boolean nullable, String subPart) {
         this.index = index;
         String createSQL = "";
         try {
-            createSQL = ((GBase8aTable) index.getTable()).getDDL(getDataSource().getMonitor(), Collections.emptyMap());
+            createSQL = index.getTable().getDDL(getDataSource().getMonitor(), Collections.emptyMap());
             if (!createSQL.contains("INDEX_DATA_PATH")) {
                 this.path = "";
             } else {
@@ -52,7 +53,7 @@ public class GBase8aTableFullIndexColumn extends AbstractTableIndexColumn {
     GBase8aTableFullIndexColumn(DBRProgressMonitor monitor, GBase8aTableFullIndex toIndex, DBSTableIndexColumn source) throws DBException {
         this.index = toIndex;
         if (source.getTableColumn() != null) {
-            this.tableColumn = ((GBase8aTable) toIndex.getTable()).getAttribute(monitor, source.getTableColumn().getName());
+            this.tableColumn = toIndex.getTable().getAttribute(monitor, source.getTableColumn().getName());
         }
         this.ordinalPosition = source.getOrdinalPosition();
         this.ascending = source.isAscending();
@@ -64,60 +65,61 @@ public class GBase8aTableFullIndexColumn extends AbstractTableIndexColumn {
 
 
     @NotNull
+    @Override
     public GBase8aTableFullIndex getIndex() {
         return this.index;
     }
 
+    @Property(viewable = true, order = 1)
     @NotNull
+    @Override
     public String getName() {
         return this.tableColumn.getName();
     }
 
-    @Property(id = "name", viewable = true, order = 1)
     @Nullable
+    @Override
+    @Property(viewable = true, order = 2)
     public GBase8aTableColumn getTableColumn() {
         return this.tableColumn;
     }
 
-    @Property(viewable = false, order = 2)
+    @Property(viewable = false, order = 3)
     public int getOrdinalPosition() {
         return this.ordinalPosition;
     }
 
-    @Property(viewable = true, order = 3)
+
+    @Property(viewable = true, order = 4)
+    @Override
     public boolean isAscending() {
         return this.ascending;
     }
 
-    @Property(viewable = true, order = 4)
+
+    @Property(viewable = true, order = 5)
     public boolean isNullable() {
         return this.nullable;
     }
 
-    @Property(viewable = true, order = 5)
+    @Property(viewable = true, order = 6)
     public String getSubPart() {
         return this.subPart;
     }
 
-    @Property(viewable = true, order = 6)
-    public String getPath() {
-        return this.path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     @Nullable
+    @Override
     public String getDescription() {
-        return this.tableColumn.getDescription();
+        return tableColumn.getDescription();
     }
 
+    @Override
     public GBase8aTableFullIndex getParentObject() {
-        return this.index;
+        return index;
     }
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
         return this.index.getDataSource();
     }

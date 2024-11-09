@@ -4,6 +4,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.DBCException;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
@@ -16,26 +17,22 @@ import org.jkiss.dbeaver.model.meta.LazyProperty;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.meta.PropertyGroup;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
-//import cn.gbase.studio.model.struct.rdb.DBSLocation;
 import org.jkiss.dbeaver.model.sql.format.SQLFormatUtils;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableConstraint;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableForeignKey;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableIndex;
+import org.jkiss.dbeaver.model.struct.rdb.DBSView;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 
-public class GBase8aView extends GBase8aTableBase {
+public class GBase8aView extends GBase8aTableBase implements DBSView {
 
     private static final Log log = Log.getLog(GBase8aView.class);
-
-    @Override
-    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
-        return getAdditionalInfo(monitor).getDefinition();
-    }
 
     public enum CheckOption {
         NONE(null),
@@ -64,19 +61,45 @@ public class GBase8aView extends GBase8aTableBase {
             return this.loaded;
         }
 
-        @Property(hidden = true, editable = true, updatable = true, order = -1)
         public String getDefinition() {
-            return this.definition;
+            return definition;
         }
 
         public void setDefinition(String definition) {
             this.definition = definition;
         }
+
+        @Property(viewable = true, editable = true, updatable = true, order = 4)
+        public CheckOption getCheckOption() {
+            return checkOption;
+        }
+
+        public void setCheckOption(CheckOption checkOption) {
+            this.checkOption = checkOption;
+        }
+
+        @Property(viewable = true, order = 5)
+        public boolean isUpdatable() {
+            return updatable;
+        }
+
+        public void setUpdatable(boolean updatable) {
+            this.updatable = updatable;
+        }
+
+        @Property(viewable = true, order = 6)
+        public String getDefiner() {
+            return definer;
+        }
+
+        public void setDefiner(String definer) {
+            this.definer = definer;
+        }
     }
 
 
-    public static class AdditionalInfoValidator
-            implements IPropertyCacheValidator<GBase8aView> {
+    public static class AdditionalInfoValidator implements IPropertyCacheValidator<GBase8aView> {
+        @Override
         public boolean isPropertyCached(GBase8aView object, Object propertyId) {
             return object.additionalInfo.loaded;
         }
@@ -92,90 +115,91 @@ public class GBase8aView extends GBase8aTableBase {
         super(catalog, dbResult);
     }
 
-    @Property(viewable = true, editable = true, valueTransformer = DBObjectNameCaseTransformer.class, order = 1)
     @NotNull
+    @Property(viewable = true, editable = true, valueTransformer = DBObjectNameCaseTransformer.class, order = 1)
+    @Override
     public String getName() {
         return super.getName();
     }
 
+    @Override
     public boolean isView() {
         return true;
     }
 
-
     public AdditionalInfo getAdditionalInfo() {
-        return this.additionalInfo;
+        return additionalInfo;
     }
 
-    @PropertyGroup
+    @PropertyGroup()
     @LazyProperty(cacheValidator = AdditionalInfoValidator.class)
     public AdditionalInfo getAdditionalInfo(DBRProgressMonitor monitor) throws DBCException {
-        synchronized (this.additionalInfo) {
-            if (!this.additionalInfo.loaded) {
+        synchronized (additionalInfo) {
+            if (!additionalInfo.loaded) {
                 loadAdditionalInfo(monitor);
             }
-            return this.additionalInfo;
+            return additionalInfo;
         }
     }
 
-    public List<? extends DBSTableIndex> getIndexes(DBRProgressMonitor monitor) throws DBException {
-        return null;
+    @Override
+    public List<? extends DBSTableIndex> getIndexes(@NotNull DBRProgressMonitor monitor) throws DBException {
+        return Collections.emptyList();
     }
 
     @Nullable
+    @Override
     public List<? extends DBSTableConstraint> getConstraints(@NotNull DBRProgressMonitor monitor) throws DBException {
-        return null;
+        return Collections.emptyList();
     }
 
+    @Override
     public List<? extends DBSTableForeignKey> getAssociations(@NotNull DBRProgressMonitor monitor) throws DBException {
-        return null;
+        return Collections.emptyList();
     }
 
+    @Override
     public List<? extends DBSTableForeignKey> getReferences(@NotNull DBRProgressMonitor monitor) throws DBException {
-        return null;
+        return Collections.emptyList();
     }
 
     @Nullable
+    @Override
     public String getDescription() {
         return null;
     }
 
+
     private void loadAdditionalInfo(DBRProgressMonitor monitor) throws DBCException {
-        if (!isPersisted() || getContainer().isSystem()) {
+        if (!isPersisted() || getContainer().isSystemCatalog()) {
             this.additionalInfo.loaded = true;
             return;
         }
 
-        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Load table status")) {
-            try (JDBCPreparedStatement dbStat = session.prepareStatement(
-                    "show create view " + getContainer().getName() + "." + getName())) {
-                try (JDBCResultSet dbResult = dbStat.executeQuery()) {
-                    if (dbResult.next()) {
-                        this.additionalInfo.setDefinition(SQLFormatUtils.formatSQL(getDataSource(), JDBCUtils.safeGetString(dbResult, "Create View")));
-                    }
-                    this.additionalInfo.loaded = true;
-                }
+        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Load table status");
+             JDBCPreparedStatement dbStat = session.prepareStatement("SHOW CREATE VIEW " + getFullyQualifiedName(DBPEvaluationContext.DDL));
+             JDBCResultSet dbResult = dbStat.executeQuery()) {
+            if (dbResult.next()) {
+                this.additionalInfo.setDefinition(SQLFormatUtils.formatSQL(getDataSource(), JDBCUtils.safeGetString(dbResult, "Create View")));
             }
+            this.additionalInfo.loaded = true;
         } catch (SQLException e) {
             throw new DBCException("loadAdditionalInfo", e);
         }
     }
 
+    @Override
+    @Property(hidden = true, editable = true, updatable = true, order = -1)
+    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+        String definition = getAdditionalInfo(monitor).getDefinition();
+        if (definition == null && !isPersisted()) {
+            return "";
+        }
+        return definition;
+    }
+
+    @Override
     public void setObjectDefinitionText(String sourceText) throws DBException {
         getAdditionalInfo().setDefinition(sourceText);
     }
-
-//    public Collection<? extends DBSLocation> getLocation(DBRProgressMonitor monitor) throws DBException {
-//        return null;
-//    }
-//
-//
-//    public Collection<? extends DBSTableIndex> getStorages(DBRProgressMonitor monitor) throws DBException {
-//        return null;
-//    }
-//
-//
-//    public Collection<? extends DBSTableIndex> getDesigns(DBRProgressMonitor monitor) throws DBException {
-//        return null;
-//    }
 }

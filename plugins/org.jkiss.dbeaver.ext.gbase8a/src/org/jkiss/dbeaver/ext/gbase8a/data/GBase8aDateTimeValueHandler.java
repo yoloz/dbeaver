@@ -16,7 +16,9 @@ import org.jkiss.dbeaver.model.struct.DBSTypedObject;
 import java.sql.SQLException;
 import java.util.Date;
 
-
+/**
+ * GBase8a datetime handler
+ */
 public class GBase8aDateTimeValueHandler extends JDBCDateTimeValueHandler {
     private static final Date ZERO_DATE = new Date(0L);
     private static final Date ZERO_TIMESTAMP = new Date(0L);
@@ -32,11 +34,12 @@ public class GBase8aDateTimeValueHandler extends JDBCDateTimeValueHandler {
 //    }
 
 
+    @Override
     public Object fetchValueObject(@NotNull DBCSession session, @NotNull DBCResultSet resultSet, @NotNull DBSTypedObject type, int index) throws DBCException {
         return super.fetchValueObject(session, resultSet, type, index);
     }
 
-
+    @Override
     public void bindValueObject(@NotNull DBCSession session, @NotNull DBCStatement statement, @NotNull DBSTypedObject type, int index, @Nullable Object value) throws DBCException {
         if (value == ZERO_DATE || value == ZERO_TIMESTAMP) {
             try {
@@ -56,6 +59,7 @@ public class GBase8aDateTimeValueHandler extends JDBCDateTimeValueHandler {
 
 
     @NotNull
+    @Override
     public String getValueDisplayString(@NotNull DBSTypedObject column, Object value, @NotNull DBDDisplayFormat format) {
         if (value == ZERO_DATE) {
             return "0000-00-00";
@@ -66,19 +70,19 @@ public class GBase8aDateTimeValueHandler extends JDBCDateTimeValueHandler {
         return super.getValueDisplayString(column, value, format);
     }
 
-
-    public Object getValueFromObject(@NotNull DBCSession session, @NotNull DBSTypedObject type, Object object, boolean copy) throws DBCException {
+    @Override
+    public Object getValueFromObject(@NotNull DBCSession session, @NotNull DBSTypedObject type, Object object, boolean copy, boolean validateValue) throws DBCException {
         if (object instanceof String) {
             if (type.getTypeID() == 91) {
                 if (object.equals("0000-00-00")) {
                     return ZERO_DATE;
                 }
-                return super.getValueFromObject(session, type, object, copy, false);
+                return super.getValueFromObject(session, type, object, copy, validateValue);
             }
             if (object.equals("0000-00-00 00:00:00")) {
                 return ZERO_TIMESTAMP;
             }
         }
-        return super.getValueFromObject(session, type, object, copy, false);
+        return super.getValueFromObject(session, type, object, copy, validateValue);
     }
 }

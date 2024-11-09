@@ -16,24 +16,17 @@ import org.jkiss.dbeaver.model.struct.DBSObject;
 import java.sql.SQLException;
 
 public class GBase8aResourceDirective implements DBSObject, DBPRefreshableObject, DBPImageProvider {
+
     private static final Log log = Log.getLog(GBase8aResourceDirective.class);
 
-    private GBase8aDataSource dataSource;
-
+    private final GBase8aDataSource dataSource;
     private String name;
-
     private String plan_name;
-
     private String group_name;
-
     private String pool_name;
-
     private GBase8aVC gbase8aVC;
-
     private String comments;
-
     private boolean persisted;
-
     private boolean isInitialized = false;
 
 
@@ -46,7 +39,6 @@ public class GBase8aResourceDirective implements DBSObject, DBPRefreshableObject
     public GBase8aResourceDirective(GBase8aDataSource dataSource, JDBCResultSet resultSet, GBase8aVC gbase8aVC) {
         this.dataSource = dataSource;
         this.gbase8aVC = gbase8aVC;
-
         if (resultSet != null) {
             this.persisted = true;
             try {
@@ -74,6 +66,7 @@ public class GBase8aResourceDirective implements DBSObject, DBPRefreshableObject
 
     @Property(viewable = true, order = 1)
     @NotNull
+    @Override
     public String getName() {
         return this.name;
     }
@@ -118,24 +111,24 @@ public class GBase8aResourceDirective implements DBSObject, DBPRefreshableObject
         this.comments = comments;
     }
 
-
+    @Override
     public boolean isPersisted() {
         return this.persisted;
     }
 
-
+    @Override
     public String getDescription() {
         return this.name;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
-        return (DBSObject) getDataSource().getContainer();
+        return getDataSource().getContainer();
     }
 
-
+    @Override
     public DBPDataSource getDataSource() {
-        return (DBPDataSource) this.dataSource;
+        return this.dataSource;
     }
 
     public boolean isInitialized() {
@@ -146,14 +139,14 @@ public class GBase8aResourceDirective implements DBSObject, DBPRefreshableObject
         this.isInitialized = isInitialized;
     }
 
-
+    @Override
     public DBSObject refreshObject(DBRProgressMonitor monitor) throws DBException {
         this.isInitialized = false;
-
-        return this.gbase8aVC.getResourceDirective(this.name);
+        return this.gbase8aVC.getResourceDirective(monitor, this.name);
     }
 
+    @Override
     public DBPImage getObjectImage() {
-        return (DBPImage) DBIcon.TREE_SERVER;
+        return DBIcon.TREE_SERVER;
     }
 }

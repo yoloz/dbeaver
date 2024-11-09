@@ -6,6 +6,7 @@ import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.model.struct.rdb.DBSProcedureType;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -13,31 +14,33 @@ import java.util.Locale;
 import java.util.Map;
 
 public class GBase8aUtils {
+
     private static final Log log = Log.getLog(GBase8aUtils.class);
 
+    private static final String COLUMN_POSTFIX_PRIV = "_priv";
     private static final Map<String, Integer> typeMap = new HashMap();
-    public static final String COLUMN_POSTFIX_PRIV = "_priv";
-    public static String DATA_TYPE_BIGINT = "bigint";
-    public static String DATA_TYPE_BLOB = "blob";
-    public static String DATA_TYPE_CHAR = "char";
-    public static String DATA_TYPE_DATE = "date";
-    public static String DATA_TYPE_DATETIME = "datetime";
-    public static String DATA_TYPE_DECIMAL = "decimal";
-    public static String DATA_TYPE_DOUBLE = "double";
-    public static String DATA_TYPE_FLOAT = "float";
-    public static String DATA_TYPE_INT = "int";
-    public static String DATA_TYPE_INTEGER = "integer";
-    public static String DATA_TYPE_SMALLINT = "smallint";
-    public static String DATA_TYPE_TEXT = "text";
-    public static String DATA_TYPE_LONG_TEXT = "longtext";
-    public static String DATA_TYPE_TIME = "time";
-    public static String DATA_TYPE_TIMESTAMP = "timestamp";
-    public static String DATA_TYPE_TINYINT = "tinyint";
-    public static String DATA_TYPE_VARCHAR = "varchar";
-    public static String DATA_TYPE_NUMERIC = "numeric";
-    public static String DATA_TYPE_BINARY = "binary";
-    public static String DATA_TYPE_VARBINARY = "varbinary";
-    public static String DATA_TYPE_LONGBLOB = "longblob";
+//    public static final String COLUMN_POSTFIX_PRIV = "_priv";
+//    public static String DATA_TYPE_BIGINT = "bigint";
+//    public static String DATA_TYPE_BLOB = "blob";
+//    public static String DATA_TYPE_CHAR = "char";
+//    public static String DATA_TYPE_DATE = "date";
+//    public static String DATA_TYPE_DATETIME = "datetime";
+//    public static String DATA_TYPE_DECIMAL = "decimal";
+//    public static String DATA_TYPE_DOUBLE = "double";
+//    public static String DATA_TYPE_FLOAT = "float";
+//    public static String DATA_TYPE_INT = "int";
+//    public static String DATA_TYPE_INTEGER = "integer";
+//    public static String DATA_TYPE_SMALLINT = "smallint";
+//    public static String DATA_TYPE_TEXT = "text";
+//    public static String DATA_TYPE_LONG_TEXT = "longtext";
+//    public static String DATA_TYPE_TIME = "time";
+//    public static String DATA_TYPE_TIMESTAMP = "timestamp";
+//    public static String DATA_TYPE_TINYINT = "tinyint";
+//    public static String DATA_TYPE_VARCHAR = "varchar";
+//    public static String DATA_TYPE_NUMERIC = "numeric";
+//    public static String DATA_TYPE_BINARY = "binary";
+//    public static String DATA_TYPE_VARBINARY = "varbinary";
+//    public static String DATA_TYPE_LONGBLOB = "longblob";
 
     static {
         typeMap.put("bit", -7);
@@ -87,77 +90,6 @@ public class GBase8aUtils {
         return valueType == null ? 1111 : valueType;
     }
 
-//    public static List<String> collectPrivilegeNames(ResultSet resultSet) {
-//        try {
-//            List<String> privs = new ArrayList();
-//            ResultSetMetaData rsMetaData = resultSet.getMetaData();
-//            int colCount = rsMetaData.getColumnCount();
-//
-//            for (int i = 0; i < colCount; ++i) {
-//                String colName = rsMetaData.getColumnName(i + 1);
-//                if (colName.toLowerCase(Locale.ENGLISH).endsWith("_priv")) {
-//                    privs.add(colName.substring(0, colName.length() - "_priv".length()));
-//                }
-//            }
-//            return privs;
-//        } catch (SQLException var6) {
-//            SQLException e = var6;
-//            log.debug(e);
-//            return Collections.emptyList();
-//        }
-//    }
-
-//    public static Map<String, Boolean> collectPrivileges(List<String> privNames, ResultSet resultSet) {
-//        Map<String, Boolean> privs = new TreeMap();
-//        Iterator var4 = privNames.iterator();
-//        while (var4.hasNext()) {
-//            String privName = (String) var4.next();
-//            privs.put(privName, "Y".equals(JDBCUtils.safeGetString(resultSet, privName + "_priv")));
-//        }
-//        return privs;
-//    }
-
-//    public static String getGBase8aConsoleBinaryName() {
-//        return RuntimeUtils.getNativeBinaryName("gbase");
-//    }
-//
-//    public static String determineCurrentVC(JDBCSession session) throws DBCException {
-//        try {
-//            JDBCPreparedStatement dbStat = session.prepareStatement("SELECT vc()");
-//            String var7;
-//            try {
-//                JDBCResultSet resultSet = dbStat.executeQuery();
-//                try {
-//                    if (!resultSet.next()) {
-//                        return null;
-//                    }
-//                    String vcId = resultSet.getString(1);
-//                    JDBCPreparedStatement dbStat1 = null;
-//                    JDBCResultSet resultSet1 = null;
-//                    try {
-//                        dbStat1 = session.prepareStatement("SELECT name from information_schema.vc where id='" + vcId + "'");
-//                        resultSet1 = dbStat1.executeQuery();
-//                        if (!resultSet1.next()) {
-//                            return null;
-//                        }
-//                        var7 = resultSet1.getString(1);
-//                    } finally {
-//                        if (resultSet1 != null) {
-//                            resultSet1.close();
-//                        }
-//                        dbStat1.close();
-//                    }
-//                } finally {
-//                    resultSet.close();
-//                }
-//            } finally {
-//                dbStat.close();
-//            }
-//            return var7;
-//        } catch (SQLException e) {
-//            throw new DBCException("", e);
-//        }
-//    }
 
     public static String determineCurrentDatabase(JDBCSession session) throws DBCException {
         try (JDBCPreparedStatement dbStat = session.prepareStatement("SELECT DATABASE()")) {
@@ -175,13 +107,13 @@ public class GBase8aUtils {
     public static String getActiveResourcePlanId(JDBCSession session, String vcName, GBase8aDataSource dataSource) throws DBCException {
         try {
             String sql = "";
-            if (dataSource.isVCCluster()) {
-                sql = "select * from gbase.resource_config r,information_schema.vc i ";
-                sql = sql + " where i.id = r.vc_id";
-                sql = sql + " and i.name='" + vcName + "'";
-            } else {
-                sql = "select * from gbase.resource_config ";
-            }
+//            if (dataSource.isVCluster()) {
+            sql = "select * from gbase.resource_config r,information_schema.vc i where i.id = r.vc_id and i.name='"
+                    + vcName
+                    + "'";
+//            } else {
+//                sql = "select * from gbase.resource_config ";
+//            }
             try (JDBCPreparedStatement dbStat = session.prepareStatement(sql)) {
                 try (JDBCResultSet resultSet = dbStat.executeQuery()) {
                     while (resultSet.next()) {
@@ -204,13 +136,13 @@ public class GBase8aUtils {
     public static boolean isHasDefaultDirective(JDBCSession session, String vcName, GBase8aDataSource dataSource, String planName) throws DBCException {
         try {
             String sql = "";
-            if (dataSource.isVCCluster()) {
-                sql = "select 1 from gbase.resource_plan p,gbase.resource_plan_directive d,information_schema.vc i ";
-                sql = sql + " where d.resource_plan_id = p.resource_plan_id and consumer_group_id='1' ";
-                sql = sql + " and  p.resource_plan_name = '" + planName + "' and p.vc_id = i.id and d.vc_id = i.id and i.name='" + vcName + "'";
-            } else {
-                sql = "select 1 from gbase.resource_plan p,gbase.resource_plan_directive d where d.resource_plan_id = p.resource_plan_id and consumer_group_id='1' and  p.resource_plan_name = '" + planName + "'";
-            }
+//            if (dataSource.isVCluster()) {
+            sql = "select 1 from gbase.resource_plan p,gbase.resource_plan_directive d,information_schema.vc i ";
+            sql = sql + " where d.resource_plan_id = p.resource_plan_id and consumer_group_id='1' ";
+            sql = sql + " and  p.resource_plan_name = '" + planName + "' and p.vc_id = i.id and d.vc_id = i.id and i.name='" + vcName + "'";
+//            } else {
+//                sql = "select 1 from gbase.resource_plan p,gbase.resource_plan_directive d where d.resource_plan_id = p.resource_plan_id and consumer_group_id='1' and  p.resource_plan_name = '" + planName + "'";
+//            }
             try (JDBCPreparedStatement dbStat = session.prepareStatement(sql)) {
                 try (JDBCResultSet resultSet = dbStat.executeQuery()) {
                     if (!resultSet.next()) {
@@ -227,15 +159,15 @@ public class GBase8aUtils {
     public static boolean isLastDirective(JDBCSession session, String vcName, GBase8aDataSource dataSource, String directiveName) throws DBCException {
         try {
             String sql = "";
-            if (dataSource.isVCCluster()) {
-                sql = sql + "select count(1) directive_num from gbase.resource_plan_directive pd,information_schema.vc i where pd.resource_plan_id in";
-                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d,information_schema.vc info ";
-                sql = sql + " where info.id = d.vc_id and  d.resource_plan_directive_name = '" + directiveName + "' and info.name = '" + vcName + "')";
-                sql = sql + " and  i.id = pd.vc_id and  i.name = '" + vcName + "'";
-            } else {
-                sql = sql + "select count(1) directive_num from gbase.resource_plan_directive pd where pd.resource_plan_id in";
-                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d where d.resource_plan_directive_name = '" + directiveName + "')";
-            }
+//            if (dataSource.isVCluster()) {
+            sql = sql + "select count(1) directive_num from gbase.resource_plan_directive pd,information_schema.vc i where pd.resource_plan_id in";
+            sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d,information_schema.vc info ";
+            sql = sql + " where info.id = d.vc_id and  d.resource_plan_directive_name = '" + directiveName + "' and info.name = '" + vcName + "')";
+            sql = sql + " and  i.id = pd.vc_id and  i.name = '" + vcName + "'";
+//            } else {
+//                sql = sql + "select count(1) directive_num from gbase.resource_plan_directive pd where pd.resource_plan_id in";
+//                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d where d.resource_plan_directive_name = '" + directiveName + "')";
+//            }
 
             try (JDBCPreparedStatement dbStat = session.prepareStatement(sql)) {
                 try (JDBCResultSet resultSet = dbStat.executeQuery()) {
@@ -256,15 +188,15 @@ public class GBase8aUtils {
     public static String getDefaultDirectiveName(JDBCSession session, String vcName, GBase8aDataSource dataSource, String directiveName) throws DBCException {
         try {
             String sql = "";
-            if (dataSource.isVCCluster()) {
-                sql = sql + "select pd.resource_plan_directive_name from gbase.resource_plan_directive pd, information_schema.vc i where pd.consumer_group_id='1' and pd.resource_plan_id in";
-                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d ,information_schema.vc info";
-                sql = sql + " where info.id = d.vc_id and d.resource_plan_directive_name = '" + directiveName + "' and info.name = '" + vcName + "')";
-                sql = sql + " and  i.id = pd.vc_id and  i.name = '" + vcName + "'";
-            } else {
-                sql = sql + "select pd.resource_plan_directive_name from gbase.resource_plan_directive pd where pd.consumer_group_id='1' and pd.resource_plan_id in";
-                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d where d.resource_plan_directive_name = '" + directiveName + "')";
-            }
+//            if (dataSource.isVCluster()) {
+            sql = sql + "select pd.resource_plan_directive_name from gbase.resource_plan_directive pd, information_schema.vc i where pd.consumer_group_id='1' and pd.resource_plan_id in";
+            sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d ,information_schema.vc info";
+            sql = sql + " where info.id = d.vc_id and d.resource_plan_directive_name = '" + directiveName + "' and info.name = '" + vcName + "')";
+            sql = sql + " and  i.id = pd.vc_id and  i.name = '" + vcName + "'";
+//            } else {
+//                sql = sql + "select pd.resource_plan_directive_name from gbase.resource_plan_directive pd where pd.consumer_group_id='1' and pd.resource_plan_id in";
+//                sql = sql + " (select resource_plan_id from gbase.resource_plan_directive d where d.resource_plan_directive_name = '" + directiveName + "')";
+//            }
             try (JDBCPreparedStatement dbStat = session.prepareStatement(sql)) {
                 try (JDBCResultSet resultSet = dbStat.executeQuery()) {
                     if (resultSet.next()) {
@@ -278,14 +210,18 @@ public class GBase8aUtils {
         }
     }
 
-    public static String dealProcedureSqlDefiner(String sql) {
+    public static String dealProcedureSqlDefiner(String sql, DBSProcedureType dbsProcedureType) {
         try {
             String startSql = "";
             String endSql = "";
-            if (sql.indexOf("CREATE DEFINER") != -1) {
+            if (sql.contains("CREATE DEFINER")) {
                 startSql = sql.substring(0, sql.indexOf("CREATE DEFINER"));
                 endSql = sql.substring(sql.indexOf("CREATE DEFINER"));
-                endSql = "CREATE " + endSql.substring(endSql.indexOf("PROCEDURE"));
+                if (dbsProcedureType == DBSProcedureType.PROCEDURE) {
+                    endSql = "CREATE " + endSql.substring(endSql.indexOf("PROCEDURE"));
+                } else {
+                    endSql = "CREATE " + endSql.substring(endSql.indexOf("FUNCTION"));
+                }
                 sql = startSql + endSql;
             }
         } catch (Exception var3) {
@@ -294,9 +230,13 @@ public class GBase8aUtils {
         return sql;
     }
 
-    public static String dealProcedureSqlGualifiedName(String name, String sql) {
+    public static String dealProcedureSqlGualifiedName(String name, String sql, DBSProcedureType dbsProcedureType) {
         try {
-            sql = "CREATE PROCEDURE " + name + " " + sql.substring(sql.indexOf("("));
+            if (dbsProcedureType == DBSProcedureType.PROCEDURE) {
+                sql = "CREATE PROCEDURE " + name + " " + sql.substring(sql.indexOf("("));
+            } else {
+                sql = "CREATE FUNCTION " + name + " " + sql.substring(sql.indexOf("("));
+            }
         } catch (Exception var3) {
             log.error(var3);
         }
@@ -326,5 +266,9 @@ public class GBase8aUtils {
             log.error(var3);
         }
         return sql;
+    }
+
+    public static boolean isAlterUSerSupported(GBase8aDataSource dataSource) {
+        return true;
     }
 }

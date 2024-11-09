@@ -1,5 +1,6 @@
 package org.jkiss.dbeaver.ext.gbase8a.model.plan;
 
+import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
 import org.jkiss.dbeaver.model.DBPDataSource;
@@ -16,11 +17,11 @@ import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * @author yolo
+ * GBase8a execution plan analyser
  */
 public class GBase8aPlanAnalyser  implements DBCQueryPlanner {
 
-    private GBase8aDataSource dataSource;
+    private final GBase8aDataSource dataSource;
 
     public GBase8aPlanAnalyser(GBase8aDataSource dataSource) {
         this.dataSource = dataSource;
@@ -38,6 +39,7 @@ public class GBase8aPlanAnalyser  implements DBCQueryPlanner {
         return plan;
     }
 
+    @NotNull
     @Override
     public DBCPlanStyle getPlanStyle() {
         return DBCPlanStyle.PLAN;

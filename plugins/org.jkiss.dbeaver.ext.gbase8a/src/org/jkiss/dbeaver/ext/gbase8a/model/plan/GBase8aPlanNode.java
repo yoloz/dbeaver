@@ -8,24 +8,27 @@ import org.jkiss.dbeaver.model.meta.Property;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * GBase8a plan node
+ */
 public class GBase8aPlanNode extends AbstractExecutionPlanNode implements DBCPlanNode {
 
-    private long id;
-    private String selectType;
-    private String table;
-    private String type;
-    private String possibleKeys;
-    private String key;
-    private String keyLength;
-    private String ref;
-    private long rowCount;
-    private double filtered;
-    private String extra;
-    private GBase8aPlanNode parent;
-    private List<GBase8aPlanNode> nested;
+    private final long id;
+    private final String selectType;
+    private final String table;
+    private final String type;
+    private final String possibleKeys;
+    private final String key;
+    private final String keyLength;
+    private final String ref;
+    private final long rowCount;
+    private final double filtered;
+    private final String extra;
+    private final GBase8aPlanNode parent;
+    private final List<GBase8aPlanNode> nested = new ArrayList<>();
 
     public GBase8aPlanNode(GBase8aPlanNode parent, ResultSet dbResult) throws SQLException {
         this.parent = parent;
@@ -40,6 +43,7 @@ public class GBase8aPlanNode extends AbstractExecutionPlanNode implements DBCPla
         this.rowCount = JDBCUtils.safeGetLong(dbResult, "rows");
         this.filtered = JDBCUtils.safeGetDouble(dbResult, "filtered");
         this.extra = JDBCUtils.safeGetString(dbResult, "extra");
+        this.nested.addAll(parent.nested);
     }
 
 
@@ -75,6 +79,7 @@ public class GBase8aPlanNode extends AbstractExecutionPlanNode implements DBCPla
         return ref;
     }
 
+    @Override
     public DBCPlanNode getParent() {
         return this.parent;
     }
@@ -150,13 +155,9 @@ public class GBase8aPlanNode extends AbstractExecutionPlanNode implements DBCPla
         return this.extra;
     }
 
-
+    @Override
     public String toString() {
-        return String.valueOf(this.table) + " " + this.type + " " + this.key;
+        return this.table + " " + this.type + " " + this.key;
     }
 
-
-    public String getValue() {
-        return null;
-    }
 }

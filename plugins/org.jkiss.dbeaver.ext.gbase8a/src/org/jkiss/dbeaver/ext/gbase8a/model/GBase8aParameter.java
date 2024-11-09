@@ -2,16 +2,13 @@ package org.jkiss.dbeaver.ext.gbase8a.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 
 
 public class GBase8aParameter implements DBSObject {
-    private static final Log log = Log.getLog(GBase8aParameter.class);
 
     private final GBase8aDataSource dataSource;
-
     private final String name;
     private Object value;
     private String description;
@@ -25,6 +22,7 @@ public class GBase8aParameter implements DBSObject {
 
     @Property(viewable = true, order = 1)
     @NotNull
+    @Override
     public String getName() {
         return this.name;
     }
@@ -37,22 +35,25 @@ public class GBase8aParameter implements DBSObject {
 
 
     @Nullable
+    @Override
     public String getDescription() {
         return this.description;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
         return getDataSource();
     }
 
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
         return this.dataSource;
     }
 
 
+    @Override
     public boolean isPersisted() {
         return true;
     }

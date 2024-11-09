@@ -140,7 +140,7 @@ public class GBase8aConsumerGroup implements DBSObject, DBPRefreshableObject, DB
 
     public DBSObject refreshObject(DBRProgressMonitor monitor) throws DBException {
         this.isInitialized = false;
-        return this.gbase8aVC.getConsumerGroup(this.name);
+        return this.gbase8aVC.getConsumerGroup(monitor, this.name);
     }
 
     public DBPImage getObjectImage() {

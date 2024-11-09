@@ -19,794 +19,23 @@
 
 <plugin>
 
-    <extension point="org.eclipse.ui.commands">
-        <category id="org.jkiss.dbeaver.ext.gbase8a" name="GBase8a" description="gbase8a Commands"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.modify.table" name="%tree.modify.table.name" description="%tree.modify.table.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.drop.table.distributed.column" name="%tree.drop.table.distributed.column.name" description="%tree.drop.table.distributed.column.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.modify.table.limit.size" name="%tree.modify.table.limit.size.name" description="%tree.modify.table.limit.size.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.update.full.index" name="%tree.update.full.index.name" description="%tree.update.full.index.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-<!--        <command id="org.jkiss.dbeaver.ext.gbase8a.export.object" name="%command.cn.gbase.studio.ext.gbase8a.export.object" description="%command.cn.gbase.studio.ext.gbase8a.export.object" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>-->
-<!--        <command id="cn.gbase.studio.core.import.data.8a.fromdb" name="%tree.import.data.name" description="%tree.import.data.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>-->
-<!--        <command id="cn.gbase.studio.core.import.data.8a" name="%tree.import.data.name" description="%tree.import.data.name" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>-->
-        <command id="org.jkiss.dbeaver.ext.gbase8a.createdb" name="%tree.create.db" description="%tree.create.db" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.deletedb" name="%tree.delete.db" description="%tree.delete.db" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.loadsql" name="%tree.load.sql" description="%tree.load.sql" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.createconsumergroup" name="%tree.create.consumergroup" description="%tree.create.consumergroup" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.delconsumergroup" name="%tree.del.consumergroup" description="%tree.del.consumergroup" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.modifyconsumergroup" name="%tree.modify.consumergroup" description="%tree.modify.consumergroup" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.createresourcepool" name="%tree.create.resourcepool" description="%tree.create.resourcepool" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.delresourcepool" name="%tree.del.resourcepool" description="%tree.del.resourcepool" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.renameresourcepool" name="%tree.rename.resourcepool" description="%tree.rename.resourcepool" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.modifyresourcepool" name="%tree.modify.resourcepool" description="%tree.modify.resourcepool" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageonnodes" name="%tree.show.resourcepool.usage.nodes" description="%tree.show.resourcepool.usage.nodes" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageoncoordinators" name="%tree.show.resourcepool.usage.coordinators" description="%tree.show.resourcepool.usage.coordinators" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusonnodes" name="%tree.show.resourcepool.status.nodes" description="%tree.show.resourcepool.status.nodes" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusoncoordinators" name="%tree.show.resourcepool.status.coordinators" description="%tree.show.resourcepool.status.coordinators" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolevents" name="%tree.show.resourcepool.events" description="%tree.show.resourcepool.events" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.createresourceplan" name="%tree.create.createresourceplan" description="%tree.create.createresourceplan" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.delresourceplan" name="%tree.del.resourceplan" description="%tree.del.resourceplan" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.modifyresourceplan" name="%tree.modify.resourceplan" description="%tree.modify.resourceplan" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.activeresourceplan" name="%tree.active.resourceplan" description="%tree.active.resourceplan" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.closeresourceplan" name="%tree.close.resourceplan" description="%tree.close.resourceplan" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.resourceconfigmanager" name="%tree.resource.configmanager" description="%tree.resource.configmanager" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.createresourcedirective" name="%tree.create.createresourcedirective" description="%tree.create.createresourcedirective" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-        <command id="org.jkiss.dbeaver.ext.gbase8a.delresourcedirective" name="%tree.del.resourcedirective" description="%tree.del.resourcedirective" categoryId="org.jkiss.dbeaver.ext.gbase8a"/>
-    </extension>
-
- <!--   <extension point="org.eclipse.ui.commandImages">
-        <image commandId="org.jkiss.dbeaver.ext.oracle.code.compile" icon="icons/compile.png"/>
-        <image commandId="org.jkiss.dbeaver.ext.oracle.job.run" icon="icons/run.png"/>
-    </extension>-->
-
-    <extension point="org.eclipse.ui.handlers">
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.createdb" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CreateDatabaseHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canCreatedb"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.loadsql" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.LoadSQLHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canLoadSQL"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.deletedb" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DeleteDatabaseHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canDeletedb"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.modify.table" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ModifyTableHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canModify8aTable"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.drop.table.distributed.column" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DropTableDistributedColumnHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canDrop8aTableDistributedColumn"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.modify.table.limit.size" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ModifyTableLimitSizeHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canModify8aTableLimitSize"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-<!--        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.export.object" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ExportObjectHandler">-->
-<!--            <enabledWhen>-->
-<!--                <with variable="selection">-->
-<!--                    <count value="1"/>-->
-<!--                    <iterate operator="and">-->
-<!--                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">-->
-<!--                            <test property="org.jkiss.dbeaver.ext.gbase8a.canExportObject"/>-->
-<!--                        </adapt>-->
-<!--                    </iterate>-->
-<!--                </with>-->
-<!--            </enabledWhen>-->
-<!--        </handler>-->
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.update.full.index" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.UpdateIndexHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.canUpdate8aIndex"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-<!--        <handler commandId="org.jkiss.dbeaver.core.import.data.8a" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ImportDataHandler">-->
-<!--            <enabledWhen>-->
-<!--                <with variable="selection">-->
-<!--                    <count value="1"/>-->
-<!--                    <iterate operator="and">-->
-<!--                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">-->
-<!--                            <test property="org.jkiss.dbeaver.ext.gbase8a.canImport8aData"/>-->
-<!--                        </adapt>-->
-<!--                    </iterate>-->
-<!--                </with>-->
-<!--            </enabledWhen>-->
-<!--        </handler>-->
-<!--        <handler commandId="org.jkiss.dbeaver.core.import.data.8a.fromdb" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ImportDataHandler">-->
-<!--            <enabledWhen>-->
-<!--                <with variable="selection">-->
-<!--                    <count value="1"/>-->
-<!--                    <iterate operator="and">-->
-<!--                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">-->
-<!--                            <test property="org.jkiss.dbeaver.ext.gbase8a.canImport8aDataFromDB"/>-->
-<!--                        </adapt>-->
-<!--                    </iterate>-->
-<!--                </with>-->
-<!--            </enabledWhen>-->
-<!--        </handler>-->
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.createresourcedirective" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CreateResourceDirectiveHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.createresourcedirective"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.delresourcedirective" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DelResourceDirectiveHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.delresourcedirective"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.createconsumergroup" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CreateConsumerGroupHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.createconsumergroup"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.createresourceplan" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CreateResourcePlanHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.createresourceplan"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.delconsumergroup" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DelConsumerGroupHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.delconsumergroup"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.modifyconsumergroup" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ModifyConsumerGroupHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.modifyconsumergroup"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.modifyresourceplan" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ModifyResourcePlanHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.modifyresourceplan"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.delresourceplan" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DelResourcePlanHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.delresourceplan"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.activeresourceplan" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ActiveResourcePlanHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.activeresourceplan"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.closeresourceplan" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CloseResourcePlanHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.closeresourceplan"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.createresourcepool" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.CreateResourcePoolHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.createresourcepool"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.delresourcepool" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.DelResourcePoolHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.delresourcepool"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.renameresourcepool" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.RenameResourcePoolHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.renameresourcepool"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.modifyresourcepool" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ModifyResourcePoolHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.modifyresourcepool"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageonnodes" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ShowResourcePoolUsageOnNodesHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageonnodes"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageoncoordinators" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ShowResourcePoolUsageOnCoordinatorsHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageoncoordinators"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusonnodes" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ShowResourcePoolStatusOnNodesHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusonnodes"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusoncoordinators" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ShowResourcePoolStatusOnCoordinatorsHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusoncoordinators"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolevents" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ShowResourcePoolEventsHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolevents"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-
-        <handler commandId="org.jkiss.dbeaver.ext.gbase8a.resourceconfigmanager" class="org.jkiss.dbeaver.ext.gbase8a.ui.actions.ResourceConfigManagerHandler">
-            <enabledWhen>
-                <with variable="selection">
-                    <count value="1"/>
-                    <iterate operator="and">
-                        <adapt type="org.jkiss.dbeaver.model.DBPNamedObject">
-                            <test property="org.jkiss.dbeaver.ext.gbase8a.resourceconfigmanager"/>
-                        </adapt>
-                    </iterate>
-                </with>
-            </enabledWhen>
-        </handler>
-    </extension>
-
-    <extension point="org.eclipse.core.expressions.propertyTesters">
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="canModify8aTable,canCreatedb,canDeletedb,canLoadSQL"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="canDrop8aTableDistributedColumn"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="canModify8aTableLimitSize"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="canUpdate8aIndex,canExportObject"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="canImport8aData,canImport8aDataFromDB"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="createconsumergroup,delconsumergroup,modifyconsumergroup,createresourceplan,delresourceplan,modifyresourceplan,createresourcedirective,delresourcedirective,activeresourceplan,closeresourceplan"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="createresourcepool,delresourcepool,renameresourcepool,modifyresourcepool,showresourcepoolusageonnodes,showresourcepoolusageoncoordinators,showresourcepoolstatusonnodes,showresourcepoolstatusoncoordinators,showresourcepoolevents"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-
-        <propertyTester
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aTableTester"
-                namespace="org.jkiss.dbeaver.ext.gbase8a"
-                properties="resourceconfigmanager"
-                type="org.jkiss.dbeaver.model.navigator.DBNNode"/>
-    </extension>
-
-    <extension point="org.eclipse.ui.menus">
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.modify.table">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.drop.table.distributed.column">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.modify.table.limit.size">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.update.full.index">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-          <!--  <command commandId="org.jkiss.dbeaver.ext.gbase8a.export.object">
-                <visibleWhen checkEnabled="true"/>
-            </command>-->
-        </menuContribution>
-     <!--   <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="cn.gbase.studio.core.import.data.8a">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="cn.gbase.studio.core.import.data.8a.fromdb">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>-->
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.createdb">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.deletedb">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.loadsql">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.createconsumergroup">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.delconsumergroup">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.modifyconsumergroup">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.createresourcepool">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.delresourcepool">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.renameresourcepool">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.modifyresourcepool">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageonnodes">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolusageoncoordinators">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusonnodes">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolstatusoncoordinators">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.showresourcepoolevents">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.createresourceplan">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.delresourceplan">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.modifyresourceplan">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.activeresourceplan">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.closeresourceplan">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.resourceconfigmanager">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-        <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=tools">
-            <separator name="data" visible="true"/>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.createresourcedirective">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-            <command commandId="org.jkiss.dbeaver.ext.gbase8a.delresourcedirective">
-                <visibleWhen checkEnabled="true"/>
-            </command>
-        </menuContribution>
-    </extension>
-
-    <extension point="org.eclipse.ui.editors">
-        <editor
-                name="%editor.session_manager.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/sessions.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor">
-        </editor>
-<!--        <editor
-                name="%tree.audit_manager.audit_log.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAuditLogEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAuditLogEditor">
-        </editor>-->
-<!--        <editor
-                name="%tree.audit_manager.progress_log.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aProcessTrackLogEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aProcessTrackLogEditor">
-        </editor>-->
-  <!--      <editor
-                name="%tree.audit_manager.session_log.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionTrackLogEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionTrackLogEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.audit_manager.error_log.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aErrorLogEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aErrorLogEditor">
-        </editor>-->
-        <!--<editor
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.tools.importdata.ImportTableDataEditor"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/editor.png"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.tools.importdata.ImportTableDataEditor"
-                name="%command.cn.gbase.studio.ext.gbase8a.import.object">
-        </editor>-->
-        <!--<editor
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBaseupExportObjectEditor"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/editor.png"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBaseupExportObjectEditor"
-                name="%command.cn.gbase.studio.ext.gbase8a.export.object">
-        </editor>-->
-       <!-- <editor
-                name="%tree.audit_manager.start_log.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aStartStopLogEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aStartStopLogEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.user.access.summary.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogUserAccessSummaryEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogUserAccessSummaryEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.user.access.classification.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogUserAccessClassifyEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogUserAccessClassifyEditor">
-        </editor>-->
-        <!--<editor
-                name="%tree.analysis.log.user.access.load.table.data.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogLoadTableDataEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogLoadTableDataEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.user.access.recent.load.table.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogRecentLoadTableEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogRecentLoadTableEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.user.access.max.sql.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogMaxSQLEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogMaxSQLEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.user.access.time.consuming.sql.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogTimeConsumingSQLEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogTimeConsumingSQLEditor">
-        </editor>-->
-      <!--  <editor
-                name="%tree.analysis.log.user.access.recent.use.sql.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogRecentUseSQLEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aAnalysisLogRecentUseSQLEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.cluster.performance.query.longtime.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceMaxLongTimeSQLEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceMaxLongTimeSQLEditor">
-        </editor>-->
-       <!-- <editor
-                name="%tree.analysis.log.cluster.performance.query.result.large.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceMaxResultSQLEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceMaxResultSQLEditor">
-        </editor>-->
-      <!--  <editor
-                name="%tree.analysis.log.cluster.performance.query.frequent.access.table.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceHighAccessTableEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceHighAccessTableEditor">
-        </editor>-->
-        <!--<editor
-                name="%tree.analysis.log.cluster.performance.query.frequent.access.user.name"
-                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/lognode.png"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceHighAccessUserEditor"
-                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPerformanceHighAccessUserEditor">
-        </editor>-->
-    </extension>
-
- <!--   <extension point="org.jkiss.dbeaver.ui.propertyConfigurator">
-        <propertyConfigurator class="org.jkiss.dbeaver.ext.oracle.model.auth.OracleAuthModelDatabaseNative" uiClass="org.jkiss.dbeaver.ext.oracle.ui.config.OracleAuthDatabaseNativeConfigurator"/>
-        <propertyConfigurator class="org.jkiss.dbeaver.ext.oracle.model.auth.OracleAuthOS" uiClass="org.jkiss.dbeaver.ext.oracle.ui.config.OracleAuthOSConfigurator"/>
-    </extension>-->
-
-    <extension point="org.jkiss.dbeaver.dataSourceProvider">
-        <editorContribution editorId="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor" category="connectionEditor" label="%editor.session_manager.name" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/sessions.png">
-            <supports dataSource="gbase8a"/>
-        </editorContribution>
-       <!-- <editorContribution editorId="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleLockEditor" category="connectionEditor" label="%editor.lock_manager.name" icon="#locked">
-            <supports dataSource="oracle"/>
-        </editorContribution>-->
-    </extension>
-
-    <!--<extension point="org.eclipse.ui.preferencePages">
-        <page category="org.jkiss.dbeaver.preferences.drivers" id="org.jkiss.dbeaver.preferences.gbase8a.general" class="org.jkiss.dbeaver.ext.oracle.ui.views.PrefPageOracle" name="GBase8a">
-            <keywordReference id="org.jkiss.dbeaver.core.keyword.dbeaver"/>
-        </page>
-    </extension>-->
-
-   <!-- <extension point="org.eclipse.ui.propertyPages">
-        <page id="org.jkiss.dbeaver.preferences.oracle.main" class="org.jkiss.dbeaver.ext.oracle.ui.views.PrefPageOracle" name="%page.org.jkiss.dbeaver.preferences.oracle.main.name">
-            <enabledWhen>
-                <adapt type="org.jkiss.dbeaver.model.DBPDataSourceContainer">
-                    <test property="org.jkiss.dbeaver.core.datasourceContainer.driverId" value="oracle_thin"/>
-                </adapt>
-            </enabledWhen>
-        </page>
-    </extension>-->
-
-    <!--<extension point="org.eclipse.ui.importWizards">
-        <wizard
-                category="org.jkiss.dbeaver.import_config.third-party"
-                class="org.jkiss.dbeaver.ext.oracle.ui.tools.sqldeveloper.ConfigImportWizardSqlDeveloper"
-                id="org.jkiss.dbeaver.import_config.sqldeveloper"
-                name="Oracle SQL Developer"
-                icon="icons/sqldeveloper.png">
-            <description>Oracle SQL Developer</description>
-        </wizard>
-        <wizard
-                category="org.jkiss.dbeaver.import_config.third-party"
-                class="org.jkiss.dbeaver.ext.oracle.ui.tools.toad.ConfigImportWizardToad"
-                id="org.jkiss.dbeaver.import_config.toad"
-                name="Toad"
-                icon="icons/toad_icon.png">
-            <description>Toad</description>
-        </wizard>
-    </extension>-->
-
-    <extension point="org.jkiss.dbeaver.dataSourceView">
-        <view
-                id="org.jkiss.dbeaver.ext.gbase8a.dataSourceWizardView"
-                dataSource="gbase8a"
-                targetID="org.jkiss.dbeaver.ext.ui.newConnectionWizard"
-                label="%gbase8a.dialog.connection.header"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.views.GBase8aConnectionPage"
-                icon="icons/oracle_icon.png">
-        </view>
-        <view
-                id="org.jkiss.dbeaver.ext.gbase8a.dataSourceEditorView"
-                dataSource="gbase8a"
-                targetID="org.jkiss.dbeaver.ext.ui.editConnectionDialog"
-                label="%gbase8a.dialog.connection.header"
-                class="org.jkiss.dbeaver.ext.gbase8a.ui.views.GBase8aConnectionPage">
-        </view>
-    </extension>
-
     <extension point="org.jkiss.dbeaver.databaseEditor">
         <editor id="gbase8a.source.view" class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSourceViewEditor"
-                label="%editor.source.name" description="%editor.source.name" icon="#sql_text" position="additions_middle"
-                contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder" embeddable="true">
+                label="%editor.source.name" description="%editor.source.name" icon="#sql_text"
+                position="additions_middle"
+                contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder"
+                embeddable="false">
+            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog"/>
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aView"/>
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTrigger"/>
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEvent"/>
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"/>
-            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aFunction"/>
         </editor>
+        <!--   <editor id="gbase8a.package.body.view" class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aPackageBodyEditor"
+                   label="%editor.package.body.name" description="%editor.package.body.description" icon="#sql_text" position="additions_middle"
+                   contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder" embeddable="false">
+               <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aPackage"/>
+           </editor>-->
         <editor id="gbase8a.source.ddl" class="org.jkiss.dbeaver.ui.editors.sql.SQLSourceViewer"
                 label="DDL" description="DDL" icon="#sql_text" position="additions_middle"
                 contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder">
@@ -827,106 +56,173 @@
                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aUser"
                 main="false"
                 label="%editor.schema_privileges.name"
-                description="Schema user privileges"
+                description="%editor.schema_privileges.description"
                 position="additions_start"
                 icon="#user">
         </editor>
 
+        <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aCatalogConfigurator">
+            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog"/>
+        </configurator>
         <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aConstraintConfigurator">
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableConstraint"/>
         </configurator>
         <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aForeignKeyConfigurator">
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableForeignKey"/>
         </configurator>
-        <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aFunctionConfigurator">
-            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aFunction"/>
-        </configurator>
         <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aIndexConfigurator">
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex"/>
+        </configurator>
+        <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aFullIndexConfigurator">
+            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableFullIndex"/>
         </configurator>
         <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aProcedureConfigurator">
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"/>
         </configurator>
-        <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aTableConfigurator">
-            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable"/>
-        </configurator>
         <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aTriggerConfigurator">
             <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTrigger"/>
         </configurator>
-
+        <configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aEventConfigurator">
+            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEvent"/>
+        </configurator>
+        <!--<configurator class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aSequenceConfigurator">
+            <objectType name="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aSequence"/>
+        </configurator>-->
     </extension>
 
-   <!-- <extension point="org.jkiss.dbeaver.tools">
+    <extension point="org.jkiss.dbeaver.objectManager">
+        <!-- User manager is declared in UI module because it has custom UI -->
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aUserManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aUser"/>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.dataSourceProvider">
+        <editorContribution editorId="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor"
+                            category="connectionEditor" label="%editor.session_manager.name"
+                            icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/sessions.png">
+            <supports dataSource="gbase8a"/>
+        </editorContribution>
+    </extension>
+    <!-- <extension point="org.jkiss.dbeaver.sql.executors">
+         <executor class="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aScriptExecutor" datasource="gbase8a"/>
+     </extension>-->
+    <extension point="org.jkiss.dbeaver.dataSourceView">
+        <view
+                id="org.jkiss.dbeaver.ext.gbase8a.dataSourceWizardView"
+                dataSource="gbase8a"
+                targetID="org.jkiss.dbeaver.ext.ui.newConnectionWizard"
+                label="%dialog.connection.header"
+                class="org.jkiss.dbeaver.ext.gbase8a.ui.views.GBase8aConnectionPage"
+                icon="icons/gbase8a_icon.png">
+        </view>
+        <view
+                id="org.jkiss.dbeaver.ext.gbase8a.dataSourceEditorView"
+                dataSource="gbase8a"
+                targetID="org.jkiss.dbeaver.ext.ui.editConnectionDialog"
+                label="%dialog.connection.header"
+                class="org.jkiss.dbeaver.ext.gbase8a.ui.views.GBase8aConnectionPage">
+        </view>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.dataManager">
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aEnumValueManager"
+                 id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aEnumValueManager">
+            <supports dataSource="gbase8a" typeName="ENUM"/>
+            <supports dataSource="gbase8a" typeName="SET"/>
+        </manager>
+    </extension>
+
+    <extension point="org.eclipse.ui.editors">
+        <editor
+                name="%editor.session_manager.name"
+                icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/sessions.png"
+                class="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor"
+                id="org.jkiss.dbeaver.ext.gbase8a.ui.editors.GBase8aSessionEditor"
+                contributorClass="org.jkiss.dbeaver.ui.editors.EditorSearchActionsContributor">
+        </editor>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.tools">
         <tools>
-            <toolGroup id="org.jkiss.dbeaver.ext.oracle.ui.tools.statistics" label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.statistics.label"/>
-            <toolGroup id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance" label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.label"/>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.OracleToolScript.description"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.OracleToolScript"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.OracleToolScript.label">
-                <task id="oracleScriptExecute"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolValidateStructure.label"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolValidateStructure"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.statistics"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolValidateStructure.label"
-                    singleton="false">
-                <task id="oracleToolValidateStructure"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolRefreshMView.label"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolRefreshMView"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolRefreshMView.label"
-                    singleton="false">
-                <task id="oracleToolMViewRefresh"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolGatherStatistics.label"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolGatherStatistics"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.statistics"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolGatherStatistics.label"
-                    singleton="false">
-                <task id="oracleToolTableGatherStatistics"/>
-                <task id="oracleToolIndexGatherStatistics"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTruncate.description"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTruncate"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTruncate.label"
-                    singleton="false">
-                <task id="oracleToolTableTruncate"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerDisable.description"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerDisable"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerDisable.label"
-                    singleton="false">
-                <task id="oracleToolTriggerDisable"/>
-            </tool>
-            <tool
-                    description="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerEnable.description"
-                    id="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerEnable"
-                    group="org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance"
-                    label="%tool.org.jkiss.dbeaver.ext.oracle.ui.tools.maintenance.OracleToolTriggerEnable.label"
-                    singleton="false">
-                <task id="oracleToolTriggerEnable"/>
-            </tool>
+            <toolGroup
+                    id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                    label="Table Maintenance"
+                    icon="#tools"/>
+            <!-- <tool
+                 description="%tools.exportDatabase.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aToolExport"
+                 label="%tools.exportDatabase.label"
+                 icon="#export"
+                 singleton="false">
+                 <task id="gbase8aDatabaseBackup"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.importDatabase.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aToolImport"
+                 label="%tools.importDatabase.label"
+                 icon="#import"
+                 singleton="true">
+                 <task id="gbase8aDatabaseRestore"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.executeScript.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aToolScript"
+                 label="%tools.executeScript.label"
+                 singleton="true">
+                 <task id="gbase8aScriptExecute"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.analyzeTable.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance.GBase8aToolAnalyse"
+                 group="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                 label="%tools.analyzeTable.label"
+                 singleton="false">
+                 <task id="gbase8aToolAnalyzeTable"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.checkTable.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance.GBase8aToolCheck"
+                 group="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                 label="%tools.checkTable.label"
+                 singleton="false">
+                 <task id="gbase8aToolCheckTable"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.optimizeTable.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance.GBase8aToolOptimize"
+                 group="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                 label="%tools.optimizeTable.label"
+                 singleton="false">
+                 <task id="gbase8aToolOptimizeTable"/>
+             </tool>-->
+            <!-- <tool
+                 description="%tools.repairTable.description"
+                 id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance.GBase8aToolRepair"
+                 group="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                 label="%tools.repairTable.label"
+                 singleton="false">
+                 <task id="gbase8aToolRepairTable"/>
+             </tool>-->
+            <!--  <tool
+                  description="%tools.truncateTable.description"
+                  id="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance.GBase8aToolTruncate"
+                  group="org.jkiss.dbeaver.ext.gbase8a.tools.maintenance"
+                  label="%tools.truncateTable.label"
+                  singleton="false">
+                  <task id="gbase8aToolTruncateTable"/>
+              </tool>-->
         </tools>
-    </extension>-->
-
- <!--   <extension point="org.jkiss.dbeaver.sql.executors">
-        <executor class="org.jkiss.dbeaver.ext.oracle.ui.tools.OracleScriptExecutor" datasource="oracle"/>
     </extension>
+
+    <extension point="org.jkiss.dbeaver.ui.propertyConfigurator">
+        <propertyConfigurator class="org.jkiss.dbeaver.ext.gbase8a.model.net.GBase8aSSLHandlerImpl"
+                              uiClass="org.jkiss.dbeaver.ext.gbase8a.ui.views.GBase8aSSLConfigurator"/>
+    </extension>
+
     <extension point="org.jkiss.dbeaver.task.ui">
-        <configurator type="oracleScriptExecute" class="org.jkiss.dbeaver.ext.oracle.ui.tools.OracleTaskConfigurator"/>
+        <!--  <configurator type="gbase8aDatabaseBackup" class="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aTaskConfigurator"/>
+          <configurator type="gbase8aDatabaseRestore" class="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aTaskConfigurator"/>
+          <configurator type="gbase8aScriptExecute" class="org.jkiss.dbeaver.ext.gbase8a.tools.GBase8aTaskConfigurator"/>-->
     </extension>
-
-    <extension point="org.eclipse.core.runtime.preferences">
-        <initializer class="org.jkiss.dbeaver.ext.oracle.ui.internal.OraclePreferencesInitializer"/>
-    </extension>-->
 
 </plugin>

@@ -2,6 +2,7 @@ package org.jkiss.dbeaver.ext.gbase8a.model;
 
 
 public class GBase8aResourcePoolUsage {
+
     private String nodeName;
     private String vcName;
     private String ResourcePoolname;

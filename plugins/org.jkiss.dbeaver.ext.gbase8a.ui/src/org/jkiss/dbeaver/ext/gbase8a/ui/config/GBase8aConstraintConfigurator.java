@@ -1,11 +1,29 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2024 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.jkiss.dbeaver.ext.gbase8a.ui.config;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.ext.gbase8a.data.GBase8aMessages;
+import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableColumn;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableConstraint;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableConstraintColumn;
+import org.jkiss.dbeaver.ext.gbase8a.ui.internal.GBase8aUIMessages;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
 import org.jkiss.dbeaver.model.edit.DBEObjectConfigurator;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -16,21 +34,27 @@ import org.jkiss.dbeaver.ui.editors.object.struct.EditConstraintPage;
 import java.util.Map;
 
 /**
- * @author yolo
+ * MySQL constraint configurator
  */
 public class GBase8aConstraintConfigurator implements DBEObjectConfigurator<GBase8aTableConstraint> {
 
+
     @Override
     public GBase8aTableConstraint configureObject(@NotNull DBRProgressMonitor monitor, @Nullable DBECommandContext commandContext, @Nullable Object parent, @NotNull GBase8aTableConstraint constraint, @NotNull Map<String, Object> options) {
+        GBase8aDataSource dataSource = constraint.getDataSource();
         return UITask.run(() -> {
             EditConstraintPage editPage = new EditConstraintPage(
-                    GBase8aMessages.edit_constraint_manager_title,
+                    GBase8aUIMessages.edit_constraint_manager_title,
                     constraint);
             if (!editPage.edit()) {
                 return null;
             }
+
             constraint.setName(editPage.getConstraintName());
             constraint.setConstraintType(editPage.getConstraintType());
+//            if (editPage.getConstraintType() == DBSEntityConstraintType.CHECK && dataSource.supportsCheckConstraints()) {
+//                constraint.setCheckClause(editPage.getConstraintExpression());
+//            } else {
             int colIndex = 1;
             for (DBSEntityAttribute tableColumn : editPage.getSelectedAttributes()) {
                 constraint.addColumn(
@@ -39,6 +63,7 @@ public class GBase8aConstraintConfigurator implements DBEObjectConfigurator<GBas
                                 (GBase8aTableColumn) tableColumn,
                                 colIndex++));
             }
+//            }
             return constraint;
         });
     }

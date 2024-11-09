@@ -1,6 +1,6 @@
 package org.jkiss.dbeaver.ext.gbase8a;
 
-import org.jkiss.dbeaver.ext.gbase8a.data.GBase8aMessages;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aMessages;
 import org.jkiss.dbeaver.model.struct.rdb.DBSIndexType;
 
 import java.util.HashMap;
@@ -10,8 +10,6 @@ public class GBase8aConstants {
     public static final int DEFAULT_PORT = 5258;
     public static final String DEFAULT_HOST = "localhost";
     public static final String DRIVER_ID_GBASE8A = "gbase8a";
-    public static final String DRIVER_ID_MARIA_DB = "mariaDB";
-    public static final String DRIVER_CLASS_MARIA_DB = "org.mariadb.jdbc.Driver";
     public static final String HANDLER_SSL = "gbase8a_ssl";
     public static final String PROP_REQUIRE_SSL = "ssl.require";
     public static final String PROP_VERIFY_SERVER_SERT = "ssl.verify.server";
@@ -212,6 +210,7 @@ public class GBase8aConstants {
 
     public static HashMap<String, Integer> TYPES_INDEX = new HashMap<String, Integer>();
 
+    public static final String PRIVILEGE_GRANT_OPTION_NAME = "Grant option";
 
     public static HashMap<String, Integer> getTYPES_INDEX() {
         TYPES_INDEX.put("BIGINT", Integer.valueOf(1));

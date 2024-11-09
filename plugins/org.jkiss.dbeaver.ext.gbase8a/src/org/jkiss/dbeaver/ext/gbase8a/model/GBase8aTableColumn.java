@@ -14,7 +14,11 @@ import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCColumnKeyType;
 import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCTableColumn;
 import org.jkiss.dbeaver.model.meta.IPropertyValueListProvider;
 import org.jkiss.dbeaver.model.meta.Property;
+import org.jkiss.dbeaver.model.sql.SQLConstants;
+import org.jkiss.dbeaver.model.sql.SQLUtils;
+import org.jkiss.dbeaver.model.struct.DBSDataType;
 import org.jkiss.dbeaver.model.struct.DBSEntityAttribute;
+import org.jkiss.dbeaver.model.struct.DBSTypedObjectExt3;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableColumn;
 import org.jkiss.utils.CommonUtils;
 
@@ -24,10 +28,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implements DBSTableColumn, DBPNamedObject2, DBPOrderedObject {
+public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase>
+        implements DBSTableColumn, DBSTypedObjectExt3, DBPNamedObject2, DBPOrderedObject {
+
+    private static final Log log = Log.getLog(GBase8aTableColumn.class);
+
     private String comment;
     private long charLength;
-    private static final Log log = Log.getLog(GBase8aTableColumn.class);
     private GBase8aCollation collation;
     private KeyType keyType;
     private String extraInfo;
@@ -40,10 +47,12 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         UNI,
         MUL;
 
+        @Override
         public boolean isInUniqueKey() {
             return !(this != PRI && this != UNI);
         }
 
+        @Override
         public boolean isInReferenceKey() {
             return (this == MUL);
         }
@@ -72,6 +81,7 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         }
     }
 
+    // Copy constructor
     public GBase8aTableColumn(GBase8aTableBase table, DBSEntityAttribute source) throws DBException {
         super(table, source, false);
         this.comment = source.getDescription();
@@ -82,9 +92,8 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
             this.extraInfo = mySource.extraInfo;
             this.fullTypeName = mySource.fullTypeName;
             if (mySource.enumValues != null) {
-                this.enumValues = new ArrayList<String>(mySource.enumValues);
+                this.enumValues = new ArrayList<>(mySource.enumValues);
             }
-            this.isHashColumn = mySource.isHashColumn;
         } else {
             this.collation = table.getContainer().getDefaultCollation();
             this.fullTypeName = DBUtils.getFullTypeName(this);
@@ -92,11 +101,11 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
     }
 
     private void loadInfo(ResultSet dbResult) throws DBException {
-        setName(JDBCUtils.safeGetString(dbResult, "COLUMN_NAME"));
-        setOrdinalPosition(JDBCUtils.safeGetInt(dbResult, "ORDINAL_POSITION"));
-        String typeName = JDBCUtils.safeGetString(dbResult, "DATA_TYPE");
+        setName(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_NAME));
+        setOrdinalPosition(JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_ORDINAL_POSITION));
+        String typeName = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_DATA_TYPE);
         assert typeName != null;
-        String keyTypeName = JDBCUtils.safeGetString(dbResult, "COLUMN_KEY");
+        String keyTypeName = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_KEY);
         if (!CommonUtils.isEmpty(keyTypeName)) {
             try {
                 this.keyType = KeyType.valueOf(keyTypeName);
@@ -106,24 +115,42 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         }
         setTypeName(typeName);
         setValueType(GBase8aUtils.typeNameToValueType(typeName));
-        getDataSource().getLocalDataType(typeName);
-        this.charLength = JDBCUtils.safeGetLong(dbResult, "CHARACTER_MAXIMUM_LENGTH");
-        if (this.charLength > 0L) {
+        DBSDataType dataType = getDataSource().getLocalDataType(typeName);
+        this.charLength = JDBCUtils.safeGetLong(dbResult, GBase8aConstants.COL_CHARACTER_MAXIMUM_LENGTH);
+        if (this.charLength <= 0) {
+            if (dataType != null) {
+                setMaxLength(CommonUtils.toInt(dataType.getPrecision()));
+            }
+        } else {
             setMaxLength(this.charLength);
         }
-        this.comment = JDBCUtils.safeGetString(dbResult, "COLUMN_COMMENT");
-        setRequired(!"YES".equals(JDBCUtils.safeGetString(dbResult, "IS_NULLABLE")));
-        setScale(JDBCUtils.safeGetInt(dbResult, "NUMERIC_SCALE"));
-        setPrecision(JDBCUtils.safeGetInt(dbResult, "NUMERIC_PRECISION"));
-        String defaultValue = JDBCUtils.safeGetString(dbResult, "COLUMN_DEFAULT");
+        setComment(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_COMMENT));
+        setRequired(!"YES".equals(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_IS_NULLABLE)));
+        setScale(JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_NUMERIC_SCALE));
+        setPrecision(JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_NUMERIC_PRECISION));
+        String defaultValue = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_DEFAULT);
         if (defaultValue != null) {
+            switch (getDataKind()) {
+                case STRING:
+                    // Escape if it is not NULL (#1913)
+                    // Although I didn't reproduce that locally - perhaps depends on server config.
+                    if (!SQLConstants.NULL_VALUE.equals(defaultValue) && !SQLUtils.isStringQuoted(getDataSource(), defaultValue)) {
+                        defaultValue = SQLUtils.quoteString(getDataSource(), defaultValue);
+                    }
+                    break;
+                case DATETIME:
+                    if (!defaultValue.isEmpty() && Character.isDigit(defaultValue.charAt(0))) {
+                        defaultValue = "'" + defaultValue + "'";
+                    }
+                    break;
+
+            }
             setDefaultValue(defaultValue);
         }
-        this.collation = getDataSource().getCollation(JDBCUtils.safeGetString(dbResult, "COLLATION_NAME"));
-
-        this.extraInfo = JDBCUtils.safeGetString(dbResult, "EXTRA");
-
-        this.fullTypeName = JDBCUtils.safeGetString(dbResult, "COLUMN_TYPE");
+        setCollation(getDataSource().getCollation(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLLATION_NAME)));
+        setExtraInfo(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_EXTRA));
+        this.autoGenerated = extraInfo != null && extraInfo.contains("auto_increment");
+        this.fullTypeName = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLUMN_TYPE);
         if (!CommonUtils.isEmpty(this.fullTypeName) && (isTypeEnum() || isTypeSet())) {
             this.enumValues = new ArrayList<String>();
             Matcher enumMatcher = enumPattern.matcher(this.fullTypeName);
@@ -135,6 +162,7 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
     }
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
         return getTable().getDataSource();
     }
@@ -144,11 +172,14 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         return super.getName();
     }
 
+    @NotNull
+    @Property(viewable = true, editable = true, updatable = true, order = 20, listProvider = ColumnTypeNameListProvider.class)
     public String getFullTypeName() {
         return this.fullTypeName;
     }
 
-    public void setFullTypeName(String fullTypeName) throws DBException {
+    @Override
+    public void setFullTypeName(@NotNull String fullTypeName) throws DBException {
         this.fullTypeName = fullTypeName;
         int divPos = fullTypeName.indexOf('(');
         if (divPos != -1) {
@@ -158,17 +189,18 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         }
     }
 
-    @Property(viewable = true, editable = false, updatable = false, order = 20, listProvider = JDBCTableColumn.ColumnTypeNameListProvider.class)
+    @NotNull
+    @Override
     public String getTypeName() {
         return super.getTypeName();
     }
 
     public boolean isTypeSet() {
-        return this.typeName.equalsIgnoreCase("set");
+        return this.typeName.equalsIgnoreCase(GBase8aConstants.TYPE_NAME_SET);
     }
 
     public boolean isTypeEnum() {
-        return this.typeName.equalsIgnoreCase("enum");
+        return this.typeName.equalsIgnoreCase(GBase8aConstants.TYPE_NAME_ENUM);
     }
 
     @Property(viewable = true, editable = false, updatable = false, order = 21)
@@ -189,6 +221,24 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
     @Property(viewable = true, editable = false, updatable = false, order = 35)
     public boolean isRequired() {
         return super.isRequired();
+    }
+
+    @Override
+    @Property(viewable = true, editable = true, updatable = true, order = 51)
+    public boolean isAutoGenerated() {
+        return autoGenerated;
+    }
+
+    @Override
+    public void setAutoGenerated(boolean autoGenerated) {
+        if (autoGenerated) {
+            extraInfo = (CommonUtils.notEmpty(extraInfo) + " auto_increment");
+        } else {
+            if (extraInfo != null) {
+                extraInfo = extraInfo.replace("auto_increment", " ");
+            }
+        }
+        super.setAutoGenerated(autoGenerated);
     }
 
     @Property(viewable = true, editable = false, updatable = false, order = 37)
@@ -297,23 +347,27 @@ public class GBase8aTableColumn extends JDBCTableColumn<GBase8aTableBase> implem
         return true;
     }
 
-    public static class CharsetListProvider
-            implements IPropertyValueListProvider<GBase8aTableColumn> {
+    public static class CharsetListProvider implements IPropertyValueListProvider<GBase8aTableColumn> {
+
+        @Override
         public boolean allowCustomValue() {
             return false;
         }
 
+        @Override
         public Object[] getPossibleValues(GBase8aTableColumn object) {
-            return object.getDataSource().getCharsets(null).toArray();
+            return object.getDataSource().getCharsets().toArray();
         }
     }
 
-    public static class CollationListProvider
-            implements IPropertyValueListProvider<GBase8aTableColumn> {
+    public static class CollationListProvider implements IPropertyValueListProvider<GBase8aTableColumn> {
+
+        @Override
         public boolean allowCustomValue() {
             return false;
         }
 
+        @Override
         public Object[] getPossibleValues(GBase8aTableColumn object) {
             if (object.getCharset() == null) {
                 return new Object[0];

@@ -3,21 +3,15 @@ package org.jkiss.dbeaver.ext.gbase8a.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-//import org.jkiss.dbeaver.Log;
-//import org.jkiss.dbeaver.model.DBPDataSource;
-//import org.jkiss.dbeaver.model.DBPRefreshableObject;
-//import org.jkiss.dbeaver.model.DBPSaveableObject;
-//import org.jkiss.dbeaver.model.DBUtils;
-//import cn.gbase.studio.model.access.DBAUser;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.model.DBPEvaluationContext;
+import org.jkiss.dbeaver.model.DBPQualifiedObject;
 import org.jkiss.dbeaver.model.DBPRefreshableObject;
 import org.jkiss.dbeaver.model.DBPSaveableObject;
 import org.jkiss.dbeaver.model.DBUtils;
+import org.jkiss.dbeaver.model.access.DBARole;
 import org.jkiss.dbeaver.model.access.DBAUser;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
-//import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
-//import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
-//import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
@@ -25,7 +19,6 @@ import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.utils.CommonUtils;
-//import org.jkiss.dbeaver.model.struct.DBSObject;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,8 +28,7 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 
-
-public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableObject {
+public class GBase8aUser implements DBAUser, DBARole, DBPRefreshableObject, DBPSaveableObject, DBPQualifiedObject {
     private static final Log log = Log.getLog(GBase8aUser.class);
 
     private final GBase8aDataSource dataSource;
@@ -61,8 +53,8 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
         this.dataSource = dataSource;
         if (resultSet != null) {
             this.persisted = true;
-            this.userName = JDBCUtils.safeGetString(resultSet, "user").trim();
-            this.host = JDBCUtils.safeGetString(resultSet, "host").trim();
+            this.userName = CommonUtils.trim(JDBCUtils.safeGetString(resultSet, "user"));
+            this.host = CommonUtils.trim(JDBCUtils.safeGetString(resultSet, "host"));
             this.passwordHash = JDBCUtils.safeGetString(resultSet, "password");
 
             this.sslType = JDBCUtils.safeGetString(resultSet, "ssl_type");
@@ -82,18 +74,15 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
     }
 
 
-    @Property(viewable = true, order = 1)
     @NotNull
+    @Override
+    @Property(viewable = true, order = 1)
     public String getName() {
-        return this.userName + "@" + this.host;
+        return userName + "@" + host;
     }
 
     public String getUserName() {
-        return this.userName;
-    }
-
-    public GBase8aUser getUser() {
-        return this;
+        return userName;
     }
 
     public void setUserName(String userName) {
@@ -101,32 +90,32 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
     }
 
     public String getFullName() {
-        return "'" + this.userName + "'@'" + this.host + "'";
+        return "'" + userName + "'@'" + host + "'";
     }
 
-
     @Nullable
+    @Override
     public String getDescription() {
         return null;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
-        return this.dataSource.getContainer();
+        return dataSource.getContainer();
     }
-
 
     @NotNull
+    @Override
     public GBase8aDataSource getDataSource() {
-        return this.dataSource;
+        return dataSource;
     }
 
-
+    @Override
     public boolean isPersisted() {
-        return this.persisted;
+        return persisted;
     }
 
-
+    @Override
     public void setPersisted(boolean persisted) {
         this.persisted = persisted;
         DBUtils.fireObjectUpdate(this);
@@ -134,7 +123,7 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
 
     @Property(viewable = true, order = 2)
     public String getHost() {
-        return this.host;
+        return host;
     }
 
     public void setHost(String host) {
@@ -142,14 +131,12 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
     }
 
     public String getPasswordHash() {
-        return this.passwordHash;
+        return passwordHash;
     }
-
 
     public void clearGrantsCache() {
         this.grants = null;
     }
-
 
     public List<GBase8aGrant> getGrants(DBRProgressMonitor monitor) throws DBException {
         if (this.grants != null) {
@@ -159,75 +146,74 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
             this.grants = new ArrayList<>();
             return this.grants;
         }
-        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read user privileges")) {
-            try (JDBCPreparedStatement dbStat = session.prepareStatement("SHOW GRANTS FOR " + getFullName())) {
-                try (JDBCResultSet dbResult = dbStat.executeQuery()) {
-                    List<GBase8aGrant> grants = new ArrayList<>();
-                    while (dbResult.next()) {
-                        List<GBase8aPrivilege> privileges = new ArrayList<>();
-                        boolean allPrivilegesFlag = false;
-                        boolean grantOption = false;
-                        String vc = null;
-                        String catalog = null;
-                        String table = null;
-                        String grantString = CommonUtils.notEmpty(JDBCUtils.safeGetString(dbResult, 1)).trim().toUpperCase(Locale.ENGLISH);
-                        if (grantString.contains(" WITH GRANT OPTION")) {
-                            grantOption = true;
-                        }
-                        Matcher matcher = GBase8aGrant.TABLE_GRANT_PATTERN.matcher(grantString);
-                        String privString;
-                        if (matcher.find()) {
-                            privString = matcher.group(1);
-                            catalog = matcher.group(2);
-                            if (catalog.contains(".")) {
-                                vc = catalog.split("[.]")[0];
-                                catalog = catalog.split("[.]")[1];
-                            }
-                            table = matcher.group(3);
-                        } else {
-                            matcher = GBase8aGrant.GLOBAL_GRANT_PATTERN.matcher(grantString);
-                            if (!matcher.find()) {
-                                log.warn("Can't parse GRANT string: " + grantString);
-                                continue;
-                            }
-
-                            privString = matcher.group(1);
-                        }
-                        StringTokenizer st = new StringTokenizer(privString, ",");
-                        while (st.hasMoreTokens()) {
-                            String privName = st.nextToken().trim();
-                            if (privName.equalsIgnoreCase("All Privileges")) {
-                                allPrivilegesFlag = true;
-                            } else {
-                                GBase8aPrivilege priv = this.getDataSource().getPrivilege(monitor, privName);
-                                if (priv == null) {
-                                    log.warn("Can't find privilege '" + privName + "'");
-                                } else {
-                                    privileges.add(priv);
-                                }
-                            }
-                        }
-                        grants.add(new GBase8aGrant(this, privileges, vc, catalog, table, allPrivilegesFlag, grantOption));
-                    }
-                    this.grants = grants;
-                    return this.grants;
+        try (JDBCSession session = DBUtils.openMetaSession(monitor, getDataSource(), "Read user privileges");
+             JDBCPreparedStatement dbStat = session.prepareStatement("SHOW GRANTS FOR " + getFullName());
+             JDBCResultSet dbResult = dbStat.executeQuery()) {
+            List<GBase8aGrant> grants = new ArrayList<>();
+            while (dbResult.next()) {
+                List<GBase8aPrivilege> privileges = new ArrayList<>();
+                boolean allPrivilegesFlag = false;
+                boolean grantOption = false;
+                String vc = null;
+                String catalog = null;
+                String table = null;
+                String grantString = CommonUtils.notEmpty(JDBCUtils.safeGetString(dbResult, 1)).toUpperCase(Locale.ENGLISH);
+                if (grantString.contains(" WITH GRANT OPTION")) {
+                    grantOption = true;
                 }
+                Matcher matcher = GBase8aGrant.TABLE_GRANT_PATTERN.matcher(grantString);
+                String privString;
+                if (matcher.find()) {
+                    privString = matcher.group(1);
+                    catalog = matcher.group(2);
+                    if (catalog.contains(".")) {
+                        vc = catalog.split("[.]")[0];
+                        catalog = catalog.split("[.]")[1];
+                    }
+                    table = matcher.group(3);
+                } else {
+                    matcher = GBase8aGrant.GLOBAL_GRANT_PATTERN.matcher(grantString);
+                    if (!matcher.find()) {
+                        log.warn("Can't parse GRANT string: " + grantString);
+                        continue;
+                    }
+                    privString = matcher.group(1);
+                }
+                StringTokenizer st = new StringTokenizer(privString, ",");
+                while (st.hasMoreTokens()) {
+                    String privName = CommonUtils.trim(st.nextToken());
+                    if (privName.equalsIgnoreCase("All Privileges")) {
+                        allPrivilegesFlag = true;
+                    } else {
+                        GBase8aPrivilege priv = getDataSource().getPrivilege(monitor, privName);
+                        if (priv == null) {
+                            log.warn("Can't find privilege '" + privName + "'");
+                        } else {
+                            privileges.add(priv);
+                        }
+                    }
+                }
+                grants.add(new GBase8aGrant(this, privileges, vc, catalog, table, allPrivilegesFlag, grantOption));
             }
+            this.grants = grants;
+            return this.grants;
         } catch (SQLException e) {
             throw new DBException("Read user privileges failed", e);
         }
     }
 
+    @Property(viewable = true, order = 20)
     public String getSslType() {
-        return this.sslType;
+        return sslType;
     }
 
     void setSslType(String sslType) {
         this.sslType = sslType;
     }
 
+    @Property(viewable = true, order = 21)
     public byte[] getSslCipher() {
-        return this.sslCipher;
+        return sslCipher;
     }
 
     void setSslCipher(byte[] sslCipher) {
@@ -235,7 +221,7 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
     }
 
     public byte[] getX509Issuer() {
-        return this.x509Issuer;
+        return x509Issuer;
     }
 
     void setX509Issuer(byte[] x509Issuer) {
@@ -243,48 +229,59 @@ public class GBase8aUser implements DBAUser, DBPRefreshableObject, DBPSaveableOb
     }
 
     public byte[] getX509Subject() {
-        return this.x509Subject;
+        return x509Subject;
     }
 
     void setX509Subject(byte[] x509Subject) {
         this.x509Subject = x509Subject;
     }
 
+    @Property(viewable = true, order = 22)
     public int getMaxQuestions() {
-        return this.maxQuestions;
+        return maxQuestions;
     }
 
     public void setMaxQuestions(int maxQuestions) {
         this.maxQuestions = maxQuestions;
     }
 
+    @Property(viewable = true, order = 23)
     public int getMaxUpdates() {
-        return this.maxUpdates;
+        return maxUpdates;
     }
 
     public void setMaxUpdates(int maxUpdates) {
         this.maxUpdates = maxUpdates;
     }
 
+    @Property(viewable = true, order = 24)
     public int getMaxConnections() {
-        return this.maxConnections;
+        return maxConnections;
     }
 
     public void setMaxConnections(int maxConnections) {
         this.maxConnections = maxConnections;
     }
 
+    @Property(viewable = true, order = 25)
     public int getMaxUserConnections() {
-        return this.maxUserConnections;
+        return maxUserConnections;
     }
 
     public void setMaxUserConnections(int maxUserConnections) {
         this.maxUserConnections = maxUserConnections;
     }
 
-
+    @Override
     public DBSObject refreshObject(@NotNull DBRProgressMonitor monitor) throws DBException {
-        this.grants = null;
+        grants = null;
         return this;
+    }
+
+    @NotNull
+    @Override
+    public String getFullyQualifiedName(DBPEvaluationContext context) {
+        return DBUtils.getQuotedIdentifier(dataSource, userName, false, true) + "@"
+                + DBUtils.getQuotedIdentifier(dataSource, host, false, true);
     }
 }

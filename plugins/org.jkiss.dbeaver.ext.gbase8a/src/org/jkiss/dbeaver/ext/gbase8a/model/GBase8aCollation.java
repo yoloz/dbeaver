@@ -2,6 +2,7 @@ package org.jkiss.dbeaver.ext.gbase8a.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.struct.DBSObject;
@@ -12,7 +13,7 @@ import java.sql.SQLException;
 
 public class GBase8aCollation extends GBase8aInformation {
 
-    private GBase8aCharset charset;
+    private final GBase8aCharset charset;
     private int id;
     private String name;
     private boolean isDefault;
@@ -27,21 +28,21 @@ public class GBase8aCollation extends GBase8aInformation {
 
 
     private void loadInfo(ResultSet dbResult) throws SQLException {
-        this.name = JDBCUtils.safeGetString(dbResult, "COLLATION");
-        this.id = JDBCUtils.safeGetInt(dbResult, "ID");
-        this.isDefault = "Yes".equalsIgnoreCase(JDBCUtils.safeGetString(dbResult, "DEFAULT"));
-        this.isCompiled = "Yes".equalsIgnoreCase(JDBCUtils.safeGetString(dbResult, "COMPILED"));
-        this.sortLength = JDBCUtils.safeGetInt(dbResult, "SORTLEN");
+        this.name = JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COLLATION);
+        this.id = JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_ID);
+        this.isDefault = "Yes".equalsIgnoreCase(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_DEFAULT));
+        this.isCompiled = "Yes".equalsIgnoreCase(JDBCUtils.safeGetString(dbResult, GBase8aConstants.COL_COMPILED));
+        this.sortLength = JDBCUtils.safeGetInt(dbResult, GBase8aConstants.COL_SORT_LENGTH);
     }
 
 
-    @Property(viewable = true, order = 1)
+    @Property(viewable = true, order = 2)
     public GBase8aCharset getCharset() {
         return this.charset;
     }
 
 
-    @Property(viewable = true, order = 2)
+    @Property(viewable = true, order = 1)
     @NotNull
     public String getName() {
         return this.name;
@@ -73,11 +74,12 @@ public class GBase8aCollation extends GBase8aInformation {
 
 
     @Nullable
+    @Override
     public String getDescription() {
         return null;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
         return this.charset;
     }

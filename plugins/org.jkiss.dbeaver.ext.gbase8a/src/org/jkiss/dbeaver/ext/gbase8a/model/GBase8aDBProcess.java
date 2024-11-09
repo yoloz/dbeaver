@@ -10,7 +10,7 @@ import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import java.sql.SQLException;
 
 
-public class GBase8aDBProcess { //implements DBProcess {
+public class GBase8aDBProcess {//implements DBProcess {
     private String[] filterExtensions = new String[]{"*.csv", "*.txt", "*.xml", "*.xls", "*.xlsx"};
 
     public String[] getFilterExtensions() {
@@ -35,7 +35,6 @@ public class GBase8aDBProcess { //implements DBProcess {
 
 
     public boolean isSystemDatabase(String databaseName) {
-
         if (databaseName.equalsIgnoreCase("information_schema") || databaseName.equalsIgnoreCase("gbase") ||
                 databaseName.equalsIgnoreCase("performance_schema") || databaseName.equalsIgnoreCase("gclusterdb") ||
                 databaseName.equalsIgnoreCase("gctmpdb")) {
@@ -48,32 +47,26 @@ public class GBase8aDBProcess { //implements DBProcess {
 
 
     public String getImportSqlHeader(String vcName, String dbName, String tableName) {
-
         return "insert into `" + vcName + "`.`" + dbName + "`.`" +
                 tableName + "`";
     }
 
-
     public String getImportSqlHeader(String dbName, String tableName) {
-
         return "insert into `" + dbName + "`.`" +
                 tableName + "`";
     }
 
     public String getTruncateSql(String vcName, String dbName, String tableName) {
-
         return "truncate `" + vcName + "`.`" + dbName + "`.`" + tableName + "`";
     }
 
 
     public String getTruncateSql(String dbName, String tableName) {
-
         return "truncate `" + dbName + "`.`" + tableName + "`";
     }
 
 
     public String getSql(String vc, String db) {
-
         return "SELECT table_name FROM information_schema.tables where table_schema='" + db + "' and table_vc='" + vc + "'";
     }
 }

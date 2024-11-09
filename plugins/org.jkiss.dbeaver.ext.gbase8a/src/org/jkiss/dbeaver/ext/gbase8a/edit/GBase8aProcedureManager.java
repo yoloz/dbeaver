@@ -18,20 +18,22 @@ import org.jkiss.utils.CommonUtils;
 import java.util.List;
 import java.util.Map;
 
-
 public class GBase8aProcedureManager extends SQLObjectEditor<GBase8aProcedure, GBase8aCatalog> {
 
-    @Override
-    public long getMakerOptions(DBPDataSource dataSource) {
-        return 4L;
-    }
-
     @Nullable
+    @Override
     public DBSObjectCache<GBase8aCatalog, GBase8aProcedure> getObjectsCache(GBase8aProcedure object) {
         return object.getContainer().getProceduresCache();
     }
 
-    protected void validateObjectProperties(SQLObjectEditor<GBase8aProcedure, GBase8aCatalog>.ObjectChangeCommand command) throws DBException {
+    @Override
+    public long getMakerOptions(DBPDataSource dataSource) {
+        return FEATURE_EDITOR_ON_CREATE;
+    }
+
+    @Override
+    protected void validateObjectProperties(DBRProgressMonitor monitor, ObjectChangeCommand command, Map<String, Object> options)
+            throws DBException {
         if (CommonUtils.isEmpty(command.getObject().getName())) {
             throw new DBException("Procedure name cannot be empty");
         }
@@ -42,9 +44,7 @@ public class GBase8aProcedureManager extends SQLObjectEditor<GBase8aProcedure, G
 
     @Override
     protected GBase8aProcedure createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, Object container, Object copyFrom, Map<String, Object> options) throws DBException {
-        GBase8aProcedure gBase8aProcedure = new GBase8aProcedure((GBase8aCatalog) container);
-        gBase8aProcedure.setName("NEW_PROCEDURE");
-        return gBase8aProcedure;
+        return new GBase8aProcedure((GBase8aCatalog) container);
     }
 
     @Override
@@ -68,18 +68,12 @@ public class GBase8aProcedureManager extends SQLObjectEditor<GBase8aProcedure, G
             fullName = fullName + "`" + name + "`.";
             b++;
         }
-
         fullName = fullName.substring(0, fullName.length() - 1);
-
         return fullName;
     }
 
     private void createOrReplaceProcedureQuery(List<DBEPersistAction> actions, GBase8aProcedure procedure) {
         actions.add(new SQLDatabasePersistAction("Drop procedure", "DROP " + procedure.getProcedureType() + " IF EXISTS " + procedure.getFullyQualifiedName(DBPEvaluationContext.DDL)));
-        actions.add(new SQLDatabasePersistAction("Create procedure", procedure.getDeclaration(), true));
-    }
-
-    private void createProcedureQuery(List<DBEPersistAction> actions, GBase8aProcedure procedure) {
         actions.add(new SQLDatabasePersistAction("Create procedure", procedure.getDeclaration(), true));
     }
 }

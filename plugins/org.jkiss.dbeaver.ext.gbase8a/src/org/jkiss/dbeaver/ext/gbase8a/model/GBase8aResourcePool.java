@@ -9,6 +9,7 @@ import org.jkiss.dbeaver.model.DBPImageProvider;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.struct.DBSObject;
+import org.jkiss.utils.CommonUtils;
 
 import java.sql.SQLException;
 
@@ -17,11 +18,10 @@ public class GBase8aResourcePool implements DBSObject, DBPImageProvider {
 
     private static final Log log = Log.getLog(GBase8aResourcePool.class);
 
-    private GBase8aDataSource dataSource;
+    private final GBase8aDataSource dataSource;
+    private GBase8aVC gBase8aVC;
 
     private String name;
-
-    private String vcName;
     private String baseOn;
     private String type;
     private long priority = 0L;
@@ -42,19 +42,17 @@ public class GBase8aResourcePool implements DBSObject, DBPImageProvider {
     }
 
 
-    public GBase8aResourcePool(GBase8aDataSource dataSource, JDBCResultSet resultSet, String vcName) {
+    public GBase8aResourcePool(GBase8aDataSource dataSource, JDBCResultSet resultSet, GBase8aVC gBase8aVC) {
         this.dataSource = dataSource;
-        this.vcName = vcName;
-
+        this.gBase8aVC = gBase8aVC;
         try {
-            this.name = resultSet.getString("resource_pool_name").trim();
+            this.name = CommonUtils.trim(resultSet.getString("resource_pool_name"));
             if (resultSet.getLong("resource_pool_type") == 1L) {
                 this.type = "static";
             } else {
                 this.type = "dynamic";
             }
-
-            this.baseOn = resultSet.getString("parent_resource_pool_name").trim();
+            this.baseOn = CommonUtils.trim(resultSet.getString("parent_resource_pool_name"));
             this.priority = resultSet.getLong("priority");
             this.cpu_percent = resultSet.getLong("cpu_percent");
             this.max_memory = resultSet.getLong("max_memory") / 1024L / 1024L;
@@ -73,16 +71,12 @@ public class GBase8aResourcePool implements DBSObject, DBPImageProvider {
 
 
     public String getVcName() {
-        return this.vcName;
+        return this.gBase8aVC.getName();
     }
-
-    public void setVcName(String vcName) {
-        this.vcName = vcName;
-    }
-
 
     @Property(viewable = true, order = 1)
     @NotNull
+    @Override
     public String getName() {
         return this.name;
     }
@@ -209,32 +203,31 @@ public class GBase8aResourcePool implements DBSObject, DBPImageProvider {
         this.task_running_timeout = task_running_timeout;
     }
 
-
+    @Override
     public boolean isPersisted() {
         return true;
     }
 
-
+    @Override
     public String getDescription() {
         return this.name;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
         return (DBSObject) getDataSource().getContainer();
     }
 
-
+    @Override
     public DBPDataSource getDataSource() {
-        return (DBPDataSource) this.dataSource;
+        return this.dataSource;
     }
 
+    @Override
     public DBPImage getObjectImage() {
         if ("static".equals(this.type)) {
-//            return DBIcon.TREE_SERVERS;
             return DBIcon.TREE_SERVER;
         }
-//        return (DBPImage) DBIcon.TREE_DYNAMIC_POOL;
         return DBIcon.TREE_SERVERS;
     }
 }

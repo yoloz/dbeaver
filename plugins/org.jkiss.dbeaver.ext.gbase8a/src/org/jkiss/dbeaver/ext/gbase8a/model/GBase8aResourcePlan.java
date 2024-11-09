@@ -16,20 +16,15 @@ import org.jkiss.dbeaver.model.struct.DBSObject;
 import java.sql.SQLException;
 
 public class GBase8aResourcePlan implements DBSObject, DBPRefreshableObject, DBPImageProvider {
+
     private static final Log log = Log.getLog(GBase8aResourcePlan.class);
 
     private final GBase8aDataSource dataSource;
-
     private String name;
-
     private GBase8aVC gbase8aVC;
-
     private String comment;
-
     private boolean persisted;
-
     private boolean isInitialized = false;
-
     private String resourcePlanId;
 
     protected GBase8aResourcePlan(GBase8aDataSource dataSource, String name) {
@@ -37,11 +32,9 @@ public class GBase8aResourcePlan implements DBSObject, DBPRefreshableObject, DBP
         this.name = name;
     }
 
-
     public GBase8aResourcePlan(GBase8aDataSource dataSource, JDBCResultSet resultSet, GBase8aVC gbase8aVC) {
         this.dataSource = dataSource;
         this.gbase8aVC = gbase8aVC;
-
         if (resultSet != null) {
             this.persisted = true;
             try {
@@ -61,6 +54,7 @@ public class GBase8aResourcePlan implements DBSObject, DBPRefreshableObject, DBP
 
     @Property(viewable = true, order = 1)
     @NotNull
+    @Override
     public String getName() {
         return this.name;
     }
@@ -78,22 +72,22 @@ public class GBase8aResourcePlan implements DBSObject, DBPRefreshableObject, DBP
         this.comment = comment;
     }
 
-
+    @Override
     public boolean isPersisted() {
         return this.persisted;
     }
 
-
+    @Override
     public String getDescription() {
         return this.name;
     }
 
-
+    @Override
     public DBSObject getParentObject() {
         return getDataSource().getContainer();
     }
 
-
+    @Override
     public DBPDataSource getDataSource() {
         return this.dataSource;
     }
@@ -106,14 +100,13 @@ public class GBase8aResourcePlan implements DBSObject, DBPRefreshableObject, DBP
         this.isInitialized = isInitialized;
     }
 
-
+    @Override
     public DBSObject refreshObject(DBRProgressMonitor monitor) throws DBException {
         this.isInitialized = false;
-
-        return this.gbase8aVC.getResourcePlan(this.name);
+        return this.gbase8aVC.getResourcePlan(monitor, this.name);
     }
 
-
+    @Override
     public DBPImage getObjectImage() {
         if (this.resourcePlanId.equals(this.gbase8aVC.getActiveResourcePlanId())) {
             return DBIcon.TREE_LOCKED;

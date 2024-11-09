@@ -1,37 +1,73 @@
 package org.jkiss.dbeaver.ext.gbase8a.edit;
 
+import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog;
+import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndexColumn;
-import org.jkiss.dbeaver.model.DBPDataSource;
-import org.jkiss.dbeaver.model.DBPRefreshableObject;
+import org.jkiss.dbeaver.model.DBPEvaluationContext;
+import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
+import org.jkiss.dbeaver.model.edit.DBEObjectRenamer;
+import org.jkiss.dbeaver.model.edit.DBEPersistAction;
+import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
+import org.jkiss.dbeaver.model.impl.edit.SQLDatabasePersistAction;
 import org.jkiss.dbeaver.model.struct.cache.DBSObjectCache;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLIndexManager;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
-import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.rdb.DBSIndexType;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableIndexColumn;
 import org.jkiss.utils.CommonUtils;
 
+import java.util.List;
 import java.util.Map;
 
 
-public class GBase8aIndexManager extends SQLIndexManager<GBase8aTableIndex, GBase8aTable> implements DBPRefreshableObject {
+public class GBase8aIndexManager extends SQLIndexManager<GBase8aTableIndex, GBase8aTable> implements DBEObjectRenamer<GBase8aTableIndex> {
+
     @Nullable
+    @Override
     public DBSObjectCache<GBase8aCatalog, GBase8aTableIndex> getObjectsCache(GBase8aTableIndex object) {
         return object.getTable().getContainer().getIndexCache();
     }
 
-    protected String getDropIndexPattern(GBase8aTableIndex index) {
-        return "ALTER TABLE %TABLE% DROP INDEX \"%INDEX_SHORT%\"";
+    @Override
+    protected GBase8aTableIndex createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, final Object container,
+                                                     Object from, Map<String, Object> options) {
+        return new GBase8aTableIndex(
+                (GBase8aTable) container,
+                false,
+                null,
+                DBSIndexType.HASHED,
+                null,
+                false);
     }
 
-    protected void appendIndexColumnModifiers(StringBuilder decl, DBSTableIndexColumn indexColumn) {
-        String subPart = ((GBase8aTableIndexColumn) indexColumn).getSubPart();
+    protected String getDropIndexPattern(GBase8aTableIndex index) {
+        return "ALTER TABLE " + PATTERN_ITEM_TABLE + " DROP INDEX " + PATTERN_ITEM_INDEX_SHORT;
+    }
+
+    protected void appendIndexType(GBase8aTableIndex index, StringBuilder decl) {
+        DBSIndexType indexType = index.getIndexType();
+        if (indexType != GBase8aConstants.INDEX_TYPE_FULLTEXT) {
+            decl.append(" USING ").append(indexType.getId());
+        }
+    }
+
+    protected void appendIndexModifiers(GBase8aTableIndex index, StringBuilder decl) {
+        if (index.getIndexType() == GBase8aConstants.INDEX_TYPE_FULLTEXT) {
+            decl.append(" FULLTEXT");
+        } else {
+            super.appendIndexModifiers(index, decl);
+        }
+    }
+
+    protected void appendIndexColumnModifiers(DBRProgressMonitor monitor, StringBuilder decl, DBSTableIndexColumn indexColumn) {
+        final String subPart = ((GBase8aTableIndexColumn) indexColumn).getSubPart();
         if (!CommonUtils.isEmpty(subPart)) {
             decl.append(" (").append(subPart).append(")");
         }
@@ -40,44 +76,28 @@ public class GBase8aIndexManager extends SQLIndexManager<GBase8aTableIndex, GBas
         }
     }
 
-    public String getDescription() {
-        return null;
-    }
-
-
-    public DBSObject getParentObject() {
-        return null;
-    }
-
-
-    public DBPDataSource getDataSource() {
-        return null;
-    }
-
-
-    public String getName() {
-        return null;
-    }
-
-
-    public boolean isPersisted() {
-        return false;
-    }
-
-
-    public DBSObject refreshObject(DBRProgressMonitor monitor) throws DBException {
-        return null;
+    @Override
+    protected void addObjectModifyActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actionList, ObjectChangeCommand command, Map<String, Object> options) throws DBException {
+        addObjectDeleteActions(monitor, executionContext, actionList, new ObjectDeleteCommand(command.getObject(), command.getTitle()), options);
+        addObjectCreateActions(monitor, executionContext, actionList, makeCreateCommand(command.getObject(), options), options);
     }
 
     @Override
-    protected GBase8aTableIndex createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, Object container, Object copyFrom, Map<String, Object> options) throws DBException {
-        GBase8aTable table = (GBase8aTable) container;
-        return new GBase8aTableIndex(
-                table,
-                false,
-                "INDEX",
-                DBSIndexType.HASHED,
-                null,
-                false);
+    public void renameObject(@NotNull DBECommandContext commandContext, @NotNull GBase8aTableIndex object, @NotNull Map<String, Object> options, @NotNull String newName) throws DBException {
+        processObjectRename(commandContext, object, options, newName);
     }
+
+    @Override
+    protected void addObjectRenameActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectRenameCommand command, Map<String, Object> options)
+    {
+        final GBase8aDataSource dataSource = command.getObject().getDataSource();
+        actions.add(
+                new SQLDatabasePersistAction(
+                        "Rename table",
+                        "ALTER TABLE " + command.getObject().getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) +
+                                "\nRENAME INDEX " + DBUtils.getQuotedIdentifier(dataSource, command.getOldName()) +
+                                " TO " + DBUtils.getQuotedIdentifier(dataSource, command.getNewName()))
+        );
+    }
+
 }

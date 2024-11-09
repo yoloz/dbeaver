@@ -1,13 +1,14 @@
 package org.jkiss.dbeaver.ext.gbase8a.edit;
 
+import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 
 import java.util.List;
 import java.util.Map;
 
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aMessages;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
-import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aVC;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
 import org.jkiss.dbeaver.model.impl.edit.SQLDatabasePersistAction;
@@ -24,58 +25,60 @@ public class GBase8aCatalogManager extends SQLObjectEditor<GBase8aCatalog, GBase
 
     @Override
     public long getMakerOptions(DBPDataSource dataSource) {
-        return 1L;
+        return FEATURE_SAVE_IMMEDIATELY;
     }
 
     @Override
     @Nullable
-    public DBSObjectCache<GBase8aVC, GBase8aCatalog> getObjectsCache(GBase8aCatalog object) {
-        return object.getDataSource().getActiveVC().getCatalogCache();
-    }
-
-    @Override
-    public void renameObject(DBECommandContext commandContext, GBase8aCatalog object, Map<String, Object> options, String newName) throws DBException {
-        throw new DBException("Direct database rename is not yet implemented in GBase8a. You should use export/import functions for that.");
+    public DBSObjectCache<GBase8aDataSource, GBase8aCatalog> getObjectsCache(GBase8aCatalog object) {
+        return object.getDataSource().getCatalogCache();
     }
 
     @Override
     protected GBase8aCatalog createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, Object container, Object copyFrom, Map<String, Object> options) throws DBException {
-//        return new UITask<GBase8aCatalog>() {
-//            protected GBase8aCatalog runTask() {
-//                GBase8aCreateDatabaseDialog dialog = new GBase8aCreateDatabaseDialog(UIUtils.getActiveWorkbenchShell(), (GBase8aDataSource) container);
-//                if (dialog.open() != 0) {
-//                    return null;
-//                }
-//                String schemaName = dialog.getName();
-//                GBase8aCatalog newCatalog = new GBase8aCatalog((GBase8aDataSource) container, null, null);
-//                newCatalog.setName(schemaName);
-//                return newCatalog;
-//            }
-//        }.execute();
-        GBase8aCatalog newCatalog = new GBase8aCatalog((GBase8aDataSource) container, null, null);
-        newCatalog.setName("newCatalog");
-        return newCatalog;
+        GBase8aDataSource gBase8aDataSource = (GBase8aDataSource) container;
+        return new GBase8aCatalog(gBase8aDataSource, null, gBase8aDataSource.getVcName());
     }
 
     @Override
-    protected void addObjectCreateActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions,
-                                          SQLObjectEditor<GBase8aCatalog, GBase8aDataSource>.ObjectCreateCommand command, Map<String, Object> options) throws DBException {
-        GBase8aCatalog catalog = (GBase8aCatalog)command.getObject();
-        StringBuilder script = new StringBuilder("CREATE SCHEMA `" + catalog.getName() + "`");
-        if (catalog.getDefaultCharset() != null) {
-            script.append("\nDEFAULT CHARACTER SET ").append(catalog.getDefaultCharset().getName());
-        }
-
-        if (catalog.getDefaultCollation() != null) {
-            script.append("\nDEFAULT COLLATE ").append(catalog.getDefaultCollation().getName());
-        }
-
+    protected void addObjectCreateActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectCreateCommand command, Map<String, Object> options) {
+        final GBase8aCatalog catalog = command.getObject();
+        final StringBuilder script = new StringBuilder("CREATE SCHEMA `" + catalog.getName() + "`");
+        appendDatabaseModifiers(catalog, script);
         actions.add(new SQLDatabasePersistAction("Create schema", script.toString()));
     }
 
+    protected void addObjectModifyActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actionList, ObjectChangeCommand command, Map<String, Object> options) {
+        final GBase8aCatalog catalog = command.getObject();
+        final StringBuilder script = new StringBuilder("ALTER DATABASE `" + catalog.getName() + "`");
+        appendDatabaseModifiers(catalog, script);
+        actionList.add(
+                new SQLDatabasePersistAction("Alter database", script.toString())
+        );
+    }
+
+    private void appendDatabaseModifiers(GBase8aCatalog catalog, StringBuilder script) {
+        if (catalog.getDefaultCharset() != null) {
+            script.append("\nDEFAULT CHARACTER SET ").append(catalog.getDefaultCharset().getName());
+        }
+        if (catalog.getDefaultCollation() != null) {
+            script.append("\nDEFAULT COLLATE ").append(catalog.getDefaultCollation().getName());
+        }
+    }
+
     @Override
-    protected void addObjectDeleteActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions,
-                                          SQLObjectEditor<GBase8aCatalog, GBase8aDataSource>.ObjectDeleteCommand command, Map<String, Object> options) throws DBException {
-        actions.add(new SQLDatabasePersistAction("Drop schema", "DROP SCHEMA `" + ((GBase8aCatalog)command.getObject()).getName() + "`"));
+    protected void addObjectDeleteActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectDeleteCommand command, Map<String, Object> options) {
+        actions.add(new SQLDatabasePersistAction("Drop schema", "DROP SCHEMA `" + command.getObject().getName() + "`"));
+    }
+
+    @Override
+    public boolean canRenameObject(GBase8aCatalog object) {
+        return false;
+    }
+
+    @Override
+    public void renameObject(@NotNull DBECommandContext commandContext, @NotNull GBase8aCatalog object, @NotNull Map<String, Object> options, @NotNull String newName)
+            throws DBException {
+        throw new DBException(GBase8aMessages.exception_direct_database_rename);
     }
 }

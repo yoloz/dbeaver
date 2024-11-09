@@ -3,7 +3,6 @@
 <!--
  * DBeaver - Universal Database Manager
  * Copyright (C) 2010-2024 DBeaver Corp and others
- * Copyright (C) 2017 Andrew Khitrin (ahitrin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,150 +27,230 @@
                 id="gbase8a"
                 label="GBase8a MPP"
                 dialect="gbase8a">
-            <tree icon="icons/gbase8a_icon.png" label="GBase8a data source" path="gbase8a">
-
-                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aSysCatalog" label="%tree.system.databases.node.name" icon="#folder_database" description="%tree.system.databases.node.name">
-                    <items label="%tree.database.node.name" path="sysCatalogs" property="sysCatalogs" icon="#database">
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable" label="%tree.tables.node.name" icon="#folder_table" description="%tree.tables.node.name">
-                            <items label="%tree.table.node.name" path="tables" property="tables" icon="#table">
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableColumn" label="%tree.columns.node.name" icon="#columns" description="%tree.columns.node.name">
-                                    <items label="%tree.column.node.name" path="attributes" property="attributes" icon="#column">
+            <tree
+                    icon="icons/gbase8a_icon.png"
+                    label="GBase8a data source"
+                    path="gbase8a">
+                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog"
+                        label="%tree.databases.node.name" icon="#folder_schema"
+                        description="%tree.databases.node.name">
+                    <items label="%tree.database.node.name" path="database" property="catalogs" icon="#database">
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable"
+                                label="%tree.tables.node.name" icon="#folder_table"
+                                description="%tree.tables.node.name">
+                            <items label="%tree.table.node.name" path="table" property="tables" icon="#table">
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableColumn"
+                                        label="%tree.columns.node.name" icon="#columns"
+                                        description="Table columns">
+                                    <items label="%tree.column.node.name" path="attribute" property="attributes"
+                                           icon="#column">
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex" label="%tree.indexes.node.name" icon="#indexes" description="%tree.indexes.node.name">
-                                    <items label="%tree.index.node.name" path="indexes" property="indexes" icon="#index">
-                                        <items label="Index columns" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableConstraint"
+                                        label="%tree.constraints.node.name" icon="#constraints"
+                                        description="Table constraints">
+                                    <items label="%tree.constraint.node.name" path="constraint"
+                                           property="constraints" icon="#unique-key">
+                                        <items label="%tree.constraint_columns.node.name" path="column"
+                                               property="attributeReferences" navigable="false" inline="true"
+                                               visibleIf="object.constraintType!='CHECK'">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableForeignKey"
+                                        label="%tree.foreign_keys.node.name" icon="#foreign-keys"
+                                        description="Table foreign keys"
+                                        visibleIf="object.dataSource.info.supportsReferentialIntegrity()">
+                                    <items label="%tree.foreign_key.node.name" path="association"
+                                           property="associations" icon="#foreign-key">
+                                        <items label="%tree.foreign_key_columns.node.name"
+                                               itemLabel="%tree.column.node.name" path="column"
+                                               property="attributeReferences" navigable="false" inline="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTrigger"
+                                        label="%tree.triggers.node.name" icon="#triggers"
+                                        description="%tree.triggers.node.name">
+                                    <!--visibleIf="object.dataSource.supportsTriggers()">-->
+                                    <items label="%tree.trigger.node.name" path="trigger" property="triggers"
+                                           icon="#trigger">
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex"
+                                        label="%tree.indexes.node.name" icon="#indexes"
+                                        description="Table indexes">
+                                    <items label="%tree.index.node.name" path="index" property="indexes"
+                                           icon="#index">
+                                        <items label="Index columns" itemLabel="%tree.column.node.name"
+                                               path="column" property="attributeReferences" navigable="false"
+                                               inline="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableFullIndex"
+                                        label="%tree.full.index.node.name" icon="#indexes"
+                                        description="Table Full indexes">
+                                    <items label="%tree.full.index.node.name" path="index"
+                                           property="fullIndexes" icon="#index">
+                                        <items label="Index columns" itemLabel="%tree.column.node.name"
+                                               path="column" property="attributeReferences" navigable="false"
+                                               inline="true">
                                         </items>
                                     </items>
                                 </folder>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aView" label="%tree.views.node.name" icon="#folder_view" description="%tree.views.node.name">
-                            <items label="%tree.view.node.name" path="views" property="views" icon="#view">
-                                <items label="%tree.columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributes" icon="#column">
-                                </items>
-                            </items>
-                        </folder>
-                    </items>
-                </folder>`
-
-                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aVC" label="%tree.user.databases.node.name" icon="#folder_database">
-                    <items label="%tree.vc.node.name" path="vc" property="vcs" icon="#schema">
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog" label="%tree.database.node.name" icon="#database">
-                            <items label="%tree.database.node.name" path="catalog" property="catalogs" icon="#schema">
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable" label="%tree.tables.node.name" icon="#folder_table">
-                                    <items label="%tree.table.node.name" path="tables" property="tables" icon="#table">
-                                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableColumn" label="%tree.columns.node.name" icon="#columns">
-                                            <items label="%tree.column.node.name" path="attribute" property="attributes"
-                                                   icon="#column">
-                                            </items>
-                                        </folder>
-                                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex" label="%tree.indexes.node.name" icon="#indexes">
-                                            <items label="%tree.index.node.name" path="indexes" property="indexes" icon="#index">
-                                                <items label="%tree.index_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
-                                                </items>
-                                            </items>
-                                        </folder>
-                                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableFullIndex" label="%tree.full.index.node.name" icon="#indexes">
-                                            <items label="%tree.full.index.node.name" path="index" property="fullIndexes" icon="#index">
-                                                <items label="%tree.index_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
-                                                </items>
-                                            </items>
-                                        </folder>
-                                    </items>
-                                </folder>
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aView" label="%tree.views.node.name"
-                                        icon="#folder_view" description="%tree.views.node.name">
-                                    <items label="%tree.view.node.name" path="view" property="views" icon="#view">
-                                        <items label="%tree.columns.node.name" itemLabel="%tree.column.node.name" path="column"
-                                               property="attributes" icon="#column">
-                                        </items>
-                                    </items>
-                                </folder>
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"
-                                        label="%tree.procedures.node.name" icon="#procedures"
-                                        description="%tree.procedures.node.name">
-                                    <items label="%tree.procedure.node.name" path="procedure" property="procedures"
-                                           icon="#procedure">
-                                    </items>
-                                </folder>
-                                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aFunction"
-                                        label="%tree.functions.node.name" icon="#functions"
-                                        description="%tree.functions.node.name">
-                                    <items label="%tree.function.node.name" path="function" property="functions"
-                                           icon="#function">
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aView"
+                                label="%tree.views.node.name" icon="#folder_view"
+                                description="%tree.views.node.name">
+                            <items label="%tree.view.node.name" path="view" property="views" icon="#view">
+                                <folder label="%tree.columns.node.name" icon="#columns"
+                                        description="View columns">
+                                    <items label="%tree.columns.node.name" itemLabel="%tree.column.node.name"
+                                           path="column" property="attributes" icon="#column">
                                     </items>
                                 </folder>
                             </items>
                         </folder>
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"
+                                label="%tree.procedures.node.name" icon="#procedures"
+                                description="%tree.procedures.node.name">
+                            <items label="%tree.procedure.node.name" path="procedure" property="proceduresOnly"
+                                   icon="#procedure">
+                                <folder label="%tree.procedure_columns.node.name" icon="#columns"
+                                        description="Procedure columns">
+                                    <items label="%tree.procedure_columns.node.name"
+                                           itemLabel="%tree.column.node.name" path="column"
+                                           property="parameters" navigable="false" inline="true">
+                                    </items>
+                                </folder>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"
+                                label="%tree.function.node.name" icon="#procedures"
+                                description="%tree.function.node.name">
+                            <items label="%tree.function.node.name" path="function" property="functionsOnly"
+                                   icon="#procedure">
+                                <folder label="%tree.function_columns.node.name" icon="#columns"
+                                        description="Functions columns">
+                                    <items label="%tree.function_columns.node.name"
+                                           itemLabel="%tree.column.node.name" path="column"
+                                           property="parameters" navigable="false" inline="true">
+                                    </items>
+                                </folder>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEvent"
+                                label="%tree.events.node.name" icon="#events"
+                                description="%tree.events.node.name"
+                                visibleIf="object.dataSource.supportsEvents()">
+                            <items label="%tree.event.node.name" path="event" property="events" icon="#event">
+                            </items>
+                        </folder>
                     </items>
                 </folder>
-
-                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aUser" label="%tree.users.node.name" icon="#folder_user" description="%tree.users.node.name">
-                    <items label="%tree.user.node.name" path="users" property="users" icon="#user"/>
+                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aUser" label="%tree.users.node.name"
+                        icon="#folder_user" description="%tree.users.node.name"
+                        visibleIf="connected &amp;&amp; object.dataSource.supportsUserManagement()">
+                    <items label="%tree.user.node.name" path="users" property="users" icon="#user">
+                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aGrant"
+                                label="%tree.userGrants.node.name" description="%tree.userGrants.node.tip">
+                            <items label="%tree.user.node.name" path="grants" property="grants"/>
+                        </folder>
+                    </items>
                 </folder>
-
-                <folder label="%tree.administer.node.name" icon="#folder_admin" description="%tree.administer.node.name">
+                <folder type="" label="%tree.administer.node.name" icon="#folder_admin" id="folderAdmin"
+                        description="%tree.administer.node.name">
                     <treeContribution category="connectionEditor"/>
                 </folder>
-
-                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aInformation" label="%tree.system_info.node.name" icon="#folder_info">
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aParameter" label="%tree.session_status.node.name" icon="#info" >
-                        <items label="%tree.variable.node.name" path="sessionStatus" property="sessionStatus" icon="#info" navigable="false" virtual="true"/>
+                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aInformation"
+                        label="%tree.system_info.node.name" icon="#folder_info"
+                        id="folderInfo" description="%tree.system_info.node.name">
+                    <folder label="%tree.session_status.node.name" icon="#info" description="Session status">
+                        <items label="%tree.variable.node.name" path="sessionStatus" property="sessionStatus"
+                               icon="#info" navigable="false" virtual="true"/>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aParameter" label="%tree.global_status.node.name" icon="#info">
-                        <items label="%tree.variable.node.name" path="globalStatus" property="globalStatus" icon="#info" />
+                    <folder label="%tree.global_status.node.name" icon="#info" description="Global status">
+                        <items label="%tree.variable.node.name" path="globalStatus" property="globalStatus" icon="#info"
+                               navigable="false" virtual="true"/>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aParameter" label="%tree.session_variables.node.name" icon="#info">
-                        <items label="%tree.variable.node.name" path="sessionVariables" property="sessionVariables" icon="#info"/>
+                    <folder label="%tree.session_variables.node.name" icon="#info" description="Session variables">
+                        <items label="%tree.variable.node.name" path="sessionVariables" property="sessionVariables"
+                               icon="#info" navigable="false" virtual="true"/>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aParameter" label="%tree.global_variables.node.name" icon="#info">
-                        <items label="%tree.variable.node.name" path="globalVariables" property="globalVariables" icon="#info" navigable="false" virtual="true"/>
+                    <folder label="%tree.global_variables.node.name" icon="#info" description="Global variables">
+                        <items label="%tree.variable.node.name" path="globalVariables" property="globalVariables"
+                               icon="#info" navigable="false" virtual="true"/>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEngine" label="%tree.engines.node.name" icon="#info" description="%tree.engines.node.name">
-                        <items label="%tree.engine.node.name" path="engines" property="engines" icon="#info" navigable="false" virtual="true"/>
+                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEngine" label="%tree.engines.node.name"
+                            icon="#info" description="Database engines">
+                        <items label="%tree.engine.node.name" path="engines" property="engines" icon="#info"
+                               navigable="false" virtual="true"/>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCharset" label="%tree.charsets.node.name" icon="#info" description="%tree.charsets.node.name">
+                    <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCharset" label="%tree.charsets.node.name"
+                            icon="#info" description="Database charsets">
                         <items label="%tree.charset.node.name" path="charsets" property="charsets" icon="#info">
-                            <items label="%tree.collation.node.name" path="collations" property="collations" icon="#info" navigable="false"/>
+                            <items label="%tree.collation.node.name" path="collations" property="collations"
+                                   icon="#info" navigable="false"/>
                         </items>
                     </folder>
-                    <folder type="org.jkiss.dbeaver.model.access.DBAPrivilege" label="%tree.user_privileges.node.name" icon="#info">
-                        <items label="%tree.privilege.node.name" path="privileges" property="privileges" icon="#info" navigable="false" virtual="true"/>
+                    <folder type="org.jkiss.dbeaver.model.access.DBAPrivilege" label="%tree.user_privileges.node.name"
+                            icon="#info" description="User privileges">
+                        <items label="%tree.privilege.node.name" path="privileges" property="privileges" icon="#info"
+                               navigable="false" virtual="true"/>
                     </folder>
+                  <!--  <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aPlugin" label="%tree.plugin.node.name"
+                            icon="#info" description="Database plugins"
+                            visibleIf="connected &amp;&amp; ozbject.dataSource.supportsPlugins()">
+                        <items label="%tree.plugin.node.name" path="plugins" property="plugins" icon="#info"
+                               navigable="false" virtual="true"/>
+                    </folder>-->
                 </folder>
 
-                <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aVC" label="%tree.resource.node.name" icon="#folder_admin" description="%tree.resource.node.name">
-                    <items label="%tree.vc.node.name" path="vc" property="vcs" icon="#database">
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aConsumerGroup" label="%tree.resource.consumergroup" icon="#folder_admin">
-                            <items label="Consumer Group" path="consumerGroups" property="consumerGroups" icon="#info"/>
-                        </folder>
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourcePool" label="%tree.resource.resourcepool" icon="#folder_admin">
-                            <items label="Resource Pool" path="resourcePools" property="resourcePools" icon="#info"/>
-                        </folder>
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourcePlan" label="%tree.resource.resourceplan" icon="#folder_admin">
-                            <items label="ResourcePlan" path="resourcePlans" property="resourcePlans" icon="#info"/>
-                        </folder>
-                        <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourceDirective" label="%tree.resource.resourcedirective" icon="#folder_admin">
-                            <items label="ResourceDirective" path="resourceDirectives" property="resourceDirectives"
-                                   icon="#info"/>
-                        </folder>
-                    </items>
-                </folder>
+                <!--       <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aVC" label="%tree.resource.node.name"
+                               icon="#folder_admin" description="%tree.resource.node.name">
+                           <items label="%tree.vc.node.name" path="vc" property="vcs" icon="#database">
+                               <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aConsumerGroup"
+                                       label="%tree.resource.consumergroup" icon="#folder_admin">
+                                   <items label="Consumer Group" path="consumerGroups" property="consumerGroups" icon="#info"/>
+                               </folder>
+                               <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourcePool"
+                                       label="%tree.resource.resourcepool" icon="#folder_admin">
+                                   <items label="Resource Pool" path="resourcePools" property="resourcePools" icon="#info"/>
+                               </folder>
+                               <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourcePlan"
+                                       label="%tree.resource.resourceplan" icon="#folder_admin">
+                                   <items label="ResourcePlan" path="resourcePlans" property="resourcePlans" icon="#info"/>
+                               </folder>
+                               <folder type="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aResourceDirective"
+                                       label="%tree.resource.resourcedirective" icon="#folder_admin">
+                                   <items label="ResourceDirective" path="resourceDirectives" property="resourceDirectives"
+                                          icon="#info"/>
+                               </folder>
+                           </items>
+                       </folder>-->
             </tree>
 
+            <driver-properties>
+                <propertyGroup label="Parameters" description="Custom driver parameters">
+                    <property id="cache-meta-data" label="%parameters.all.caches"
+                              description="%parameters.all.caches" type="boolean" required="false"
+                              defaultValue="true"/>
+                </propertyGroup>
+            </driver-properties>
             <drivers managable="true">
                 <!--<driver
-                        id="gbase8a"
-                        label="GBase8a MPP"
-                        icon="icons/database.png"
-                        class="com.gbase.jdbc.Driver"
-                        sampleURL="jdbc:gbase://{host}[:{port}]/[{database}]"
-                        defaultPort="5258"
-                        webURL="http://www.gbase.cn"
-                        description="%driver_gbase8a_mpp_description">
-                    <property name="connectTimeout" value="20000"/>
-                </driver>-->
+                                       id="gbase8a"
+                                       label="GBase8a MPP"
+                                       icon="icons/database.png"
+                                       class="com.gbase.jdbc.Driver"
+                                       sampleURL="jdbc:gbase://{host}[:{port}]/[{database}]"
+                                       defaultPort="5258"
+                                       webURL="http://www.gbase.cn"
+                                       description="%driver_gbase8a_mpp_description">
+                                   <property name="connectTimeout" value="20000"/>
+                               </driver>-->
                 <driver
                         id="gbase8a_yzsec"
                         label="GBase8a MPP(YZSec)"
@@ -186,28 +265,54 @@
                         promoted="1"
                         categories="sql">
                     <property name="connectTimeout" value="20000"/>
+                    <property name="@dbeaver-default-resultset.maxrows.sql" value="true"/>
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
                 </driver>
             </drivers>
+
+            <nativeClients>
+                <!-- <client id="mysql_client" label="MySQL Binaries">
+                     <dist os="win32" targetPath="clients/mysql_8/win" remotePath="repo:/drivers/mysql/client_8/win" resourcePath="clients/mysql_8/win">
+                         <file type="exec" name="mysql.exe"/>
+                         <file type="exec" name="mysqldump.exe"/>
+                         <file type="lib" name="libssl-1_1-x64.dll"/>
+                         <file type="lib" name="libcrypto-1_1-x64.dll"/>
+                     </dist>
+                 </client>
+                 <client id="mysql5_client" label="MySQL 5 Binaries">
+                     <dist os="win32" targetPath="clients/mysql/win" remotePath="repo:/drivers/mysql/client/win" resourcePath="clients/mysql/win">
+                         <file type="exec" name="mysql.exe"/>
+                         <file type="exec" name="mysqldump.exe"/>
+                     </dist>
+                 </client>-->
+            </nativeClients>
         </datasource>
     </extension>
 
     <extension point="org.jkiss.dbeaver.objectManager">
-        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aUserManager"
-                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aUser"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aCatalogManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aCatalog" label="%manager.catalog.name"/>
         <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aTableManager"
                  objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTable"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aTableColumnManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableColumn"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aConstraintManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableConstraint"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aForeignKeyManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableForeignKey"/>
         <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aIndexManager"
                  objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableIndex"/>
         <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aFullIndexManager"
                  objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTableFullIndex"/>
         <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aViewManager"
                  objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aView"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aTriggerManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aTrigger"/>
         <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aProcedureManager"
                  objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aProcedure"/>
-        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aFunctionManager"
-                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aFunction"/>
+        <manager class="org.jkiss.dbeaver.ext.gbase8a.edit.GBase8aEventManager"
+                 objectType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aEvent"/>
     </extension>
 
     <extension point="org.jkiss.dbeaver.dataTypeProvider">
@@ -218,7 +323,6 @@
                 label="GBase8a data types provider">
 
             <datasource id="gbase8a"/>
-
             <type name="ENUM"/>
             <type name="SET"/>
             <type standard="DATE"/>
@@ -228,39 +332,104 @@
         </provider>
     </extension>
 
+    <!--  <extension point="org.jkiss.dbeaver.networkHandler">
+          <handler
+                  type="config"
+                  id="mysql_ssl"
+                  codeName="SSL"
+                  label="SSL"
+                  description="Secure socket layer"
+                  desktop="false"
+                  secured="false"
+                  pinned="true"
+                  order="100"
+                  handlerClass="org.jkiss.dbeaver.ext.mysql.model.net.MySQLSSLHandlerImpl">
+              <propertyGroup label="SSL Settings">
+                  <property id="ssl.ca.cert.value" label="CA Certificate" type="file" description="Choose CA certificate file" features="secured" length="MULTILINE"/>
+                  <property id="ssl.client.cert.value" label="Client Certificate" type="file" description="Choose client certificate file" features="secured" length="MULTILINE"/>
+                  <property id="ssl.client.key.value" label="Client Private Key" type="file" description="Choose client private key file" features="secured,password" length="MULTILINE"/>
+                  <property id="ssl.cipher.suites" label="Cipher suites (optional)" type="string" features="secured,password"/>
+              </propertyGroup>
+              <propertyGroup label="Additional SSL Settings">
+                  <property id="ssl.require" label="Require SSL" type="boolean" description="Require server support of SSL connection."/>
+                  <property id="ssl.verify.server" label="Verify server certificate" type="boolean" description="Should the driver verify the server's certificate? When using this feature, the explicit certificate parameters should be specified, rather than system properties." defaultValue="true"/>
+                  <property id="ssl.public.key.retrieve" label="Allow public key retrieval" type="boolean" description="Allows special handshake roundtrip to get server RSA public key directly from server."/>
+              </propertyGroup>
+              <objectType name="org.jkiss.dbeaver.ext.mysql.MySQLDataSourceProvider"/>
+          </handler>
+      </extension>-->
+
+    <!--    <extension point="org.jkiss.dbeaver.sqlCommand">
+            <command id="mysql.source" class="org.jkiss.dbeaver.ui.editors.sql.commands.SQLCommandInclude" label="Include" description="Include another MySQL script file"/>
+        </extension>-->
+
+    <!--  <extension point="org.jkiss.dbeaver.sqlInsertMethod">
+          <method id="mysqlInsertIgnore" class="org.jkiss.dbeaver.ext.mysql.model.MySQLInsertReplaceMethodIgnore" label="INSERT IGNORE" description="Insert ignore duplicate key value"/>
+          <method id="mysqlReplaceIgnore" class="org.jkiss.dbeaver.ext.mysql.model.MySQLInsertReplaceMethod" label="REPLACE INTO" description="Insert replace duplicate key value"/>
+          <method id="mysqlReplaceIgnoreUpdate" class="org.jkiss.dbeaver.ext.mysql.model.MySQLInsertReplaceMethodUpdate" label="ON DUPLICATE KEY UPDATE" description="Insert update duplicate key value"/>
+      </extension>-->
 
     <extension point="org.jkiss.dbeaver.sqlDialect">
         <dialect id="gbase8a" parent="basic" class="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDialect"
                  label="GBase8a MPP" description="GBase8a SQL dialect." icon="icons/gbase8a_icon.png">
+            <!--            <property name="insertMethods" value="mysqlInsertIgnore,mysqlReplaceIgnore,mysqlReplaceIgnoreUpdate"/>-->
+            <keywords value=""/>
+            <execKeywords value=""/>
+            <ddlKeywords value=""/>
+            <dmlKeywords value=""/>
+            <functions value=""/>
+            <types value=""/>
+            <property name="" value=""/>
         </dialect>
     </extension>
 
-    <extension point="org.jkiss.dbeaver.dataManager">
-        <manager class="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aEnumValueManager"
-                 id="org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aEnumValueManager">
-            <supports datasource="gbase8a" typeName="ENUM"/>
-            <supports datasource="gbase8a" typeName="SET"/>
-        </manager>
+
+    <extension point="org.eclipse.core.runtime.adapters">
+        <factory adaptableType="org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDialect"
+                 class="org.jkiss.dbeaver.ext.gbase8a.sql.GBase8aDialectAdapterFactory">
+            <adapter type="org.jkiss.dbeaver.model.text.parser.TPRuleProvider"/>
+        </factory>
     </extension>
 
-    <!--
-        <extension point="org.jkiss.dbeaver.mavenRepository">
-            <repository id="oracle-maven-repo" name="Oracle Repository" url="https://maven.oracle.com/" order="10">
-                <scope group="com.oracle.jdbc"/>
-            </repository>
-        </extension>
-    -->
-    <extension point="org.jkiss.dbeaver.networkHandler">
-        <handler
-                type="config"
-                id="gbase8a_ssl"
-                label="SSL"
-                description="Secure socket layer"
-                secured="false"
-                uiClass="org.jkiss.dbeaver.ext.gbase8a.ui.config.GBase8aSSLConfigurator"
-                handlerClass="org.jkiss.dbeaver.model.impl.net.SSLHandlerImpl">
-            <objectType name="org.jkiss.dbeaver.ext.gbase8a.GBase8aDataSourceProvider"/>
-        </handler>
+    <extension point="org.jkiss.dbeaver.dashboard">
+
+        <mapQuery id="gbase8a.query.status" updatePeriod="1000">SHOW GLOBAL STATUS</mapQuery>
+
+        <dashboard id="gbase8a.traffic" mapQuery="gbase8a.query.status" label="Traffic" defaultView="timeseries"
+                   group="Status"
+                   calc="delta" value="bytes" mapKeys="Bytes_sent,Bytes_received" mapLabels="Sent,Received"
+                   measure="Kb/s"
+                   showByDefault="true" description="Server outbound traffic">
+            <datasource id="gbase8a"/>
+        </dashboard>
+
+        <dashboard id="gbase8a.com.queries" mapQuery="gbase8a.query.status" label="Queries" defaultView="timeseries"
+                   group="Status"
+                   calc="delta" value="integer" mapKeys="Com_select,Com_insert,Com_update,Com_delete"
+                   mapLabels="Select,Insert,Update,Delete"
+                   showByDefault="true" description="Queries stats">
+            <datasource id="gbase8a"/>
+        </dashboard>
+
+        <dashboard id="gbase8a.key_efficiency" mapQuery="gbase8a.query.status" label="Key Efficiency"
+                   defaultView="timeseries" group="Status" updatePeriod="1000"
+                   calc="value" value="percent" mapFormula="100 - ((map.key_reads * 100 / map.key_read_requests) / 3)"
+                   mapLabels="Key Efficiency" measure="%"
+                   showByDefault="false" description="Key read efficiency">
+            <datasource id="gbase8a"/>
+        </dashboard>
+
+        <dashboard id="gbase8a.sessions" label="%dashboard.gbase8a.sessions.label" defaultView="timeseries"
+                   group="Standard" updatePeriod="2000" calc="value" value="integer" fetch="rows" showByDefault="true"
+                   description="%dashboard.gbase8a.sessions.description">
+            <datasource id="gbase8a"/>
+            <query>SELECT Command,count(*) from information_schema.PROCESSLIST GROUP BY Command</query>
+        </dashboard>
+
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.task">
+
     </extension>
 
 </plugin>

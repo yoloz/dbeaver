@@ -16,7 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * MySQL execution plan analyser
+ */
 public class GBase8aPlan extends AbstractExecutionPlan {
 
     private final GBase8aDataSource dataSource;
@@ -28,6 +30,7 @@ public class GBase8aPlan extends AbstractExecutionPlan {
         this.query = query;
     }
 
+    @Override
     public String getQueryString() {
         return this.query;
     }
@@ -47,6 +50,7 @@ public class GBase8aPlan extends AbstractExecutionPlan {
         return this.rootNodes;
     }
 
+
     public void explain(DBCSession session) throws DBCException {
         String plainQuery = SQLUtils.stripComments(SQLUtils.getDialectFromObject(dataSource), this.query).toUpperCase();
         if (!plainQuery.startsWith("SELECT")) {
@@ -64,7 +68,7 @@ public class GBase8aPlan extends AbstractExecutionPlan {
                 this.rootNodes.add(node);
             }
         } catch (SQLException | DBException e) {
-            throw new DBCException("", e);
+            throw new DBCException("GBase8a explain fail,", e);
         }
     }
 }

@@ -1,159 +1,283 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2024 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jkiss.dbeaver.ext.gbase8a.ui.controls;
 
-import org.jkiss.dbeaver.ext.gbase8a.data.GBase8aMessages;
-import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aGrant;
-import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aPrivilege;
-import org.jkiss.dbeaver.ui.UIUtils;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
+import org.eclipse.jface.viewers.*;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
+import org.jkiss.dbeaver.ext.gbase8a.GBase8aConstants;
+import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aPrivilege;
+import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
+import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aGrant;
+import org.jkiss.dbeaver.ext.gbase8a.ui.internal.GBase8aUIMessages;
+import org.jkiss.dbeaver.ui.UIUtils;
+import org.jkiss.dbeaver.ui.controls.CustomCheckboxCellEditor;
+import org.jkiss.dbeaver.ui.controls.ListContentProvider;
+import org.jkiss.dbeaver.ui.controls.ViewerColumnController;
+import org.jkiss.utils.ArrayUtils;
+import org.jkiss.utils.CommonUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Privilege table control
+ */
 public class PrivilegeTableControl extends Composite {
+
+    private boolean isStatic;
+
+    private TableViewer tableViewer;
+    private ViewerColumnController<Object, Object> columnsController;
     private Table privTable;
 
-    public PrivilegeTableControl(Composite parent, String title) {
-        super(parent, 0);
+    private List<GBase8aPrivilege> privileges;
+    private List<GBase8aObjectPrivilege> currentPrivileges = new ArrayList<>();
+
+    public PrivilegeTableControl(Composite parent, String title, boolean isStatic) {
+        super(parent, SWT.NONE);
+        this.isStatic = isStatic;
         GridLayout gl = new GridLayout(1, false);
         gl.marginHeight = 0;
         gl.marginWidth = 0;
         gl.verticalSpacing = 0;
         gl.horizontalSpacing = 0;
-        this.setLayout(gl);
-        Composite privsGroup = UIUtils.createControlGroup(this, title, 1, 1808, 0);
+        setLayout(gl);
+
+        Composite privsGroup = UIUtils.createControlGroup(this, title, 1, GridData.FILL_BOTH, 0);
         GridData gd = (GridData) privsGroup.getLayoutData();
         gd.horizontalSpan = 2;
-        this.privTable = new Table(privsGroup, 2852);
-        this.privTable.setHeaderVisible(true);
-        gd = new GridData(1808);
+
+        tableViewer = new TableViewer(privsGroup, SWT.BORDER | SWT.UNDERLINE_SINGLE | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+
+        privTable = tableViewer.getTable();
+        privTable.setHeaderVisible(true);
+        privTable.setLinesVisible(true);
+        gd = new GridData(GridData.FILL_BOTH);
         gd.minimumWidth = 300;
-        this.privTable.setLayoutData(gd);
-        this.privTable.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                if (e.detail == 32) {
-                    TableItem item = (TableItem) e.item;
-                    PrivilegeTableControl.this.notifyPrivilegeCheck((GBase8aPrivilege) item.getData(), item.getChecked());
-                }
+        privTable.setLayoutData(gd);
 
+        columnsController = new ViewerColumnController<>("GBase8aPrivilegesEditor", tableViewer); //$NON-NLS-1$
+
+        columnsController.addColumn(GBase8aUIMessages.controls_privilege_table_column_privilege_name, GBase8aUIMessages.controls_privilege_table_column_privilege_name_tip, SWT.LEFT, true, true, new CellLabelProvider() {
+            @Override
+            public void update(ViewerCell cell) {
+                Object element = cell.getElement();
+                if (element instanceof GBase8aObjectPrivilege) {
+                    cell.setText(((GBase8aObjectPrivilege) element).privilege.getName());
+                }
             }
         });
-        UIUtils.createTableColumn(this.privTable, 16384, GBase8aMessages.privilege_table_control_privilege);
-        UIUtils.createTableColumn(this.privTable, 16384, GBase8aMessages.privilege_table_control_description);
-        UIUtils.packColumns(this.privTable);
-        Composite buttonsPanel = UIUtils.createPlaceholder(privsGroup, 3);
-        buttonsPanel.setLayoutData(new GridData(768));
-        Button checkButton = UIUtils.createPushButton(buttonsPanel, GBase8aMessages.privilege_table_control_checkall, (Image) null);
-        checkButton.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                TableItem[] var5;
-                int var4 = (var5 = PrivilegeTableControl.this.privTable.getItems()).length;
 
-                for (int var3 = 0; var3 < var4; ++var3) {
-                    TableItem item = var5[var3];
-                    if (!item.getChecked()) {
-                        item.setChecked(true);
-                        PrivilegeTableControl.this.notifyPrivilegeCheck((GBase8aPrivilege) item.getData(), true);
+        columnsController.addBooleanColumn(GBase8aUIMessages.controls_privilege_table_column_privilege_status, GBase8aUIMessages.controls_privilege_table_column_privilege_status_tip, SWT.CENTER, true, true, item -> {
+            if (item instanceof GBase8aObjectPrivilege) {
+                return ((GBase8aObjectPrivilege) item).enabled;
+            }
+            return false;
+        }, new EditingSupport(tableViewer) {
+            @Override
+            protected CellEditor getCellEditor(Object element) {
+                return new CustomCheckboxCellEditor(tableViewer.getTable(), true);
+            }
+
+            @Override
+            protected boolean canEdit(Object element) {
+                return true;
+            }
+
+            @Override
+            protected Object getValue(Object element) {
+                if (element instanceof GBase8aObjectPrivilege) {
+                    return ((GBase8aObjectPrivilege) element).enabled;
+                }
+                return false;
+            }
+
+            @Override
+            protected void setValue(Object element, Object value) {
+                if (element instanceof GBase8aObjectPrivilege) {
+                    GBase8aObjectPrivilege elementPriv = (GBase8aObjectPrivilege) element;
+                    if (elementPriv.enabled != Boolean.TRUE.equals(value)) { // handle double click on the box cell
+                        elementPriv.enabled = Boolean.TRUE.equals(value);
+                        boolean withGrantOption = false;
+                        if (elementPriv.enabled && elementPriv.privilege.getName().equals(GBase8aConstants.PRIVILEGE_GRANT_OPTION_NAME)) {
+                            withGrantOption = true;
+                        }
+                        notifyPrivilegeCheck(elementPriv.privilege, elementPriv.enabled, withGrantOption);
                     }
                 }
-
             }
         });
-        Button clearButton = UIUtils.createPushButton(buttonsPanel, GBase8aMessages.privilege_table_control_clearall, (Image) null);
-        clearButton.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                TableItem[] var5;
-                int var4 = (var5 = PrivilegeTableControl.this.privTable.getItems()).length;
 
-                for (int var3 = 0; var3 < var4; ++var3) {
-                    TableItem item = var5[var3];
-                    if (item.getChecked()) {
-                        item.setChecked(false);
-                        PrivilegeTableControl.this.notifyPrivilegeCheck((GBase8aPrivilege) item.getData(), false);
+        columnsController.addColumn(GBase8aUIMessages.controls_privilege_table_column_privilege_description, GBase8aUIMessages.controls_privilege_table_column_privilege_description_tip, SWT.LEFT, true, true, new CellLabelProvider() {
+            @Override
+            public void update(ViewerCell cell) {
+                Object element = cell.getElement();
+                if (element instanceof GBase8aObjectPrivilege) {
+                    cell.setText(((GBase8aObjectPrivilege) element).privilege.getDescription());
+                }
+            }
+        });
+
+        columnsController.createColumns(false);
+
+        tableViewer.setContentProvider(new ListContentProvider());
+
+        Composite buttonsPanel = UIUtils.createComposite(privsGroup, 3);
+        buttonsPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        UIUtils.createPushButton(buttonsPanel, GBase8aUIMessages.controls_privilege_table_push_button_check_all, null, new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                for (GBase8aObjectPrivilege userPrivilege : CommonUtils.safeCollection(currentPrivileges)) {
+                    if (!userPrivilege.enabled) {
+                        userPrivilege.enabled = true;
+                        notifyPrivilegeCheck(userPrivilege.privilege, true, false);
                     }
                 }
-
+                drawColumns(currentPrivileges);
+            }
+        });
+        UIUtils.createPushButton(buttonsPanel, GBase8aUIMessages.controls_privilege_table_push_button_clear_all, null, new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                for (GBase8aObjectPrivilege userPrivilege : CommonUtils.safeCollection(currentPrivileges)) {
+                    if (userPrivilege.enabled) {
+                        userPrivilege.enabled = false;
+                        notifyPrivilegeCheck(userPrivilege.privilege, false, false);
+                    }
+                }
+                drawColumns(currentPrivileges);
             }
         });
     }
 
-    private void notifyPrivilegeCheck(GBase8aPrivilege privilege, boolean checked) {
+    private void notifyPrivilegeCheck(GBase8aPrivilege privilege, boolean checked, boolean withGrantOption) {
         Event event = new Event();
-        event.detail = checked ? 1 : 0;
+        event.detail = withGrantOption ? 2 : checked ? 1 : 0;
         event.widget = this;
         event.data = privilege;
-        super.notifyListeners(24, event);
+        super.notifyListeners(SWT.Modify, event);
     }
 
-    public void fillPrivileges(Collection<GBase8aPrivilege> privs) {
-        if (!this.privTable.isDisposed()) {
-            this.privTable.removeAll();
-            Iterator var3 = privs.iterator();
-
-            while (var3.hasNext()) {
-                GBase8aPrivilege priv = (GBase8aPrivilege) var3.next();
-                TableItem item = new TableItem(this.privTable, 0);
-                item.setText(0, priv.getName());
-                item.setText(1, priv.getDescription());
-                item.setData(priv);
-            }
-
-            UIUtils.packColumns(this.privTable);
-        }
-    }
-
-    public void fillGrants(List<GBase8aGrant> grants) {
-        if (grants != null) {
-            TableItem[] var5;
-            int var4 = (var5 = this.privTable.getItems()).length;
-
-            for (int var3 = 0; var3 < var4; ++var3) {
-                TableItem item = var5[var3];
-                GBase8aPrivilege privilege = (GBase8aPrivilege) item.getData();
-                boolean checked = false;
-                Iterator var9 = grants.iterator();
-
-                label33:
-                {
-                    GBase8aGrant grant;
-                    do {
-                        if (!var9.hasNext()) {
-                            break label33;
-                        }
-
-                        grant = (GBase8aGrant) var9.next();
-                    } while (!grant.isAllPrivileges() && !grant.getPrivileges().contains(privilege) && (!grant.isGrantOption() || !privilege.isGrantOption()));
-
-                    checked = true;
-                }
-
-                item.setChecked(checked);
-            }
-
-        }
-    }
-
-    public void checkPrivilege(GBase8aPrivilege privilege, boolean grant) {
-        TableItem[] var6;
-        int var5 = (var6 = this.privTable.getItems()).length;
-
-        for (int var4 = 0; var4 < var5; ++var4) {
-            TableItem item = var6[var4];
-            if (item.getData() == privilege) {
-                item.setChecked(grant);
+    public void fillPrivileges(List<GBase8aPrivilege> privs) {
+        this.privileges = privs;
+        boolean hasGrantOption = false;
+        for (GBase8aPrivilege privilege : privileges) {
+            if (privilege.getName().equalsIgnoreCase(GBase8aConstants.PRIVILEGE_GRANT_OPTION_NAME)) {
+                hasGrantOption = true;
                 break;
             }
         }
-
+        if (!hasGrantOption) {
+            // Add "With Grant Option" manually. We will use this option to expand grant statements on the "WITH GRANT STATEMENT" string
+            GBase8aDataSource dataSource = null;
+            if (!CommonUtils.isEmpty(privileges)) {
+                dataSource = (GBase8aDataSource) privileges.get(0).getDataSource();
+            }
+            privileges.add(new GBase8aPrivilege(
+                    dataSource,
+                    GBase8aConstants.PRIVILEGE_GRANT_OPTION_NAME,
+                    "Databases,Tables,Functions,Procedures",
+                    "To give to other users those privileges you possess",
+                    GBase8aPrivilege.Kind.DDL));
+        }
     }
+
+    public void fillGrants(List<GBase8aGrant> grants, boolean editable) {
+        // Other Privileges table must be disabled if table is in focus
+        privTable.setEnabled(editable);
+        fillGrants(grants);
+    }
+
+    public void fillGrants(List<GBase8aGrant> grants) {
+        if (CommonUtils.isEmpty(privileges)) {
+            return;
+        }
+
+        currentPrivileges = new ArrayList<>();
+
+        if (CommonUtils.isEmpty(grants)) {
+            // Create simple privileges list
+            for (GBase8aPrivilege privilege : privileges) {
+                currentPrivileges.add(new GBase8aObjectPrivilege(privilege, false));
+            }
+            drawColumns(currentPrivileges);
+            return;
+        }
+
+        boolean privilegeEnabled;
+        for (GBase8aPrivilege privilege : privileges) {
+            privilegeEnabled = false;
+            for (GBase8aGrant grant : grants) {
+                if (isStatic && !grant.isStatic()) {
+                    continue;
+                }
+                if (privilege.getName().equalsIgnoreCase(GBase8aConstants.PRIVILEGE_GRANT_OPTION_NAME)) {
+                    if (grant.isGrantOption()) {
+                        // WITH GRANT OPTION is enabled only in this case
+                        privilegeEnabled = true;
+                        break;
+                    }
+                } else if (grant.isAllPrivileges() || ArrayUtils.contains(grant.getPrivileges(), privilege)) {
+                    privilegeEnabled = true;
+                    break;
+                }
+            }
+            if (privilegeEnabled) {
+                currentPrivileges.add(new GBase8aObjectPrivilege(privilege, true));
+            } else {
+                currentPrivileges.add(new GBase8aObjectPrivilege(privilege, false));
+            }
+        }
+
+        drawColumns(currentPrivileges);
+    }
+
+    private void drawColumns(List<?> objects) {
+        tableViewer.setInput(objects);
+        tableViewer.refresh();
+        columnsController.repackColumns();
+    }
+
+    public void checkPrivilege(GBase8aPrivilege privilege, boolean grant) {
+        for (GBase8aObjectPrivilege basePrivilege : currentPrivileges) {
+            if (basePrivilege.privilege == privilege) {
+                basePrivilege.enabled = grant;
+            }
+        }
+        drawColumns(currentPrivileges);
+    }
+
+    private class GBase8aObjectPrivilege {
+
+        private GBase8aPrivilege privilege;
+        private boolean enabled;
+
+        GBase8aObjectPrivilege(GBase8aPrivilege privilege, boolean enabled) {
+            this.privilege = privilege;
+            this.enabled = enabled;
+        }
+    }
+
 }

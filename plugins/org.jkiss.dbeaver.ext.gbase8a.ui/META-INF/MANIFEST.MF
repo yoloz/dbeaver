@@ -1,43 +1,38 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: DBeaver GBase8a UI
+Bundle-Name: DBeaver GBase8a UI Support
 Bundle-SymbolicName: org.jkiss.dbeaver.ext.gbase8a.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Release-Date: 20240506
-Bundle-Activator: org.jkiss.dbeaver.ext.gbase8a.ui.internal.GBase8aUIActivator
+Bundle-Release-Date: 20241025
+Bundle-Activator: org.jkiss.dbeaver.ext.gbase8a.ui.GBase8aUIActivator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.core.expressions,
  org.eclipse.ui.views,
  org.eclipse.jface,
  org.eclipse.jface.text,
- org.jkiss.dbeaver.ext.import_config,
- org.jkiss.dbeaver.ext.ui.locks,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.editors,
- com.github.jsqlparser,
- com.google.gson,
+ org.jkiss.dbeaver.model,
+ org.jkiss.dbeaver.model.sql,
+ org.jkiss.dbeaver.ext.gbase8a,
  org.jkiss.dbeaver.model,
  org.jkiss.dbeaver.registry,
- org.jkiss.dbeaver.net.ssh,
- org.jkiss.dbeaver.ext.gbase8a,
- org.jkiss.dbeaver.ext.ui.locks,
- org.jkiss.dbeaver.ui.navigator,
+ org.jkiss.dbeaver.tasks.native.ui,
+ org.jkiss.dbeaver.ui,
  org.jkiss.dbeaver.ui.editors.base,
- org.jkiss.dbeaver.ui.editors.entity,
  org.jkiss.dbeaver.ui.editors.connection,
  org.jkiss.dbeaver.ui.editors.data,
+ org.jkiss.dbeaver.ui.editors.entity,
  org.jkiss.dbeaver.ui.editors.sql,
  org.jkiss.dbeaver.ui.editors.session,
+ org.jkiss.dbeaver.ui.navigator,
  org.jkiss.dbeaver.tasks.native.ui,
- org.jkiss.dbeaver.tasks.ui
+ org.jkiss.dbeaver.tasks.ui,
+ org.jkiss.dbeaver.data.gis,
+ com.google.gson
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Vendor: DBeaver Corp
 Bundle-ClassPath: .
-Import-Package: com.google.gson
-Export-Package: org.jkiss.dbeaver.ext.gbase8a.ui.config,
- org.jkiss.dbeaver.ext.gbase8a.ui.actions,
- org.jkiss.dbeaver.ext.gbase8a.ui.editors,
- org.jkiss.dbeaver.ext.gbase8a.ui.views
 Automatic-Module-Name: org.jkiss.dbeaver.ext.gbase8a.ui
+Export-Package: org.jkiss.dbeaver.ext.gbase8a.ui.views
