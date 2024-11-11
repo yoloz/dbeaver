@@ -1,6 +1,7 @@
 package org.jkiss.dbeaver.ext.gbase8a.model.session;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.dbeaver.DBDatabaseException;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
 import org.jkiss.dbeaver.model.DBPDataSource;
@@ -59,15 +60,25 @@ public class GBase8aSessionManager implements DBAServerSessionManager<GBase8aSes
     }
 
     @Override
-    public void alterSession(DBCSession session, GBase8aSession sessionType, Map<String, Object> options) throws DBException {
-        try (JDBCPreparedStatement dbStat = ((JDBCSession) session).prepareStatement(
-                Boolean.TRUE.equals(options.get(PROP_KILL_QUERY)) ? (
-                        "KILL QUERY " + sessionType.getPid()) : (
-                        "KILL CONNECTION " + sessionType.getPid()))) {
-            dbStat.execute();
-        } catch (SQLException e) {
-            throw new DBException("alter session failed", e);
+    public void alterSession(@NotNull DBCSession session, @NotNull String sessionId, @NotNull Map<String, Object> options) throws DBException {
+        try {
+            String sqlCommand = Boolean.TRUE.equals(options.get(PROP_KILL_QUERY)) ?
+                    "KILL QUERY ?" :
+                    "KILL CONNECTION ?";
+            try (JDBCPreparedStatement dbStat = ((JDBCSession) session).prepareStatement(sqlCommand)) {
+                dbStat.setString(1, sessionId);
+                dbStat.execute();
+            }
         }
+        catch (SQLException e) {
+            throw new DBDatabaseException(e, session.getDataSource());
+        }
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> getTerminateOptions() {
+        return Map.of();
     }
 
     @Override
