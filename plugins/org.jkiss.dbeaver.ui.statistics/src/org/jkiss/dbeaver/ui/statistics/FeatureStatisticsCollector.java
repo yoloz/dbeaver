@@ -205,9 +205,9 @@ public class FeatureStatisticsCollector implements DBRFeatureTracker {
             }
             trackStream = null;
         }
-        if (SEND_STATS_ON_SHUTDOWN && UIStatisticsActivator.isTrackingEnabled()) {
-            sendCollectedStatistics(false);
-        }
+//        if (SEND_STATS_ON_SHUTDOWN && UIStatisticsActivator.isTrackingEnabled()) {
+//            sendCollectedStatistics(false);
+//        }
     }
 
     private void sendCollectedStatistics(boolean detached) {
