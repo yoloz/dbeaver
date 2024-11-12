@@ -35,11 +35,13 @@
 
     <extension point="org.eclipse.core.runtime.adapters">
         <factory adaptableType="org.jkiss.dbeaver.ui.editors.entity.EntityEditor"
-                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">
+                 class="org.jkiss.dbeaver.debug.ui.actions.DebugActionAdapterFactory">
+            <!--                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">-->
             <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
         </factory>
         <factory adaptableType="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor"
-                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">
+                 class="org.jkiss.dbeaver.debug.ui.actions.DebugActionAdapterFactory">
+            <!--                 class="org.jkiss.dbeaver.ext.oracle.debug.ui.internal.OracleDebugActionAdapterFactory">-->
             <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
         </factory>
         <factory adaptableType="org.jkiss.dbeaver.model.DBPDataSourceContainer"
@@ -53,10 +55,6 @@
     </extension>
 
     <extension point="org.eclipse.ui.editorActions">
-        <!--
-            Breakpoin toggle contribution.
-            TODO: move to core debug. Dunno how because we need specific targetID
-        -->
         <editorContribution id="org.jkiss.dbeaver.debug.ui.editorContribution" targetID="oracle.source.declaration">
             <action
                     actionID="RulerDoubleClick"

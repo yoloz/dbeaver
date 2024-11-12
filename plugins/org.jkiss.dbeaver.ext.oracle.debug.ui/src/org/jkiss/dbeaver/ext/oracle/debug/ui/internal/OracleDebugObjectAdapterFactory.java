@@ -17,7 +17,6 @@
 package org.jkiss.dbeaver.ext.oracle.debug.ui.internal;
 
 import org.eclipse.core.runtime.IAdapterFactory;
-import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.debug.DBGDebugObject;
 import org.jkiss.dbeaver.ext.oracle.model.OracleProcedureStandalone;
 import org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor;

@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class OracleSqlDebugCore {
 
-    public static final String BUNDLE_SYMBOLIC_NAME = "org.jkiss.dbeaver.ext.oracle.debug.core"; //$NON-NLS-1$
+//    public static final String BUNDLE_SYMBOLIC_NAME = "org.jkiss.dbeaver.ext.oracle.debug.core"; //$NON-NLS-1$
 
     public static void saveFunction(OracleProcedureStandalone procedure, Map<String, Object> configuration) {
         DBPDataSourceContainer dataSourceContainer = procedure.getDataSource().getContainer();

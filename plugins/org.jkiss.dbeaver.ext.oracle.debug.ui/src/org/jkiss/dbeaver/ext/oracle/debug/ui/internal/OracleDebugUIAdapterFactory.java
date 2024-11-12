@@ -25,9 +25,9 @@ import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 
 public class OracleDebugUIAdapterFactory implements IAdapterFactory {
 
-    private static final Class<?>[] CLASSES = new Class[] { DBGEditorAdvisor.class };
-    
-    private DBGEditorAdvisor debugEditorAdvisor = new OracleSourceEditorAdvisor();
+    private static final Class<?>[] CLASSES = new Class[]{DBGEditorAdvisor.class};
+
+    private final DBGEditorAdvisor debugEditorAdvisor = new OracleSourceEditorAdvisor();
 
     @Override
     public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
