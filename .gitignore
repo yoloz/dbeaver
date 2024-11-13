@@ -62,3 +62,5 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+
+/plugins/org.jkiss.dbeaver.data.transfer/lib/
