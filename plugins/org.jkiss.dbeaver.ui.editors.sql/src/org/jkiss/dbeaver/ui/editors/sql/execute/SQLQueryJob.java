@@ -871,12 +871,17 @@ public class SQLQueryJob extends DataSourceJob
         } else {
             // Single statement
             long updateCount = statistics.getRowsUpdated();
-            fakeResultSet.addColumn("Updated Rows", DBPDataKind.NUMERIC);
             fakeResultSet.addColumn("Query", DBPDataKind.STRING);
+            fakeResultSet.addColumn("Updated Rows", DBPDataKind.NUMERIC);
+            fakeResultSet.addColumn("Execute time", DBPDataKind.NUMERIC);
             fakeResultSet.addColumn("Start time", DBPDataKind.DATETIME);
             fakeResultSet.addColumn("Finish time", DBPDataKind.DATETIME);
-            fakeResultSet.addRow(updateCount, query.getText(), new Date(statistics.getStartTime()), new Date());
-
+            fakeResultSet.addRow(
+                query.getText(),
+                updateCount,
+                RuntimeUtils.formatExecutionTime(statistics.getExecuteTime()),
+                new Date(statistics.getStartTime()),
+                new Date());
             executeResult.setResultSetName(SQLEditorMessages.editors_sql_data_grid);
         }
         fetchQueryData(session, fakeResultSet, resultInfo, executeResult, dataReceiver, false);
@@ -1027,9 +1032,13 @@ public class SQLQueryJob extends DataSourceJob
     }
 */
 
-    public void extractData(@NotNull DBCSession session, @NotNull SQLScriptElement query, int resultNumber, boolean fireEvents)
-        throws DBCException
-    {
+    public void extractData(
+        @NotNull DBCSession session,
+        @NotNull SQLScriptElement query,
+        int resultNumber,
+        boolean fireEvents,
+        boolean allowStatistics
+    ) throws DBCException {
         // Reset query to original. Otherwise multiple filters will corrupt it
         query.reset();
 
@@ -1050,7 +1059,7 @@ public class SQLQueryJob extends DataSourceJob
             } else {
                 throw new DBCException(lastError, getExecutionContext());
             }
-        } else if (result && statistics.getStatementsCount() > 0) {
+        } else if (allowStatistics && result && statistics.getStatementsCount() > 0) {
             showExecutionResult(session);
         }
     }
