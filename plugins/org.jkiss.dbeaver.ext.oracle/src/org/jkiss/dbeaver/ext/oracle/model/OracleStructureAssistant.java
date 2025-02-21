@@ -21,9 +21,7 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBDatabaseException;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.model.DBConstants;
-import org.jkiss.dbeaver.model.DBPEvaluationContext;
-import org.jkiss.dbeaver.model.DBUtils;
+import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.exec.DBCExecutionPurpose;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
@@ -80,6 +78,7 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
             OracleObjectType.INDEX,
             OracleObjectType.PROCEDURE,
             OracleObjectType.SEQUENCE,
+            OracleObjectType.SCHEMA
         };
     }
 
@@ -215,11 +214,11 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
 
     private void searchAllObjects(final JDBCSession session, final OracleSchema schema, @NotNull ObjectsSearchParams params,
                                   List<DBSObjectReference> objects) throws SQLException, DBException {
-        final List<OracleObjectType> oracleObjectTypes = new ArrayList<>(params.getObjectTypes().length + 2);
+        final List<DBSObjectType> oracleObjectTypes = new ArrayList<>(params.getObjectTypes().length + 2);
         boolean searchViewsByDefinition = false;
         for (DBSObjectType objectType : params.getObjectTypes()) {
             if (objectType instanceof OracleObjectType) {
-                oracleObjectTypes.add((OracleObjectType) objectType);
+                oracleObjectTypes.add(objectType);
                 if (objectType == OracleObjectType.PROCEDURE) {
                     oracleObjectTypes.add(OracleObjectType.FUNCTION);
                 } else if (objectType == OracleObjectType.TABLE) {
@@ -234,7 +233,7 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
             }
         }
         StringJoiner objectTypeClause = new StringJoiner(",");
-        for (OracleObjectType objectType: oracleObjectTypes) {
+        for (DBSObjectType objectType : oracleObjectTypes) {
             objectTypeClause.add("'" + objectType.getTypeName() + "'");
         }
         if (objectTypeClause.length() == 0) {
@@ -257,6 +256,11 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
             query.append("UNION ALL\nSELECT ").append(OracleUtils.getSysCatalogHint(dataSource)).append(" O.OWNER,O.OBJECT_NAME,O.OBJECT_TYPE\n")
                 .append("FROM ").append(OracleUtils.getAdminAllViewPrefix(session.getProgressMonitor(), dataSource, "SYNONYMS")).append(" S,").append(OracleUtils.getAdminAllViewPrefix(session.getProgressMonitor(), dataSource, "OBJECTS")).append(" O\n")
                 .append("WHERE O.OWNER=S.TABLE_OWNER AND O.OBJECT_NAME=S.TABLE_NAME AND O.OBJECT_TYPE<>'JAVA CLASS' AND ").append(!params.isCaseSensitive() ? "UPPER(S.SYNONYM_NAME)" : "S.SYNONYM_NAME").append("  LIKE ?");
+        }
+        if (Set.of(params.getObjectTypes()).contains(OracleObjectType.SCHEMA)) {
+            query.append(" UNION ALL\nSELECT USERNAME as OWNER, USERNAME as OBJECT_NAME, 'SCHEMA' as OBJECT_TYPE\n")
+                .append("FROM ").append(OracleUtils.getAdminAllViewPrefix(session.getProgressMonitor(), dataSource, "USERS"))
+                .append(" WHERE ").append(!params.isCaseSensitive() ? "UPPER(USERNAME)" : "USERNAME").append(" LIKE ?");
         }
         if (searchViewsByDefinition) {
             query.append(" UNION ALL SELECT OWNER, VIEW_NAME, 'VIEW' AS OBJECT_TYPE FROM ");
@@ -296,6 +300,9 @@ public class OracleStructureAssistant implements DBSStructureAssistant<OracleExe
             if (searchInSynonyms()) {
                 dbStat.setString(idx, mask);
                 idx++;
+            }
+            if (Set.of(params.getObjectTypes()).contains(OracleObjectType.SCHEMA)) {
+                dbStat.setString(idx++, mask);
             }
             if (searchViewsByDefinition) {
                 dbStat.setString(idx, mask);

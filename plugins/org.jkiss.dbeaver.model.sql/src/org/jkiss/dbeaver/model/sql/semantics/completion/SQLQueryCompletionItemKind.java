@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,21 @@ public enum SQLQueryCompletionItemKind {
      * Table column name when derived from the real table 
      * <p> (simple identifier, fullname, alias-prefixed)
      * */
-    TABLE_COLUMN_NAME(false, true);
+    TABLE_COLUMN_NAME(false, true),
+    /**
+     * Composite field name
+     * <p> (simple identifier)
+     * */
+    COMPOSITE_FIELD_NAME(false, true),
+    /**
+     * Join condition based on the foreign key
+     * <p> (expression, consisting of two column references)
+     */
+    JOIN_CONDITION(false, false),
+    /**
+     * Procedure or function
+     */
+    PROCEDURE(false, false);
 
 
     public final boolean isTableName;

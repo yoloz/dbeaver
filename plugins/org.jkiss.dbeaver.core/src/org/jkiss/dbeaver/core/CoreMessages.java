@@ -17,7 +17,7 @@
  */
 package org.jkiss.dbeaver.core;
 
-import org.eclipse.osgi.util.NLS;
+import org.jkiss.dbeaver.utils.NLS;
 
 public class CoreMessages extends NLS {
     public static final String BUNDLE_NAME = "org.jkiss.dbeaver.core.CoreResources"; //$NON-NLS-1$
@@ -267,7 +267,6 @@ public class CoreMessages extends NLS {
     public static String model_html_read_database_meta_data;
 
     public static String model_navigator_Description;
-    public static String model_navigator_Name;
     public static String model_navigator_load_;
     public static String model_navigator_load_items_;
     public static String model_navigator_Model_root;
@@ -369,6 +368,11 @@ public class CoreMessages extends NLS {
     public static String pref_page_ui_general_group_regional;
     public static String pref_page_ui_general_group_language;
     public static String pref_page_ui_general_group_editors;
+    public static String pref_page_ui_status_bar;
+    public static String pref_page_ui_status_bar_show_breadcrumbs_check_label;
+    public static String pref_page_ui_status_bar_show_breadcrumbs_check_tip;
+    public static String pref_page_ui_status_bar_show_status_line_check_label;
+    public static String pref_page_ui_status_bar_show_status_line_check_tip;
     public static String pref_page_eclipse_ui_general_group_general;
     public static String pref_page_eclipse_ui_general_group_label;
 

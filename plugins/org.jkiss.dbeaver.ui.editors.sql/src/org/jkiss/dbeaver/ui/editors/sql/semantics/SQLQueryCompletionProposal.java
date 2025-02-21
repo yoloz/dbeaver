@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.*;
 import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.Log;
@@ -28,6 +29,7 @@ import org.jkiss.dbeaver.model.DBPImage;
 import org.jkiss.dbeaver.model.DBPKeywordType;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.DefaultProgressMonitor;
+import org.jkiss.dbeaver.model.sql.completion.CompletionProposalBase;
 import org.jkiss.dbeaver.model.sql.completion.SQLCompletionHelper;
 import org.jkiss.dbeaver.model.sql.semantics.completion.SQLQueryCompletionItemKind;
 import org.jkiss.dbeaver.model.sql.semantics.completion.SQLQueryWordEntry;
@@ -37,8 +39,8 @@ import org.jkiss.dbeaver.ui.DBeaverIcons;
 import org.jkiss.dbeaver.ui.editors.sql.dialogs.SuggestionInformationControlCreator;
 import org.jkiss.utils.CommonUtils;
 
-public class SQLQueryCompletionProposal implements ICompletionProposal, ICompletionProposalExtension2, ICompletionProposalExtension3,
-        ICompletionProposalExtension4, ICompletionProposalExtension5, ICompletionProposalExtension6 {
+public class SQLQueryCompletionProposal extends CompletionProposalBase implements ICompletionProposal, ICompletionProposalExtension2,
+    ICompletionProposalExtension3, ICompletionProposalExtension4, ICompletionProposalExtension5, ICompletionProposalExtension6 {
 
     private static final Log log = Log.getLog(SQLQueryCompletionProposal.class);
     private static final boolean DEBUG = false;
@@ -60,6 +62,8 @@ public class SQLQueryCompletionProposal implements ICompletionProposal, IComplet
 
     private final SQLQueryWordEntry filterString;
 
+    private int proposalScore;
+
     private boolean cachedProposalInfoComputed = false;
     private Object cachedProposalInfo = null;
     private Image cachedSwtImage = null;
@@ -75,7 +79,8 @@ public class SQLQueryCompletionProposal implements ICompletionProposal, IComplet
         @NotNull String replacementString,
         int replacementOffset,
         int replacementLength,
-        @Nullable SQLQueryWordEntry filterString
+        @Nullable SQLQueryWordEntry filterString,
+        int proposalScore
     ) {
         this.proposalContext = proposalContext;
         this.itemKind = itemKind;
@@ -90,6 +95,21 @@ public class SQLQueryCompletionProposal implements ICompletionProposal, IComplet
         this.replacementLength = replacementLength;
 
         this.filterString = filterString;
+        this.proposalScore = proposalScore;
+    }
+
+    @Override
+    protected int getReplacementOffset() {
+        return this.replacementOffset;
+    }
+
+    @Override
+    protected String getReplacementString() {
+        return this.displayString; // because actual replacement string includes extra whitespaces
+    }
+
+    public int getProposalScore() {
+        return proposalScore;
     }
 
     @NotNull
@@ -113,7 +133,7 @@ public class SQLQueryCompletionProposal implements ICompletionProposal, IComplet
 
     @Override
     public String getDisplayString() {
-        return CommonUtils.isNotEmpty(this.displayString) ? this.displayString : this.replacementString;
+        return CommonUtils.isNotEmpty(this.displayString) ? this.displayString : this.replacementString.replaceAll("[\r\n]", "");
     }
 
     @Override
@@ -225,16 +245,22 @@ public class SQLQueryCompletionProposal implements ICompletionProposal, IComplet
         }
         this.getProposalContext().getActivityTracker().implicitlyTriggered();
         if (this.filterString != null && CommonUtils.isNotEmpty(this.filterString.filterString)) {
+            int filterKeyStart = this.filterString.offset >= 0 ? this.filterString.offset : this.proposalContext.getRequestOffset();
             try {
-                int filterKeyStart = this.filterString.offset >= 0 ? this.filterString.offset : this.proposalContext.getRequestOffset();
                 if (offset > document.getLength()) {
                     return false;
                 } else {
-                    String filterKey = document.get(filterKeyStart, offset - filterKeyStart);
-                    if (DEBUG) {
-                        log.debug("validate: " + filterString.string + " vs " + filterKey);
+                    int filterKeyLength = offset - filterKeyStart;
+                    if (filterKeyLength > 0) {
+                        String filterKey = document.get(filterKeyStart, filterKeyLength);
+                        if (DEBUG) {
+                            log.debug("validate: " + filterString.string + " vs " + filterKey);
+                        }
+                        this.proposalScore = this.filterString.matches(filterKey, this.proposalContext.getCompletionContext().isSearchInsideNames());
+                        return this.proposalScore > 0;
+                    } else {
+                        return true;
                     }
-                    return filterString.filterString.contains(filterKey.toLowerCase());
                 }
             } catch (BadLocationException ex) {
                 log.error("Error validating completion proposal", ex);

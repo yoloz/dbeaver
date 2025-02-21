@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.jkiss.dbeaver.model.sql.semantics.SQLQuerySymbolClass;
 import org.jkiss.dbeaver.model.sql.semantics.completion.SQLQueryCompletionItem.*;
 import org.jkiss.dbeaver.model.sql.semantics.completion.SQLQueryCompletionItemVisitor;
 import org.jkiss.dbeaver.model.sql.semantics.context.SQLQueryResultPseudoColumn;
+import org.jkiss.utils.CommonUtils;
 
 public class SQLQueryCompletionDescriptionProvider implements SQLQueryCompletionItemVisitor<String> {
 
@@ -40,6 +41,12 @@ public class SQLQueryCompletionDescriptionProvider implements SQLQueryCompletion
         return prefix + rowsSourceAlias.sourceInfo.source.getSyntaxNode().getTextContent();
     }
 
+    @NotNull
+    public String visitCompositeField(@NotNull SQLCompositeFieldCompletionItem compositeField) {
+        String ownerTypeName = SQLQueryCompletionExtraTextProvider.prepareTypeNameString(compositeField.memberInfo.declaratorType());
+        return "Attribute " + compositeField.memberInfo.name() + " of the " + ownerTypeName + " composite type ";
+    }
+
     @Nullable
     @Override
     public String visitColumnName(@NotNull SQLColumnNameCompletionItem columnName) {
@@ -51,9 +58,11 @@ public class SQLQueryCompletionDescriptionProvider implements SQLQueryCompletion
                     " from the subquery \n" + columnName.columnInfo.source.getSyntaxNode().getTextContent();
         } else {
             if (columnName.columnInfo.realAttr != null) {
-                return columnName.columnInfo.realAttr.getDescription();
+                String attrDescription = columnName.columnInfo.realAttr.getDescription();
+                return CommonUtils.isNotEmpty(attrDescription) ? attrDescription
+                    : "Column " + columnName.columnInfo.realAttr.getName() + " of " + DBUtils.getObjectFullName(columnName.columnInfo.realAttr.getParentObject(), DBPEvaluationContext.DML);
             } else if (columnName.columnInfo.realSource != null) {
-                return "Column of the " + DBUtils.getObjectFullName(columnName.columnInfo.realSource, DBPEvaluationContext.DML);
+                return "Column " + columnName.columnInfo.symbol.getName() + " of " + DBUtils.getObjectFullName(columnName.columnInfo.realSource, DBPEvaluationContext.DML);
             } else if (columnName.columnInfo.symbol.getDefinition() instanceof SQLQueryResultPseudoColumn pseudoColumn) {
                 return pseudoColumn.description;
             } else {
@@ -66,7 +75,7 @@ public class SQLQueryCompletionDescriptionProvider implements SQLQueryCompletion
     @Nullable
     @Override
     public String visitTableName(@NotNull SQLTableNameCompletionItem tableName) {
-        return tableName.table.getDescription();
+        return tableName.object.getDescription();
     }
 
     @Nullable
@@ -81,5 +90,24 @@ public class SQLQueryCompletionDescriptionProvider implements SQLQueryCompletion
         return namedObject instanceof DBPObjectWithDescription owd
             ? owd.getDescription()
             : DBUtils.getObjectFullName(namedObject.object, DBPEvaluationContext.DML);
+    }
+
+    @Nullable
+    @Override
+    public String visitJoinCondition(@NotNull SQLJoinConditionCompletionItem joinCondition) {
+        return "Join condition on the foreign key known from the database schema: " +
+            joinCondition.left.apply(this) + " vs " + joinCondition.right.apply(this);
+    }
+
+    @Nullable
+    @Override
+    public String visitProcedure(@NotNull SQLProcedureCompletionItem procedure) {
+        return procedure.getObject().getDescription();
+    }
+
+    @Nullable
+    @Override
+    public String visitBuiltinFunction(@NotNull SQLBuiltinFunctionCompletionItem function) {
+        return "Builtin function of the database.";
     }
 }
