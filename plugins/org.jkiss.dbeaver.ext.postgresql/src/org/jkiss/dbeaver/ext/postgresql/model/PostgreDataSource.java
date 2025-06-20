@@ -144,6 +144,10 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
         };
     }
 
+    public void readDatabaseServerVersion(JDBCSession session) throws SQLException {
+        super.readDatabaseServerVersion(session, session.getMetaData());
+    }
+
     @Override
     protected void initializeRemoteInstance(@NotNull DBRProgressMonitor monitor) throws DBException {
         DBPConnectionConfiguration configuration = getContainer().getActualConnectionConfiguration();
@@ -184,7 +188,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
         DBExecUtils.startContextInitiation(getContainer());
         try (Connection bootstrapConnection = openConnection(monitor, null, "Read PostgreSQL database list")) {
             // Read server version info here - it is needed during database metadata fetch (#8061)
-            readDatabaseServerVersion(bootstrapConnection.getMetaData());
+            readDatabaseServerVersion(bootstrapConnection, bootstrapConnection.getMetaData());
 
             // Get all databases
             try (PreparedStatement dbStat = prepareReadDatabaseListStatement(monitor, bootstrapConnection, configuration)) {
@@ -529,7 +533,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
             // Old versions of postgres and some linux distributions, on which docker images are made, may not contain
             // new timezone, which will lead to the error while connecting, there is no way to know before connecting
             // so to be sure we will use the old name
-            if (legacyTimezoneOverridden != null) {
+            if (isNeedToReplaceLegacyTimezone() && legacyTimezoneOverridden != null) {
                 TimezoneRegistry.setDefaultZone(ZoneId.of(legacyTimezoneOverridden), false);
             }
 
@@ -582,7 +586,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
 
             throw e;
         } finally {
-            if (legacyTimezoneOverridden != null) {
+            if (isNeedToReplaceLegacyTimezone() && legacyTimezoneOverridden != null) {
                 TimezoneRegistry.setDefaultZone(ZoneId.of(currentTimezoneId), false);
             }
         }
@@ -871,6 +875,8 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
                 return ErrorType.CONNECTION_LOST;
             } else if (PostgreConstants.ERROR_TRANSACTION_ABORTED.equals(sqlState)) {
                 return ErrorType.TRANSACTION_ABORTED;
+            } else if (PostgreConstants.AUTHORIZATION_ERRORS.contains(sqlState)) {
+                return ErrorType.AUTHENTICATION_FAILED;
             }
         }
         if (getServerType() instanceof DBPErrorAssistant) {
@@ -907,6 +913,11 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
     public boolean supportsReadingKeysWithColumns() {
         return CommonUtils.toBoolean(
             getContainer().getActualConnectionConfiguration().getProviderProperty(PostgreConstants.PROP_READ_KEYS_WITH_COLUMNS));
+    }
+
+    public boolean isNeedToReplaceLegacyTimezone() {
+        return CommonUtils.toBoolean(
+            getContainer().getActualConnectionConfiguration().getProviderProperty(PostgreConstants.PROP_REPLACE_LEGACY_TIMEZONE));
     }
 
     public boolean isSupportsEnumTable() {

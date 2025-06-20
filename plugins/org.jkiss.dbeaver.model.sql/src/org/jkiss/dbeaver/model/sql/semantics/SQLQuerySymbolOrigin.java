@@ -17,9 +17,13 @@
 package org.jkiss.dbeaver.model.sql.semantics;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.model.sql.semantics.context.SQLQueryDataContext;
 import org.jkiss.dbeaver.model.sql.semantics.context.SQLQueryExprType;
 import org.jkiss.dbeaver.model.sql.semantics.context.SourceResolutionResult;
+import org.jkiss.dbeaver.model.sql.semantics.context.SQLQueryRowsDataContext;
+import org.jkiss.dbeaver.model.sql.semantics.context.SQLQueryRowsSourceContext;
+import org.jkiss.dbeaver.model.stm.STMTreeNode;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.DBSObjectType;
 
@@ -46,6 +50,15 @@ public abstract class SQLQuerySymbolOrigin {
         void visitMemberOfType(MemberOfType origin);
 
         void visitDataContextSymbol(DataContextSymbolOrigin origin);
+
+        /**
+         * Visitor for * or table-alias.* which are supposed to be expanded to the list of columns on completion
+         */
+        void visitExpandableTupleRef(ExpandableTupleRef tupleRef);
+
+        void visitRowsSourceRef(RowsSourceRef rowsSourceRef);
+
+        void visitRowsDataRef(RowsDataRef rowsDataRef);
     }
 
     public abstract boolean isChained();
@@ -252,6 +265,89 @@ public abstract class SQLQuerySymbolOrigin {
         @Override
         public void apply(Visitor visitor) {
             visitor.visitMemberOfType(this);
+        }
+    }
+
+    public static class ExpandableTupleRef extends DataContextSymbolOrigin {
+
+        @NotNull
+        private final STMTreeNode placeholder;
+
+        @Nullable
+
+        private final SourceResolutionResult referencedSource;
+
+        public ExpandableTupleRef(
+            @NotNull STMTreeNode placeholder,
+            @NotNull SQLQueryDataContext dataContext,
+            @Nullable SourceResolutionResult referencedSource
+        ) {
+            super(dataContext);
+            this.placeholder = placeholder;
+            this.referencedSource = referencedSource;
+        }
+
+        @Override
+        public boolean isChained() {
+            return true;
+        }
+
+        @NotNull
+        public STMTreeNode getPlaceholder() {
+            return this.placeholder;
+        }
+
+        @Nullable
+        public SourceResolutionResult getRowsSource() {
+            return this.referencedSource;
+        }
+
+        @Override
+        public void apply(Visitor visitor) {
+            visitor.visitExpandableTupleRef(this);
+        }
+    }
+
+    // TODO: extends SQLQuerySymbolOrigin after removing DataContextSymbolOrigin
+    public static class RowsSourceRef extends DataContextSymbolOrigin {
+
+        @NotNull
+        private final SQLQueryRowsSourceContext rowsSourceContext;
+
+        public RowsSourceRef(@NotNull SQLQueryRowsSourceContext rowsSourceContext) {
+            super(null);
+            this.rowsSourceContext = rowsSourceContext;
+        }
+        
+        public @NotNull SQLQueryRowsSourceContext getRowsSourceContext() {
+            return this.rowsSourceContext;
+        }
+
+        @Override
+        public void apply(Visitor visitor) {
+            visitor.visitRowsSourceRef(this);
+        }
+    }
+
+    // TODO: extends SQLQuerySymbolOrigin after removing DataContextSymbolOrigin
+    public static class RowsDataRef extends DataContextSymbolOrigin {
+        
+        @NotNull
+        private final SQLQueryRowsDataContext rowsDataContext;
+
+        public RowsDataRef(@NotNull SQLQueryRowsDataContext rowsDataContext) {
+            super(null);
+            this.rowsDataContext = rowsDataContext;
+        }
+
+        @NotNull
+        public SQLQueryRowsDataContext getRowsDataContext() {
+            return this.rowsDataContext;
+        }
+
+        @Override
+        public void apply(Visitor visitor) {
+            visitor.visitRowsDataRef(this);
         }
     }
 }

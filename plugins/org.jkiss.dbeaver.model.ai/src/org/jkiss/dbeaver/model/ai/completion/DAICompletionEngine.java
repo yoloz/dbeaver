@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,46 +19,59 @@ package org.jkiss.dbeaver.model.ai.completion;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.model.ai.format.IAIFormatter;
+import org.jkiss.dbeaver.model.ai.AISettingsEventListener;
+import org.jkiss.dbeaver.model.ai.TooManyRequestsException;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Flow;
 
 /**
  * Completion engine
  */
-public interface DAICompletionEngine<SERVICE> {
+public interface DAICompletionEngine extends AISettingsEventListener {
 
     /**
-     * Completion engine name
+     * Returns the context size for the completion engine.
+     *
+     * @param monitor progress monitor
+     * @return the context window size
      */
-    String getEngineName();
+    int getMaxContextSize(@NotNull DBRProgressMonitor monitor) throws DBException;
 
     /**
-     * Do query completion
+     * Requests completions from the completion engine.
+     *
+     * @param monitor the progress monitor
+     * @param request the completion request
+     * @return the completion response
+     * @throws TooManyRequestsException if the request limit is exceeded and the request can be retried
+     * @throws DBException if an error occurs
      */
-    @NotNull
-    List<DAICompletionResponse> performQueryCompletion(
+    DAICompletionResponse requestCompletion(
         @NotNull DBRProgressMonitor monitor,
-        @NotNull DAICompletionContext context,
-        @NotNull DAICompletionMessage message,
-        @NotNull IAIFormatter formatter
+        @NotNull DAICompletionRequest request
     ) throws DBException;
 
     /**
-     * Do query completion in a session
+     * Requests a stream of completion chunks from the completion engine.
+     *
+     * @param monitor the progress monitor
+     * @param request the completion request
+     * @return the stream of completion chunks
+     * @throws TooManyRequestsException if the request limit is exceeded and the request can be retried
+     * @throws DBException if an error occurs
      */
-    @NotNull
-    List<DAICompletionResponse> performSessionCompletion(
+    Flow.Publisher<DAICompletionChunk> requestCompletionStream(
         @NotNull DBRProgressMonitor monitor,
-        @NotNull DAICompletionContext context,
-        @NotNull DAICompletionSession session,
-        @NotNull IAIFormatter formatter,
-        boolean allMessages
+        @NotNull DAICompletionRequest request
     ) throws DBException;
 
-    boolean isValidConfiguration();
+    /**
+     * Checks if the completion engine has a valid configuration.
+     *
+     * @return true if the completion engine has a valid configuration
+     */
+    boolean hasValidConfiguration() throws DBException;
 
-    Map<String, SERVICE> getServiceMap();
+    boolean isLoggingEnabled() throws DBException;
 }

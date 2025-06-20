@@ -19,9 +19,9 @@
 
 <plugin>
 
-<!--    <extension point="org.jkiss.dbeaver.workbenchHandler">-->
-<!--        <workbenchWindowInitializer class="org.jkiss.dbeaver.ui.config.sample.WorkbenchInitializerCreateSampleDatabase" priority="1"/>-->
-<!--    </extension>-->
+    <extension point="org.jkiss.dbeaver.workbenchHandler">
+<!--        <workbenchWindowInitializer class="org.jkiss.dbeaver.ui.config.sample.WorkbenchInitializerCreateSampleDatabase" order="3"/>-->
+    </extension>
 
     <extension point="org.eclipse.ui.commands">
         <command id="org.jkiss.dbeaver.ext.sample.database.commands.create" name="%commands.create.name" description="%commands.create.description"/>

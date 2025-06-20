@@ -4,6 +4,6 @@ cd ..
 [ ! -d ../dbeaver-jdbc-libsql ] && git clone https://github.com/dbeaver/dbeaver-jdbc-libsql.git ../dbeaver-jdbc-libsql
 
 cd product/aggregate
-mvn clean -Dmaven.test.skip=true package -Pall-platforms -T 1C
+mvn clean -Dmaven.test.skip=true package -Pall-platforms -T 1C -e
 cd ../..
 

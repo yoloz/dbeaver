@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import org.eclipse.core.runtime.Assert;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
-import org.jkiss.dbeaver.model.logical.DBSLogicalDataSource;
-import org.jkiss.dbeaver.model.struct.DBSEntity;
+import org.jkiss.dbeaver.model.exec.DBCExecutionContextDefaults;
+import org.jkiss.dbeaver.model.struct.DBSObject;
+import org.jkiss.dbeaver.model.struct.DBSObjectContainer;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,19 +30,16 @@ import java.util.Objects;
 
 public class DAICompletionContext {
     private final DAICompletionScope scope;
-    private final List<DBSEntity> customEntities;
-    private final DBSLogicalDataSource dataSource;
+    private final List<DBSObject> customEntities;
     private final DBCExecutionContext executionContext;
 
     private DAICompletionContext(
         @NotNull DAICompletionScope scope,
-        @Nullable List<DBSEntity> customEntities,
-        @NotNull DBSLogicalDataSource dataSource,
+        @Nullable List<DBSObject> customEntities,
         @NotNull DBCExecutionContext executionContext
     ) {
         this.scope = scope;
         this.customEntities = customEntities;
-        this.dataSource = dataSource;
         this.executionContext = executionContext;
     }
 
@@ -51,13 +49,8 @@ public class DAICompletionContext {
     }
 
     @NotNull
-    public List<DBSEntity> getCustomEntities() {
+    public List<DBSObject> getCustomEntities() {
         return Collections.unmodifiableList(Objects.requireNonNull(customEntities, "Scope is not custom"));
-    }
-
-    @NotNull
-    public DBSLogicalDataSource getDataSource() {
-        return dataSource;
     }
 
     @NotNull
@@ -67,8 +60,7 @@ public class DAICompletionContext {
 
     public static class Builder {
         private DAICompletionScope scope;
-        private List<DBSEntity> customEntities;
-        private DBSLogicalDataSource dataSource;
+        private List<DBSObject> customEntities;
         private DBCExecutionContext executionContext;
 
         @NotNull
@@ -78,14 +70,8 @@ public class DAICompletionContext {
         }
 
         @NotNull
-        public Builder setCustomEntities(@NotNull List<DBSEntity> customEntities) {
+        public Builder setCustomEntities(@NotNull List<DBSObject> customEntities) {
             this.customEntities = customEntities;
-            return this;
-        }
-
-        @NotNull
-        public Builder setDataSource(@NotNull DBSLogicalDataSource dataSource) {
-            this.dataSource = dataSource;
             return this;
         }
 
@@ -97,12 +83,42 @@ public class DAICompletionContext {
 
         @NotNull
         public DAICompletionContext build() {
-            Assert.isLegal(scope != null, "Scope must be specified");
-            Assert.isLegal(scope != DAICompletionScope.CUSTOM || customEntities != null, "Custom entities must be specified when using custom scope");
-            Assert.isLegal(dataSource != null, "Data source must be specified");
-            Assert.isLegal(executionContext != null, "Execution context must be specified");
+            Assert.isLegal(
+                scope != null,
+                "Scope must be specified"
+            );
+            Assert.isLegal(
+                scope != DAICompletionScope.CUSTOM || customEntities != null,
+                "Custom entities must be specified when using custom scope"
+            );
+            Assert.isLegal(
+                executionContext != null,
+                "Execution context must be specified"
+            );
 
-            return new DAICompletionContext(scope, customEntities, dataSource, executionContext);
+            return new DAICompletionContext(scope, customEntities, executionContext);
         }
+    }
+
+    public DBSObjectContainer getScopeObject() {
+        DBCExecutionContextDefaults<?, ?> contextDefaults = executionContext.getContextDefaults();
+        if (contextDefaults == null) {
+            return (DBSObjectContainer) executionContext.getDataSource();
+        }
+
+        DBSObjectContainer scoped = switch (getScope()) {
+            case CURRENT_SCHEMA:
+                if (contextDefaults.getDefaultSchema() != null) {
+                    yield contextDefaults.getDefaultSchema();
+                } else {
+                    yield contextDefaults.getDefaultCatalog();
+                }
+            case CURRENT_DATABASE:
+                yield contextDefaults.getDefaultCatalog();
+            default:
+                yield null;
+        };
+
+        return scoped != null ? scoped : (DBSObjectContainer) executionContext.getDataSource();
     }
 }
