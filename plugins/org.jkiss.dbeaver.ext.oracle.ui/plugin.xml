@@ -192,7 +192,6 @@
 
     <extension point="org.jkiss.dbeaver.databaseEditor">
         <editor id="oracle.source.declaration" class="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor"
-        <editor id="oracle.source.declaration" class="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleSourceDeclarationEditor"
                 label="%editor.package.declaration.name" description="%editor.package.declaration.description" icon="#sql_text" position="additions_middle"
                 contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder" embeddable="false">
             <objectType name="org.jkiss.dbeaver.ext.oracle.model.OracleView"/>
@@ -221,7 +220,7 @@
             <objectType name="org.jkiss.dbeaver.ext.oracle.model.OracleTable"/>
             <objectType name="org.jkiss.dbeaver.ext.oracle.model.OracleSchedulerJob"/>
         </editor>
-        <editor id="oracle.source.declaration.read-only" class="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleObjectDeclarationViewer"
+        <editor id="source.declaration.read-only" class="org.jkiss.dbeaver.ext.oracle.ui.editors.OracleObjectDeclarationViewer"
                 label="%editor.package.declaration.name" description="%editor.package.declaration.description" icon="#sql_text" position="additions_middle"
                 contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder" embeddable="false">
             <objectType name="org.jkiss.dbeaver.ext.oracle.model.OracleSchema"/>
