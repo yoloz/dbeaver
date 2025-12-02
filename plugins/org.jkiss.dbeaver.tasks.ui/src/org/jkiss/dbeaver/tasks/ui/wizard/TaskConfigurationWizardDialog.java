@@ -44,14 +44,12 @@ import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.tasks.ui.DBTTaskConfigurator;
 import org.jkiss.dbeaver.tasks.ui.internal.TaskUIMessages;
 import org.jkiss.dbeaver.tasks.ui.registry.TaskUIRegistry;
+import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.dialogs.IWizardPageNavigable;
 import org.jkiss.dbeaver.ui.dialogs.MultiPageWizardDialog;
 import org.jkiss.dbeaver.utils.RuntimeUtils;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Task configuration wizard dialog
@@ -109,7 +107,7 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
 
     @NotNull
     @Override
-    protected EnumSet<PageCompletionMark> getShownCompletionMarks() {
+    protected Set<PageCompletionMark> getShownCompletionMarks() {
         if (getWizard().isCurrentTaskSaved()) {
             return EnumSet.noneOf(PageCompletionMark.class);
         } else {
@@ -140,7 +138,7 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
     @Override
     protected void createBottomLeftArea(Composite pane) {
         // Task management controls
-        getWizard().createTaskSaveButtons(pane, true, 1);
+        getWizard().createTaskActions(pane, 1);
     }
 
     @Override
@@ -159,8 +157,10 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
         {
             if (getWizard().isNewTaskEditor() || getNavPagesCount() > 1) {
                 createButton(parent, IDialogConstants.BACK_ID, IDialogConstants.BACK_LABEL, false);
-                Button nextButton = createButton(parent, IDialogConstants.NEXT_ID, IDialogConstants.NEXT_LABEL, true);
-                getShell().setDefaultButton(nextButton);
+                Button nextButton = createButton(parent, IDialogConstants.NEXT_ID, IDialogConstants.NEXT_LABEL, false);
+                // JFace dialog moves default button to the right of buttons panel (if default button assigned initially)
+                // We don't want it so we assign it in async mode
+                UIUtils.asyncExec(() -> getShell().setDefaultButton(nextButton));
             }
         }
 
@@ -185,7 +185,7 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
         if (button != null) {
             button.setEnabled(false);
         }
-        getWizard().updateSaveTaskButton(false);
+        getWizard().enableTaskButtons(false);
         super.disableButtonsOnProgress();
     }
 
@@ -195,7 +195,7 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
         if (button != null) {
             button.setEnabled(true);
         }
-        getWizard().updateSaveTaskButton(true);
+        getWizard().enableTaskButtons(true);
         super.enableButtonsAfterProgress();
     }
 
@@ -242,7 +242,7 @@ public class TaskConfigurationWizardDialog extends MultiPageWizardDialog {
     @Override
     public void updateButtons() {
         super.updateButtons();
-        getWizard().updateSaveTaskButtons();
+        getWizard().updateTaskButtons();
         if (getTaskWizard().canFinish()) {
             Button finishButton = getButton(IDialogConstants.OK_ID);
             if (finishButton != null && !finishButton.isDisposed()) {

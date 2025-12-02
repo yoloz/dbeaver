@@ -31,6 +31,7 @@ import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLTableManager;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTableIndex;
+import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.utils.CommonUtils;
 
 import java.util.Collection;
@@ -77,49 +78,76 @@ public class GBase8aTableManager extends SQLTableManager<GBase8aTableBase, GBase
     }
 
     @Override
-    protected void addObjectModifyActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actionList, ObjectChangeCommand command, Map<String, Object> options) {
+    protected void addObjectModifyActions(DBRProgressMonitor monitor,
+                                          DBCExecutionContext executionContext,
+                                          List<DBEPersistAction> actionList,
+                                          ObjectChangeCommand command,
+                                          Map<String, Object> options) {
         StringBuilder query = new StringBuilder("ALTER TABLE ");
         query.append(command.getObject().getFullyQualifiedName(DBPEvaluationContext.DDL)).append(" ");
-        appendTableModifiers(monitor, command.getObject(), command, query, true);
+        appendTableModifiers(monitor, command.getObject(), command, query, true, options);
         actionList.add(new SQLDatabasePersistAction(query.toString()));
     }
 
     @Override
-    protected void addStructObjectCreateActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, StructCreateCommand command, Map<String, Object> options) throws DBException {
+    protected void addStructObjectCreateActions(DBRProgressMonitor monitor,
+                                                DBCExecutionContext executionContext,
+                                                List<DBEPersistAction> actions,
+                                                StructCreateCommand command,
+                                                Map<String, Object> options) throws DBException {
 
         if (CommonUtils.getOption(options, DBPScriptObject.OPTION_INCLUDE_OBJECT_DROP)) {
             final GBase8aTableBase table = command.getObject();
             final String tableName = DBUtils.getEntityScriptName(table, options);
-            actions.add(0, new SQLDatabasePersistAction(ModelMessages.model_jdbc_create_new_table, "DROP TABLE IF EXISTS " + tableName));
+            actions.add(0, new SQLDatabasePersistAction(ModelMessages.model_jdbc_create_new_table,
+                    "DROP TABLE IF EXISTS " + tableName));
         }
         super.addStructObjectCreateActions(monitor, executionContext, actions, command, options);
     }
 
     @Override
-    protected void appendTableModifiers(DBRProgressMonitor monitor, GBase8aTableBase tableBase, NestedObjectCommand tableProps, StringBuilder ddl, boolean alter) {
+    protected void appendTableModifiers(DBRProgressMonitor monitor,
+                                        GBase8aTableBase tableBase,
+                                        NestedObjectCommand tableProps,
+                                        StringBuilder ddl,
+                                        boolean alter,
+                                        Map<String, Object> options) {
         if (tableBase instanceof GBase8aTable table) {
             try {
+                String delimiter = isCompact(options) ? " " : GeneralUtils.getDefaultLineSeparator();
                 final GBase8aDataSource dataSource = table.getDataSource();
                 final GBase8aTable.AdditionalInfo additionalInfo = table.getAdditionalInfo(monitor);
-                if ((!table.isPersisted() || tableProps.getProperty("engine") != null) && additionalInfo.getEngine() != null) {
-                    ddl.append("\nENGINE=").append(additionalInfo.getEngine().getName());
+                if ((!table.isPersisted() || tableProps.getProperty("engine") != null)
+                        && additionalInfo.getEngine() != null) {
+                    ddl.append(delimiter);
+                    ddl.append("ENGINE=");
+                    ddl.append(additionalInfo.getEngine().getName());
                 }
                 if (dataSource.supportsCharsets()
                         && (!table.isPersisted() || tableProps.getProperty("charset") != null)
                         && additionalInfo.getCharset() != null) {
-                    ddl.append("\nDEFAULT CHARSET=").append(additionalInfo.getCharset().getName());
+                    ddl.append(delimiter);
+                    ddl.append("DEFAULT CHARSET=");
+                    ddl.append(additionalInfo.getCharset().getName());
                 }
                 if (dataSource.supportsCollations()
                         && (!table.isPersisted() || tableProps.getProperty("collation") != null)
                         && additionalInfo.getCollation() != null) {
-                    ddl.append("\nCOLLATE=").append(additionalInfo.getCollation().getName());
+                    ddl.append(delimiter);
+                    ddl.append("COLLATE=");
+                    ddl.append(additionalInfo.getCollation().getName());
                 }
-                if ((!table.isPersisted() && table.getDescription() != null) || tableProps.hasProperty(DBConstants.PROP_ID_DESCRIPTION)) {
-                    ddl.append("\nCOMMENT=").append(SQLUtils.quoteString(table, CommonUtils.notEmpty(table.getDescription())));
+                if ((!table.isPersisted() && table.getDescription() != null)
+                        || tableProps.hasProperty(DBConstants.PROP_ID_DESCRIPTION)) {
+                    ddl.append(delimiter);
+                    ddl.append("COMMENT=");
+                    ddl.append(SQLUtils.quoteString(table, CommonUtils.notEmpty(table.getDescription())));
                 }
                 if ((!table.isPersisted() || tableProps.getProperty("autoIncrement") != null)
                         && additionalInfo.getAutoIncrement() > 0) {
-                    ddl.append("\nAUTO_INCREMENT=").append(additionalInfo.getAutoIncrement());
+                    ddl.append(delimiter);
+                    ddl.append("AUTO_INCREMENT=");
+                    ddl.append(additionalInfo.getAutoIncrement());
                 }
             } catch (DBCException e) {
                 log.error(e);
@@ -133,7 +161,11 @@ public class GBase8aTableManager extends SQLTableManager<GBase8aTableBase, GBase
     }
 
     @Override
-    protected void addObjectRenameActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectRenameCommand command, Map<String, Object> options) {
+    protected void addObjectRenameActions(DBRProgressMonitor monitor,
+                                          DBCExecutionContext executionContext,
+                                          List<DBEPersistAction> actions,
+                                          ObjectRenameCommand command,
+                                          Map<String, Object> options) {
         final GBase8aDataSource dataSource = command.getObject().getDataSource();
         boolean alterTable = dataSource.supportsAlterTableRenameSyntax();
         actions.add(new SQLDatabasePersistAction(
@@ -158,7 +190,10 @@ public class GBase8aTableManager extends SQLTableManager<GBase8aTableBase, GBase
 
 
     @Override
-    public Collection<? extends DBSObject> getChildObjects(DBRProgressMonitor monitor, GBase8aTableBase object, Class<? extends DBSObject> childType) throws DBException {
+    public Collection<? extends DBSObject> getChildObjects(DBRProgressMonitor monitor,
+                                                           GBase8aTableBase object,
+                                                           Class<? extends DBSObject> childType)
+            throws DBException {
         if (childType == GBase8aTableColumn.class)
             return object.getAttributes(monitor);
         if (childType == GBase8aTableConstraint.class)
@@ -177,7 +212,11 @@ public class GBase8aTableManager extends SQLTableManager<GBase8aTableBase, GBase
 
 
     @Override
-    public void renameObject(@NotNull DBECommandContext commandContext, @NotNull GBase8aTableBase object, @NotNull Map<String, Object> options, @NotNull String newName) throws DBException {
+    public void renameObject(@NotNull DBECommandContext commandContext,
+                             @NotNull GBase8aTableBase object,
+                             @NotNull Map<String, Object> options,
+                             @NotNull String newName)
+            throws DBException {
         processObjectRename(commandContext, object, options, newName);
     }
 

@@ -65,11 +65,11 @@
                     <file type="jar" path="maven:/org.apache.httpcomponents.client5:httpclient5:RELEASE[5.3.1]" bundle="!drivers.clickhouse_com"/>
                     <file type="license" path="licenses/external/asl-2.0.txt"/>
                     <file type="jar" path="drivers/clickhouse_com" bundle="drivers.clickhouse_com"/>
+                    <file type="jar" path="bundle:/org.apache.commons.lang3" bundle="drivers.clickhouse_com"/>
                     <!-- Disable server timezone as it confuses during timestamp edit -->
                     <property name="@dbeaver-default-dataformat.type.timestamp.pattern" value="yyyy-MM-dd HH:mm:ss[.fffffffff]"/>
                     <property name="use_server_time_zone" value="false"/>
 
-                    <parameter name="omit-catalog" value="true"/>
                     <parameter name="supports-references" value="false"/>
                     <parameter name="supports-truncate" value="false"/>
                     <parameter name="alter-table-add-column" value="true"/>
@@ -98,8 +98,7 @@
                 description="SSL settings"
                 secured="false"
                 desktop="false"
-                pinned="true"
-                order="100"
+                order="2"
                 handlerClass="org.jkiss.dbeaver.ext.clickhouse.model.ClickhouseSSLImpl">
             <propertyGroup label="SSL Settings">
                 <property id="ssl.ca.cert.value" label="CA Certificate" type="file" description="Choose CA certificate file" features="secured" length="MULTILINE"/>
@@ -133,6 +132,8 @@
             <type name="UUID"/>
             <type name="IPV4"/>
             <type name="IPV6"/>
+            <type name="TUPLE*"/>
+            <type name="MAP*"/>
         </provider>
     </extension>
 

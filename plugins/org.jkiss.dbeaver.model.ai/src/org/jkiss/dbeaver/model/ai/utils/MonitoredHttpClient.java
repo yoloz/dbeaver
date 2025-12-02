@@ -30,10 +30,26 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MonitoredHttpClient implements AutoCloseable {
-    private final HttpClient client;
+    /**
+     * Maps an HTTP status code and response body to a {@link DBException}.
+     */
+    @FunctionalInterface
+    public interface ErrorMapper {
+        @NotNull
+        DBException map(int statusCode, @NotNull String body);
+    }
 
-    public MonitoredHttpClient(HttpClient client) {
+    private final HttpClient client;
+    private final ErrorMapper errorMapper;
+
+    public MonitoredHttpClient(@NotNull HttpClient client, @NotNull ErrorMapper errorMapper) {
         this.client = client;
+        this.errorMapper = errorMapper;
+    }
+
+    @NotNull
+    public HttpClient getHttpClient() {
+        return client;
     }
 
     /**
@@ -41,7 +57,8 @@ public class MonitoredHttpClient implements AutoCloseable {
      * The request is sent asynchronously and the method will block until the response is received.
      * The method will also check if the progress monitor is cancelled and cancel the request if it is.
      */
-    public HttpResponse<String> send(
+    @NotNull
+    public String send(
         DBRProgressMonitor monitor,
         HttpRequest request
     ) throws DBException {
@@ -64,7 +81,12 @@ public class MonitoredHttpClient implements AutoCloseable {
                 TimeUnit.MILLISECONDS.sleep(100);
             }
 
-            return responseCompletableFuture.get();
+            HttpResponse<String> response = responseCompletableFuture.get();
+            if (response.statusCode() == 200) {
+                return response.body();
+            } else {
+                throw errorMapper.map(response.statusCode(), response.body());
+            }
         } catch (InterruptedException e) {
             throw new DBException("Request was cancelled", e);
         } catch (ExecutionException e) {
@@ -83,9 +105,9 @@ public class MonitoredHttpClient implements AutoCloseable {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
             .thenAccept(response -> {
                 int statusCode = response.statusCode();
-                if (statusCode > 299) {
+                if (statusCode != 200) {
                     String responseBody = response.body().collect(Collectors.joining());
-                    errorHandler.accept(new AIHttpTransportException(statusCode, responseBody));
+                    errorHandler.accept(errorMapper.map(statusCode, responseBody));
                     return;
                 }
 
@@ -102,7 +124,6 @@ public class MonitoredHttpClient implements AutoCloseable {
 
     @Override
     public void close() {
-        //TODO should be uncommented when transition to java 21 is complete
-        //client.close();
+        client.close();
     }
 }

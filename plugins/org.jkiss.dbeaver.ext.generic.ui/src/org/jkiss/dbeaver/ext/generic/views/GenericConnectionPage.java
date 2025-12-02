@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
@@ -148,6 +149,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             gd = new GridData(GridData.FILL_HORIZONTAL);
             gd.grabExcessHorizontalSpace = true;
             hostText.setLayoutData(gd);
+            UIUtils.setDefaultTextControlWidthHint(hostText);
             hostText.addModifyListener(textListener);
 
             Label portLabel = new Label(settingsGroup, SWT.NONE);
@@ -185,6 +187,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             gd.grabExcessHorizontalSpace = true;
             //gd.widthHint = 270;
             serverText.setLayoutData(gd);
+            UIUtils.setDefaultTextControlWidthHint(serverText);
             serverText.addModifyListener(textListener);
 
             Control emptyLabel = UIUtils.createEmptyLabel(settingsGroup, 2, 1);
@@ -209,12 +212,13 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             dbText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
             gd.grabExcessHorizontalSpace = true;
-            //gd.widthHint = 270;
+//            gd.widthHint = 270;
             //gd.horizontalSpan = 3;
             dbText.setLayoutData(gd);
+            UIUtils.setDefaultTextControlWidthHint(dbText);
             dbText.addModifyListener(textListener);
 
-            Control emptyLabel = UIUtils.createEmptyLabel(settingsGroup, 2, 1);
+            Control emptyLabel = createDatabasePropsPanel(settingsGroup);
 
             addControlToGroup(GROUP_DB, dbLabel);
             addControlToGroup(GROUP_DB, dbText);
@@ -280,7 +284,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             addControlToGroup(GROUP_PATH, buttonsPanel);
         }
 
-        if (isAuthEnabled()) {
+        {
             createAuthPanel(addrGroup, 4);
             addControlToGroup(GROUP_LOGIN, getAuthPanelComposite());
         }
@@ -289,6 +293,11 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
         createDriverPanel(addrGroup);
         setControl(addrGroup);
+    }
+
+    @NotNull
+    protected Control createDatabasePropsPanel(Composite parent) {
+        return UIUtils.createEmptyLabel(parent, 2, 1);
     }
 
     @Nullable
@@ -475,6 +484,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
         activated = true;
 
+/*
         UIUtils.asyncExec(() -> {
             // Set first control
             if (CommonUtils.isEmpty(site.getDriver().getSampleURL())) {
@@ -489,6 +499,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                 pathText.setFocus();
             }
         });
+*/
 
     }
 

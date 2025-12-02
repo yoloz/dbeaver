@@ -21,5 +21,8 @@
     <feature id="org.jkiss.dbeaver.debug.feature">
         <category name="org.jkiss.dbeaver"/>
     </feature>
+    <feature id="org.jkiss.dbeaver.debug.feature">
+        <category name="org.jkiss.dbeaver"/>
+    </feature>
 
 </site>

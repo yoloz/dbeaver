@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package org.jkiss.dbeaver.model.impl;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.connection.DBPConnectionBootstrap;
-import org.jkiss.dbeaver.model.dpi.DPIContainer;
-import org.jkiss.dbeaver.model.dpi.DPIElement;
 import org.jkiss.dbeaver.model.exec.*;
 import org.jkiss.dbeaver.model.qm.QMUtils;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -62,27 +61,23 @@ public abstract class AbstractExecutionContext<DATASOURCE extends DBPDataSource>
         return idSequence++;
     }
 
-    @DPIElement
     @Override
     public long getContextId() {
         return this.id;
     }
 
-    @DPIElement
     @NotNull
     @Override
     public String getContextName() {
         return purpose;
     }
 
-    @DPIContainer
     @NotNull
     @Override
     public DATASOURCE getDataSource() {
         return dataSource;
     }
 
-    @DPIElement
     @Nullable
     @Override
     public DBCExecutionContextDefaults getContextDefaults() {
@@ -99,7 +94,7 @@ public abstract class AbstractExecutionContext<DATASOURCE extends DBPDataSource>
      * Executes bootstrap queries and other init functions.
      * This function must be called by all implementations.
      */
-    protected boolean initContextBootstrap(@NotNull DBRProgressMonitor monitor, boolean autoCommit) throws DBCException
+    protected boolean initContextBootstrap(@NotNull DBRProgressMonitor monitor, boolean autoCommit) throws DBException
     {
         // Notify QM
         QMUtils.getDefaultHandler().handleContextOpen(this, !autoCommit);
@@ -139,6 +134,7 @@ public abstract class AbstractExecutionContext<DATASOURCE extends DBPDataSource>
         log.debug("Execution context closed (" + dataSource.getName() + ", " + this.id +  ")");
     }
 
+    @NotNull
     @Override
     public Map<String, ?> getContextAttributes() {
         return new LinkedHashMap<>(contextAttributes);
@@ -146,17 +142,17 @@ public abstract class AbstractExecutionContext<DATASOURCE extends DBPDataSource>
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getContextAttribute(String attributeName) {
+    public <T> T getContextAttribute(@NotNull String attributeName) {
         return (T) contextAttributes.get(attributeName);
     }
 
     @Override
-    public <T> void setContextAttribute(String attributeName, T attributeValue) {
+    public <T> void setContextAttribute(@NotNull String attributeName, @Nullable T attributeValue) {
         contextAttributes.put(attributeName, attributeValue);
     }
 
     @Override
-    public void removeContextAttribute(String attributeName) {
+    public void removeContextAttribute(@NotNull String attributeName) {
         contextAttributes.remove(attributeName);
     }
 

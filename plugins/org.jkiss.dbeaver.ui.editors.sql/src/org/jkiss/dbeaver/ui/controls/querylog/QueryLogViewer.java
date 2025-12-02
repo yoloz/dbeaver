@@ -142,7 +142,7 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
 
         @Override
         String getText(QMEvent event, boolean briefInfo) {
-            return timeFormat.format(QMUtils.getObjectEventTime(event.getObject(), event.getAction()));
+            return timeFormat.format(QMUtils.getObjectEventTime(event));
         }
 
         String getToolTipText(QMEvent event) {
@@ -152,7 +152,7 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
         @Nullable
         @Override
         Comparator<QMEvent> getComparator() {
-            return Comparator.comparingLong(e -> QMUtils.getObjectEventTime(e.getObject(), e.getAction()));
+            return Comparator.comparingLong(QMUtils::getObjectEventTime);
         }
     };
     private static final LogColumn COLUMN_TYPE = new LogColumn("type", ModelMessages.controls_querylog_column_type_name, ModelMessages.controls_querylog_column_type_tooltip, 100) { //$NON-NLS-1$
@@ -542,7 +542,7 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
     private Font getObjectFont(QMEvent event) {
         if (event.getObject() instanceof QMMStatementExecuteInfo exec) {
             if (!exec.isClosed() || exec.isFetching()) {
-                return BaseThemeSettings.instance.baseFontBold;
+                return BaseThemeSettings.instance.treeAndTableFontBold;
             }
         }
         return null;
@@ -1135,13 +1135,14 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
         }
 
         @Override
-        protected void createButtonsForButtonBar(@NotNull Composite parent, int alignment) {
-            if (alignment == SWT.LEAD) {
-                createCopyButton(parent);
-                createExecuteButton(parent);
-            } else {
-                createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-            }
+        protected void createButtonsForLeftButtonBar(@NotNull Composite parent) {
+            createCopyButton(parent);
+            createExecuteButton(parent);
+        }
+
+        @Override
+        protected void createButtonsForButtonBar(@NotNull Composite parent) {
+            createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
         }
 
         @Override
@@ -1230,7 +1231,7 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
         }
 
         @Override
-        public List<QMEvent> evaluate(DBRProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+        public List<QMEvent> evaluate(@NotNull DBRProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
             final List<QMEvent> events = new ArrayList<>();
             QMEventBrowser eventBrowser = QMUtils.getEventBrowser(currentSessionOnly);
             if (eventBrowser != null) {
@@ -1244,13 +1245,13 @@ public class QueryLogViewer extends Viewer implements QMMetaListener, DBPPrefere
                 String qmSessionId = null;
                 if (DBWorkbench.getPlatform().getApplication() instanceof QMSessionProvider provider) {
                     int tries = 0;
-                    qmSessionId = provider.getQmSessionId();
+                    qmSessionId = provider.getQueryManagerSessionId();
                     while (qmSessionId == null && tries < RETRIES_QM_WAITING) {
                         if (DBWorkbench.getPlatform().isShuttingDown()) {
                             break;
                         }
                         RuntimeUtils.pause(WAITING_QM_SESSION_SECONDS_PER_TRY * 1000);
-                        qmSessionId = provider.getQmSessionId();
+                        qmSessionId = provider.getQueryManagerSessionId();
                         tries++;
                     }
                 }

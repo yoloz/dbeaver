@@ -19,6 +19,7 @@ package org.jkiss.dbeaver.ext.mysql.ui.editors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.jkiss.code.NotNull;
@@ -131,14 +132,14 @@ public class MySQLUserEditorGeneral extends MySQLUserEditorAbstract
                         privilege),
                     new DBECommandReflector<MySQLUser, MySQLCommandGrantPrivilege>() {
                         @Override
-                        public void redoCommand(MySQLCommandGrantPrivilege mySQLCommandGrantPrivilege)
+                        public void redoCommand(@NotNull MySQLCommandGrantPrivilege mySQLCommandGrantPrivilege)
                         {
                             if (!privTable.isDisposed()) {
                                 privTable.checkPrivilege(privilege, grant);
                             }
                         }
                         @Override
-                        public void undoCommand(MySQLCommandGrantPrivilege mySQLCommandGrantPrivilege)
+                        public void undoCommand(@NotNull MySQLCommandGrantPrivilege mySQLCommandGrantPrivilege)
                         {
                             if (!privTable.isDisposed()) {
                                 privTable.checkPrivilege(privilege, !grant);
@@ -154,6 +155,10 @@ public class MySQLUserEditorGeneral extends MySQLUserEditorAbstract
         DBECommandContext context = getEditorInput().getCommandContext();
         if (context != null) {
             context.addCommandListener(commandlistener);
+        }
+
+        if (newUser) {
+            triggerModifyEvent(userNameText);
         }
     }
 
@@ -183,7 +188,7 @@ public class MySQLUserEditorGeneral extends MySQLUserEditorAbstract
                 executionContext
             ) {
                 @Override
-                public List<MySQLPrivilege> evaluate(DBRProgressMonitor monitor) throws InvocationTargetException {
+                public List<MySQLPrivilege> evaluate(@NotNull DBRProgressMonitor monitor) throws InvocationTargetException {
                     try {
                         MySQLUser user = getDatabaseObject();
                         if (user == null) {
@@ -221,6 +226,12 @@ public class MySQLUserEditorGeneral extends MySQLUserEditorAbstract
     {
         // do nothing
         return RefreshResult.IGNORED;
+    }
+
+    private void triggerModifyEvent(Text text) {
+        Event event = new Event();
+        event.widget = text;
+        text.notifyListeners(SWT.Modify, event);
     }
 
     private class PageControl extends UserPageControl {

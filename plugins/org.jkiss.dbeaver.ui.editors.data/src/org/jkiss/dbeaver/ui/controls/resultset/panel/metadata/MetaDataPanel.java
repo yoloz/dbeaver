@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.model.DBPImage;
 import org.jkiss.dbeaver.model.DBValueFormatting;
 import org.jkiss.dbeaver.model.data.DBDAttributeBinding;
@@ -46,14 +47,13 @@ import org.jkiss.dbeaver.model.struct.DBSEntityAttribute;
 import org.jkiss.dbeaver.ui.*;
 import org.jkiss.dbeaver.ui.controls.TreeContentProvider;
 import org.jkiss.dbeaver.ui.controls.ViewerColumnController;
-import org.jkiss.dbeaver.ui.controls.resultset.IResultSetPanel;
 import org.jkiss.dbeaver.ui.controls.resultset.IResultSetPresentation;
 import org.jkiss.dbeaver.ui.controls.resultset.internal.ResultSetMessages;
+import org.jkiss.dbeaver.ui.controls.resultset.panel.ResultSetPanelBase;
 import org.jkiss.dbeaver.ui.controls.resultset.panel.ResultSetPanelRefresher;
 import org.jkiss.dbeaver.ui.navigator.itemlist.DatabaseObjectListControl;
 import org.jkiss.utils.CommonUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -62,11 +62,10 @@ import java.util.stream.Collectors;
 /**
  * RSV value view panel
  */
-public class MetaDataPanel implements IResultSetPanel {
+public class MetaDataPanel extends ResultSetPanelBase {
 
     public static final String PANEL_ID = "results-metadata";
 
-    private Composite panelContents;
     private Text filterTextBox;
     
     private IResultSetPresentation presentation;
@@ -80,7 +79,7 @@ public class MetaDataPanel implements IResultSetPanel {
 
     @Override
     public Control createContents(final IResultSetPresentation presentation, Composite parent) {
-        panelContents = UIUtils.createComposite(parent, 1);
+        Composite panelContents = UIUtils.createComposite(parent, 1);
         panelContents.setLayout(GridLayoutFactory.swtDefaults().create());
         
         Composite filterPanel = UIUtils.createComposite(panelContents, 2);
@@ -89,9 +88,7 @@ public class MetaDataPanel implements IResultSetPanel {
         filterTextBox = new Text(filterPanel, SWT.BORDER | SWT.SEARCH | SWT.ICON_CANCEL);
         filterTextBox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         filterTextBox.setMessage(ResultSetMessages.panel_metadata_filter_hint);
-        filterTextBox.addModifyListener(e -> {
-            refresh(true);
-        });
+        filterTextBox.addModifyListener(e -> refresh(true));
         filterTextBox.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -212,9 +209,9 @@ public class MetaDataPanel implements IResultSetPanel {
                 UIUtils.getActiveWorkbenchWindow(),
                 "org.jkiss.dbeaver.ui.editors.sql.generate.ddl.by.resultSet", //$NON-NLS-1$
                 ResultSetMessages.generate_ddl_by_result_set_name,
-                UIIcon.SQL_TEXT,
+                DBIcon.SQL_TEXT,
                 ResultSetMessages.generate_ddl_by_result_set_tip,
-                false
+                true
             )
         );
     }
@@ -244,11 +241,11 @@ public class MetaDataPanel implements IResultSetPanel {
                     StringBuilder text = new StringBuilder();
                     for (Object item : getItemsViewer().getStructuredSelection().toArray()) {
                         if (item instanceof DBDAttributeBinding) {
-                            if (text.length() > 0) text.append("\n");
+                            if (!text.isEmpty()) text.append("\n");
                             text.append(((DBDAttributeBinding) item).getName());
                         }
                     }
-                    if (text.length() == 0) {
+                    if (text.isEmpty()) {
                         return;
                     }
                     UIUtils.setClipboardContents(getDisplay(), TextTransfer.getInstance(), text.toString());
@@ -267,7 +264,7 @@ public class MetaDataPanel implements IResultSetPanel {
         }
 
         @Override
-        protected Object getObjectValue(DBDAttributeBinding item) {
+        protected Object getObjectValue(@NotNull DBDAttributeBinding item) {
             if (item instanceof DBDAttributeBindingMeta) {
                 return item.getMetaAttribute();
             } else if (item != null) {
@@ -330,9 +327,7 @@ public class MetaDataPanel implements IResultSetPanel {
         }
 
         @Override
-        public Collection<DBDAttributeBinding> evaluate(DBRProgressMonitor monitor)
-            throws InvocationTargetException, InterruptedException
-        {
+        public Collection<DBDAttributeBinding> evaluate(@NotNull DBRProgressMonitor monitor) {
             return curAttributes;
         }
     }

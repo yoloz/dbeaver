@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.postgresql.PostgreConstants;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.connection.DBPConnectionBootstrap;
-import org.jkiss.dbeaver.model.dpi.DPIContainer;
-import org.jkiss.dbeaver.model.dpi.DPIElement;
 import org.jkiss.dbeaver.model.exec.*;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
@@ -55,14 +53,12 @@ public class PostgreExecutionContext extends JDBCExecutionContext implements DBC
         super(database, purpose);
     }
 
-    @DPIContainer
     @NotNull
     @Override
     public PostgreDataSource getDataSource() {
         return (PostgreDataSource) super.getDataSource();
     }
 
-    @DPIElement
     @Nullable
     @Override
     public PostgreExecutionContext getContextDefaults() {
@@ -260,12 +256,12 @@ public class PostgreExecutionContext extends JDBCExecutionContext implements DBC
                 newSearchPath.remove(schemaIndex);
             }
             // Add it first
-            newSearchPath.add(0, defSchemaName);
+            newSearchPath.addFirst(defSchemaName);
         }
 
         StringBuilder spString = new StringBuilder();
         for (String sp : newSearchPath) {
-            if (spString.length() > 0) spString.append(",");
+            if (!spString.isEmpty()) spString.append(",");
             spString.append(DBUtils.getQuotedIdentifier(getDataSource(), sp));
         }
         try (JDBCSession session = openSession(monitor, DBCExecutionPurpose.UTIL, "Change search path")) {
@@ -282,7 +278,7 @@ public class PostgreExecutionContext extends JDBCExecutionContext implements DBC
     }
 
     private static boolean isUserFirstInPath(List<String> newSearchPath) {
-        return !newSearchPath.isEmpty() && newSearchPath.get(0).equals(PostgreConstants.USER_VARIABLE);
+        return !newSearchPath.isEmpty() && newSearchPath.getFirst().equals(PostgreConstants.USER_VARIABLE);
     }
 
     private void setUserInTheEndOfThePath(List<String> searchPath) {
@@ -290,7 +286,7 @@ public class PostgreExecutionContext extends JDBCExecutionContext implements DBC
             return;
         }
         if (isUserFirstInPath(searchPath)) {
-            searchPath.remove(0);
+            searchPath.removeFirst();
             searchPath.add(PostgreConstants.USER_VARIABLE);
         } else {
             int userIndex = -1;

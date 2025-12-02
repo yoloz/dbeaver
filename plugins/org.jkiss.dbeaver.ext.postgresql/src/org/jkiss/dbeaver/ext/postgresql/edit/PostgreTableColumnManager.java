@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ public class PostgreTableColumnManager extends SQLTableColumnManager<PostgreTabl
     };
 
     @Override
-    public boolean canEditObject(PostgreTableColumn object) {
+    public boolean canEditObject(@NotNull PostgreTableColumn object) {
         return true;
     }
 
@@ -191,7 +191,9 @@ public class PostgreTableColumnManager extends SQLTableColumnManager<PostgreTabl
             column = new PostgreTableColumn(table);
             column.setName(getNewColumnName(monitor, context, table));
             final PostgreDataType dataType = table.getDatabase().getDataType(monitor, PostgreOid.VARCHAR);
-            column.setDataType(dataType); //$NON-NLS-1$
+            if (dataType != null) {
+                column.setDataType(dataType);
+            }
             column.setOrdinalPosition(-1);
         }
         return column;
@@ -299,7 +301,7 @@ public class PostgreTableColumnManager extends SQLTableColumnManager<PostgreTabl
     }
 
     @Override
-    public boolean supportsObjectDefinitionOption(String option) {
+    public boolean supportsObjectDefinitionOption(@NotNull String option) {
         return DBPScriptObject.OPTION_INCLUDE_COMMENTS.equals(option);
     }
 

@@ -16,7 +16,7 @@
  */
 package org.jkiss.dbeaver.tools.transfer.internal;
 
-import org.jkiss.dbeaver.utils.NLS;
+import org.eclipse.osgi.util.NLS;
 
 public class DTMessages extends NLS {
     static final String BUNDLE_NAME = "org.jkiss.dbeaver.tools.transfer.internal.DTMessages"; //$NON-NLS-1$
@@ -111,8 +111,8 @@ public class DTMessages extends NLS {
     public static String data_transfer_db_consumer_existing_table_description;
     public static String data_transfer_db_consumer_new_table;
     public static String data_transfer_db_consumer_new_table_description;
-    public static String data_transfer_db_consumer_button_configure;
-    public static String data_transfer_db_consumer_button_configure_description;
+    public static String data_transfer_db_consumer_button_customise;
+    public static String data_transfer_db_consumer_button_customise_description;
     public static String data_transfer_db_consumer_column_mappings;
     public static String data_transfer_db_consumer_column_mappings_description;
     public static String data_transfer_db_consumer_ddl;
@@ -142,6 +142,7 @@ public class DTMessages extends NLS {
     public static String database_consumer_settings_option_disable_referential_integrity;
     public static String database_consumer_settings_option_use_bulk_load;
     public static String database_consumer_settings_option_truncate_before_load;
+    public static String database_consumer_settings_option_enable_qm_logging;
 
     public static String data_transfer_settings_title_find_producer;
     public static String data_transfer_settings_message_find_data_producer;

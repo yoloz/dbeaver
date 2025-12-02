@@ -222,6 +222,9 @@ public class PrefPageDataFormat extends TargetPrefPage
     }
 
     private void changeProfile() {
+        if (profilesCombo == null || profilesCombo.isDisposed()) {
+            return;
+        }
         int selectionIndex = profilesCombo.getSelectionIndex();
         if (selectionIndex < 0) {
             return;
@@ -408,12 +411,29 @@ public class PrefPageDataFormat extends TargetPrefPage
         formatterProfile = null;
         refreshProfileList();
         setCurrentProfile(getDefaultProfile());
+
+        changeProfile();
+
         DBPPreferenceStore store = DBWorkbench.getPlatform().getPreferenceStore();
         datetimeNativeFormatCheck.setSelection(store.getDefaultBoolean(ModelPreferences.RESULT_NATIVE_DATETIME_FORMAT));
         numericNativeFormatCheck.setSelection(store.getDefaultBoolean(ModelPreferences.RESULT_NATIVE_NUMERIC_FORMAT));
         boolean isNumericSc = store.getDefaultBoolean(ModelPreferences.RESULT_SCIENTIFIC_NUMERIC_FORMAT);
         numericScientificFormatCheck.setSelection(isNumericSc);
         numericScientificFormatCheck.setEnabled(isNumericSc);
+
+        profileLocale = Locale.getDefault();
+        localeSelector.setLocale(profileLocale);
+
+        profileProperties.clear();
+
+        for (DataFormatterDescriptor descriptor : formatterDescriptors) {
+            Map<String, Object> defaultProps = descriptor.getSample().getDefaultProperties(profileLocale);
+            if (defaultProps != null && !defaultProps.isEmpty()) {
+                profileProperties.put(descriptor.getId(), new HashMap<>(defaultProps));
+            }
+        }
+
+        reloadFormatter();
         reloadSample();
         super.performDefaults();
     }
@@ -600,7 +620,7 @@ public class PrefPageDataFormat extends TargetPrefPage
         }
 
         @Override
-        public void setPropertyValue(@Nullable DBRProgressMonitor monitor, String id, Object value) {
+        public void setPropertyValue(@Nullable DBRProgressMonitor monitor, @NotNull String id, @Nullable Object value) {
             final Object previousValue = getPropertyValue(monitor, id);
 
             super.setPropertyValue(monitor, id, value);
@@ -614,7 +634,7 @@ public class PrefPageDataFormat extends TargetPrefPage
         }
 
         @Override
-        public void resetPropertyValueToDefault(String id) {
+        public void resetPropertyValueToDefault(@NotNull String id) {
             super.resetPropertyValueToDefault(id);
 
             try {

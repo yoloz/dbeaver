@@ -161,7 +161,7 @@
                     <replace provider="vertica" driver="vertica-jdbc-6"/>
 
 <!--                    <file type="license" path="drivers/vertica/LICENSE.txt" bundle="drivers.vertica"/>-->
-                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
 
                     <parameter name="query-get-active-db" value="select current_schema()"/>

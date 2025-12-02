@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.jkiss.dbeaver.model.sql.SQLUtils;
 import org.jkiss.utils.CommonUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -51,7 +52,7 @@ public class DBSObjectFilter {
         }
     }
 
-    public DBSObjectFilter(DBSObjectFilter filter) {
+    public DBSObjectFilter(@Nullable DBSObjectFilter filter) {
         if (filter != null) {
             this.name = filter.name;
             this.description = filter.description;
@@ -108,16 +109,17 @@ public class DBSObjectFilter {
         this.includePatterns = null;
     }
 
-    public void setInclude(List<String> include) {
+    public void setInclude(@Nullable List<String> include) {
         this.include = include;
         this.includePatterns = null;
     }
 
+    @Nullable
     public List<String> getExclude() {
         return exclude;
     }
 
-    public void addExclude(String name) {
+    public void addExclude(@NotNull String name) {
         if (exclude == null) {
             exclude = new ArrayList<>();
         }
@@ -150,14 +152,7 @@ public class DBSObjectFilter {
     }
 
     public synchronized boolean matches(String name) {
-        if (includePatterns == null && !CommonUtils.isEmpty(include)) {
-            includePatterns = new ArrayList<>(include.size());
-            for (String inc : include) {
-                if (!inc.isEmpty()) {
-                    includePatterns.add(makePattern(inc, isCaseSensitive()));
-                }
-            }
-        }
+        fillIncludePatterns();
         if (includePatterns != null) {
             // Match includes (at least one should match)
             boolean matched = false;
@@ -172,14 +167,7 @@ public class DBSObjectFilter {
             }
         }
 
-        if (excludePatterns == null && !CommonUtils.isEmpty(exclude)) {
-            excludePatterns = new ArrayList<>(exclude.size());
-            for (String exc : exclude) {
-                if (!exc.isEmpty()) {
-                    excludePatterns.add(makePattern(exc, isCaseSensitive()));
-                }
-            }
-        }
+        fillExcludePatterns();
         if (excludePatterns != null) {
             // Match excludes
             for (Object pattern : excludePatterns) {
@@ -197,6 +185,59 @@ public class DBSObjectFilter {
             return ((Pattern) pattern).matcher(name).matches();
         } else {
             return ((String) pattern).equalsIgnoreCase(name);
+        }
+    }
+
+    public synchronized boolean matchesAny(String... names) {
+        fillIncludePatterns();
+        if (includePatterns != null) {
+            boolean matched = false;
+            for (Object pattern : includePatterns) {
+                if (atLeastOneNameMatchesPattern(pattern, names)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                return false;
+            }
+        }
+
+        fillExcludePatterns();
+        if (excludePatterns != null) {
+            for (Object pattern : excludePatterns) {
+                if (atLeastOneNameMatchesPattern(pattern, names)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean atLeastOneNameMatchesPattern(Object pattern, String[] names) {
+        return Arrays.stream(names)
+            .anyMatch(name -> matchesPattern(pattern, name));
+    }
+
+    private void fillIncludePatterns() {
+        if (includePatterns == null && !CommonUtils.isEmpty(include)) {
+            includePatterns = new ArrayList<>(include.size());
+            for (String inc : include) {
+                if (!inc.isEmpty()) {
+                    includePatterns.add(makePattern(inc, isCaseSensitive()));
+                }
+            }
+        }
+    }
+
+    private void fillExcludePatterns() {
+        if (excludePatterns == null && !CommonUtils.isEmpty(exclude)) {
+            excludePatterns = new ArrayList<>(exclude.size());
+            for (String exc : exclude) {
+                if (!exc.isEmpty()) {
+                    excludePatterns.add(makePattern(exc, isCaseSensitive()));
+                }
+            }
         }
     }
 

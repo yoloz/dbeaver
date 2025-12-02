@@ -501,7 +501,7 @@
 
                     <property name="@dbeaver-default-dataformat.type.timestamp.pattern" value="yyyy-MM-dd-HH.mm.ss.ffffff"/>
 
-                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
 
 <!--                    <file type="license" path="drivers/db2/LICENSE.txt" bundle="drivers.db2"/>-->
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
@@ -567,19 +567,19 @@
         <category id="db2Tool" parent="db2" name="Tools" description="DB2 database tools" icon="icons/db2_icon.png"/>
 
         <!-- SQL tools -->
-        <task id="db2ToolTableTruncate" name="%tasks.truncate.node.name" description="%tasks.truncate.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ToolTableTruncate">
+        <task id="db2ToolTableTruncate" name="%tasks.truncate.node.name" description="%tasks.truncate.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ToolTableTruncate">
             <datasource id="db2"/>
             <objectType name="org.jkiss.dbeaver.ext.db2.model.DB2TableBase"/>
         </task>
-        <task id="db2ToolTableReorgCheck" name="%tasks.reorgcheck.node.name" description="%tasks.reorgcheck.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ReorgCheckTableTool">
+        <task id="db2ToolTableReorgCheck" name="%tasks.reorgcheck.node.name" description="%tasks.reorgcheck.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ReorgCheckTableTool">
             <datasource id="db2"/>
             <objectType name="org.jkiss.dbeaver.ext.db2.model.DB2TableBase"/>
         </task>
-        <task id="db2ToolTableReorgIndex" name="%tasks.reorgindex.node.name" description="%tasks.reorgindex.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ReorgIndexTool">
+        <task id="db2ToolTableReorgIndex" name="%tasks.reorgindex.node.name" description="%tasks.reorgindex.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2ReorgIndexTool">
             <datasource id="db2"/>
             <objectType name="org.jkiss.dbeaver.ext.db2.model.DB2TableBase"/>
         </task>
-        <task id="db2ToolTableRunstats" name="%tasks.runstats.node.name" description="%tasks.runstats.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2RunstatsTool">
+        <task id="db2ToolTableRunstats" name="%tasks.runstats.node.name" description="%tasks.runstats.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="db2Tool" handler="org.jkiss.dbeaver.ext.db2.tasks.DB2RunstatsTool">
             <datasource id="db2"/>
             <objectType name="org.jkiss.dbeaver.ext.db2.model.DB2TableBase"/>
         </task>

@@ -87,7 +87,8 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
         PostgrePrivilegeType.CONNECT,
         PostgrePrivilegeType.TEMPORARY,
         PostgrePrivilegeType.EXECUTE,
-        PostgrePrivilegeType.USAGE
+        PostgrePrivilegeType.USAGE,
+        PostgrePrivilegeType.MAINTAIN
     };
 
     private DatabaseCache databaseCache;
@@ -605,7 +606,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
     }
 
     @Override
-    public <T> T getAdapter(Class<T> adapter)
+    public <T> T getAdapter(@NotNull Class<T> adapter)
     {
         if (adapter == DBSStructureAssistant.class) {
             return adapter.cast(new PostgreStructureAssistant(this));
@@ -648,23 +649,27 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
         return PostgreUtils.resolveTypeFullName(monitor, this, typeFullName);
     }
 
+    @NotNull
     @Override
     public Collection<PostgreDataType> getLocalDataTypes()
     {
         return getDefaultInstance().getLocalDataTypes();
     }
 
+    @Nullable
     @Override
     public PostgreDataType getLocalDataType(String typeName)
     {
         return getDefaultInstance().getLocalDataType(typeName);
     }
 
+    @Nullable
     @Override
     public DBSDataType getLocalDataType(int typeID) {
         return getDefaultInstance().getLocalDataType(typeID);
     }
 
+    @NotNull
     @Override
     public String getDefaultDataTypeName(@NotNull DBPDataKind dataKind) {
         return getDefaultInstance().getDefaultDataTypeName(dataKind);
@@ -760,7 +765,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
     }
 
     @Override
-    public void collectObjectStatistics(DBRProgressMonitor monitor, boolean totalSizeOnly, boolean forceRefresh) throws DBException {
+    public void collectObjectStatistics(@NotNull DBRProgressMonitor monitor, boolean totalSizeOnly, boolean forceRefresh) throws DBException {
         if (!shouldShowStatistics) {
             return;
         }
@@ -867,6 +872,7 @@ public class PostgreDataSource extends JDBCDataSource implements DBSInstanceCont
         return new PostgreJdbcFactory();
     }
 
+    @NotNull
     @Override
     public ErrorType discoverErrorType(@NotNull Throwable error) {
         String sqlState = SQLState.getStateFromException(error);

@@ -16,10 +16,10 @@
         <module>org.jkiss.dbeaver.launcher</module>
         <module>org.jkiss.dbeaver.model</module>
         <module>org.jkiss.dbeaver.model.ai</module>
-        <module>org.jkiss.dbeaver.model.ai.copilot</module>
         <module>org.jkiss.dbeaver.model.cli</module>
         <module>org.jkiss.dbeaver.model.event</module>
         <module>org.jkiss.dbeaver.model.dashboard</module>
+        <module>org.jkiss.dbeaver.model.erd</module>
         <module>org.jkiss.dbeaver.model.jdbc</module>
         <module>org.jkiss.dbeaver.model.lsm</module>
         <module>org.jkiss.dbeaver.model.nio</module>
@@ -28,11 +28,8 @@
         <module>org.jkiss.dbeaver.model.sql</module>
         <module>org.jkiss.dbeaver.model.sql.jdbc</module>
         <module>org.jkiss.dbeaver.registry</module>
-        <module>org.jkiss.dbeaver.dpi.app</module>
-        <module>org.jkiss.dbeaver.dpi.model</module>
 
         <module>org.jkiss.dbeaver.cmp.simple</module>
-        <module>org.jkiss.dbeaver.erd.model</module>
 
         <module>org.jkiss.dbeaver.ext.generic</module>
 
@@ -58,6 +55,7 @@
         <module>org.jkiss.dbeaver.ext.hive</module>
         <module>org.jkiss.dbeaver.ext.hsqldb</module>
         <module>org.jkiss.dbeaver.ext.informix</module>
+        <module>org.jkiss.dbeaver.ext.iotdb</module>
         <module>org.jkiss.dbeaver.ext.kingbase</module>
         <module>org.jkiss.dbeaver.ext.mssql</module>
         <module>org.jkiss.dbeaver.ext.mysql</module>
@@ -78,9 +76,9 @@
         <module>org.jkiss.dbeaver.ext.trino</module>
         <module>org.jkiss.dbeaver.ext.denodo</module>
         <module>org.jkiss.dbeaver.ext.altibase</module>
-        <module>org.jkiss.dbeaver.ext.gbase8a</module>
         <module>org.jkiss.dbeaver.ext.gaussdb</module>
-
+        <module>org.jkiss.dbeaver.ext.gbase8a</module>
+        
         <module>org.jkiss.dbeaver.tasks.native</module>
 
         <module>org.jkiss.dbeaver.data.office</module>
@@ -109,7 +107,6 @@
                 <module>org.jkiss.dbeaver.ui.app.standalone</module>
                 <module>org.jkiss.dbeaver.ui.app.eclipse</module>
                 <module>org.jkiss.dbeaver.ui.app.winstore</module>
-                <module>org.jkiss.dbeaver.ai.copilot.ui</module>
                 <module>org.jkiss.dbeaver.ext.athena.ui</module>
                 <module>org.jkiss.dbeaver.ext.bigquery.ui</module>
                 <module>org.jkiss.dbeaver.ext.clickhouse.ui</module>
@@ -120,6 +117,7 @@
                 <module>org.jkiss.dbeaver.ext.db2.ui</module>
                 <module>org.jkiss.dbeaver.ext.generic.ui</module>
                 <module>org.jkiss.dbeaver.ext.hana.ui</module>
+                <module>org.jkiss.dbeaver.ext.iotdb.ui</module>
                 <module>org.jkiss.dbeaver.ext.kingbase.ui</module>
                 <module>org.jkiss.dbeaver.ext.mssql.ui</module>
                 <module>org.jkiss.dbeaver.ext.mysql.ui</module>
@@ -127,6 +125,7 @@
                 <module>org.jkiss.dbeaver.ext.oracle.ui</module>
                 <module>org.jkiss.dbeaver.ext.oracle.debug.core</module>
                 <module>org.jkiss.dbeaver.ext.oracle.debug.ui</module>
+
                 <module>org.jkiss.dbeaver.ext.postgresql.ui</module>
                 <module>org.jkiss.dbeaver.ext.postgresql.debug.core</module>
                 <module>org.jkiss.dbeaver.ext.postgresql.debug.ui</module>
@@ -146,12 +145,13 @@
                 <module>org.jkiss.dbeaver.ui.editors.connection</module>
                 <module>org.jkiss.dbeaver.ui.editors.data</module>
                 <module>org.jkiss.dbeaver.ui.editors.entity</module>
+                <module>org.jkiss.dbeaver.ui.editors.erd</module>
                 <module>org.jkiss.dbeaver.ui.editors.hex</module>
                 <module>org.jkiss.dbeaver.ui.editors.image</module>
                 <module>org.jkiss.dbeaver.ui.editors.json</module>
                 <module>org.jkiss.dbeaver.ui.editors.locks</module>
                 <module>org.jkiss.dbeaver.ui.editors.sql</module>
-                <module>org.jkiss.dbeaver.ui.editors.sql.ai</module>
+                <module>org.jkiss.dbeaver.ui.ai</module>
                 <module>org.jkiss.dbeaver.ui.editors.sql.terminal</module>
                 <module>org.jkiss.dbeaver.ui.editors.session</module>
                 <module>org.jkiss.dbeaver.ui.editors.xml</module>
@@ -165,7 +165,6 @@
                 <module>org.jkiss.dbeaver.ui.swt.macos</module>
                 <module>org.jkiss.dbeaver.ui.swt.windows</module>
 
-                <module>org.jkiss.dbeaver.erd.ui</module>
                 <module>org.jkiss.dbeaver.tasks.native.ui</module>
                 <module>org.jkiss.dbeaver.tasks.ui</module>
                 <module>org.jkiss.dbeaver.tasks.ui.view</module>

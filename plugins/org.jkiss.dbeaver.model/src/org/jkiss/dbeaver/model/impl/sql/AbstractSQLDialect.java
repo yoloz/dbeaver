@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -261,8 +261,9 @@ public abstract class AbstractSQLDialect implements SQLDialect {
 
     @Override
     public boolean isKeywordStart(@NotNull String word) {
-        SortedMap<String, KeywordHolder> map = allKeywords.tailMap(word.toUpperCase(DEF_LOCALE));
-        return !map.isEmpty() && map.firstKey().startsWith(word);
+        String upperCaseWord = word.toUpperCase(DEF_LOCALE);
+        SortedMap<String, KeywordHolder> map = allKeywords.tailMap(upperCaseWord);
+        return !map.isEmpty() && map.firstKey().startsWith(upperCaseWord);
     }
 
     @Override
@@ -480,14 +481,11 @@ public abstract class AbstractSQLDialect implements SQLDialect {
             if (!this.useCaseInsensitiveNameLookup()) {
                 // See how unquoted identifiers are stored
                 // If passed identifier case differs from unquoted then we need to escape it
-                switch (this.storesUnquotedCase()) {
-                    case UPPER:
-                        hasBadChars = !str.equals(str.toUpperCase());
-                        break;
-                    case LOWER:
-                        hasBadChars = !str.equals(str.toLowerCase());
-                        break;
-                }
+                hasBadChars = switch (this.storesUnquotedCase()) {
+                    case UPPER -> !str.equals(str.toUpperCase());
+                    case LOWER -> !str.equals(str.toLowerCase());
+                    default -> hasBadChars;
+                };
             }
         }
 

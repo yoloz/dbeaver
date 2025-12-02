@@ -282,7 +282,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
     }
 
     @Override
-    public void setName(String newName) {
+    public void setName(@NotNull String newName) {
         this.name = newName;
     }
 
@@ -314,7 +314,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
 
     @Override
     @Property(viewable = true, editable = true, updatable = true, length = PropertyLength.MULTILINE, order = 100)
-    public String getDescription(DBRProgressMonitor monitor) {
+    public String getDescription(@NotNull DBRProgressMonitor monitor) {
         if (!getDataSource().getServerType().supportsDatabaseDescription()) {
             return null;
         }
@@ -554,11 +554,13 @@ public class PostgreDatabase extends JDBCRemoteInstance
         return dataSource.resolveDataKind(typeName, typeID);
     }
 
+    @Nullable
     @Override
     public DBSDataType resolveDataType(@NotNull DBRProgressMonitor monitor, @NotNull String typeFullName) throws DBException {
         return PostgreUtils.resolveTypeFullName(monitor, this, typeFullName);
     }
 
+    @NotNull
     @Override
     public Collection<PostgreDataType> getLocalDataTypes() {
         synchronized (dataTypeCache) {
@@ -573,16 +575,19 @@ public class PostgreDatabase extends JDBCRemoteInstance
         return null;
     }
 
+    @Nullable
     @Override
     public PostgreDataType getLocalDataType(String typeName) {
         return getDataType(null, typeName);
     }
 
+    @Nullable
     @Override
     public DBSDataType getLocalDataType(int typeID) {
         return getDataType(new VoidProgressMonitor(), typeID);
     }
 
+    @NotNull
     @Override
     public String getDefaultDataTypeName(@NotNull DBPDataKind dataKind) {
         return PostgreUtils.getDefaultDataTypeName(dataKind);
@@ -836,6 +841,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         return schema.getTable(monitor, tableId);
     }
 
+    @Nullable
     @Override
     public Collection<? extends DBSObject> getChildren(@NotNull DBRProgressMonitor monitor) throws DBException {
         return getSchemas(monitor);
@@ -935,6 +941,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         return null;
     }
 
+    @Nullable
     public PostgreDataType getDataType(DBRProgressMonitor monitor, long typeId) {
         if (typeId <= 0) {
             return null;
@@ -1094,7 +1101,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         }
 
         @Override
-        protected boolean handleCacheReadError(Exception error) {
+        protected boolean handleCacheReadError(@NotNull Exception error) {
             // #271, #501: in some databases (AWS?) pg_authid is not accessible
             // FIXME: maybe some better workaround?
             return handlePermissionDeniedError(error);
@@ -1235,7 +1242,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         }
 
         @Override
-        protected boolean handleCacheReadError(Exception error) {
+        protected boolean handleCacheReadError(@NotNull Exception error) {
             log.debug("Error reading tablespaces", error);
             return true;
         }
@@ -1284,7 +1291,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         }
 
         @Override
-        protected boolean handleCacheReadError(Exception error) {
+        protected boolean handleCacheReadError(@NotNull Exception error) {
             if (PostgreConstants.EC_PERMISSION_DENIED.equals(SQLState.getStateFromException(error))) {
                 log.warn(error);
                 setCache(Collections.emptyList());
@@ -1413,7 +1420,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         }
 
         @Override
-        protected boolean handleCacheReadError(Exception error) {
+        protected boolean handleCacheReadError(@NotNull Exception error) {
             DBWorkbench.getPlatformUI().showError("Error accessing pgAgent jobs", "Can't access pgAgent jobs.\n\nThis database may not have the extension installed or you don't have sufficient permissions to access them.\n\nIf you believe that this is DBeaver's fault, please report it.", error);
             setCache(Collections.emptyList());
             return true;
@@ -1466,6 +1473,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
         {
             return false;
         }
+        @Nullable
         @Override
         public Object[] getPossibleValues(PostgreDatabase object)
         {
@@ -1486,6 +1494,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(PostgreDatabase object)
         {
@@ -1506,6 +1515,7 @@ public class PostgreDatabase extends JDBCRemoteInstance
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(PostgreDatabase object)
         {

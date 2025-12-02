@@ -6,7 +6,6 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ext.gbase8a.GBase8aUtils;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.connection.DBPConnectionBootstrap;
-import org.jkiss.dbeaver.model.dpi.DPIContainer;
 import org.jkiss.dbeaver.model.exec.DBCCachedContextDefaults;
 import org.jkiss.dbeaver.model.exec.DBCException;
 import org.jkiss.dbeaver.model.exec.DBCExecutionContextDefaults;
@@ -35,7 +34,6 @@ public class GBase8aExecutionContext extends JDBCExecutionContext implements DBC
         super(instance, purpose);
     }
 
-    @DPIContainer
     @NotNull
     @Override
     public GBase8aDataSource getDataSource() {

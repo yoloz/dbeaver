@@ -147,8 +147,9 @@ public class PostgreForeignServer extends PostgreInformation implements PostgreS
         return PostgreUtils.getObjectById(monitor, getDatabase().foreignDataWrapperCache, getDatabase(), dataWrapperId);
     }
 
+    @NotNull
     @Override
-    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+    public String getObjectDefinitionText(@NotNull DBRProgressMonitor monitor, @NotNull Map<String, Object> options) throws DBException {
         return
             "-- Foreign server: " + getName() + "\n\n" +
                 "-- DROP SERVER " + getName() + ";\n\n" +

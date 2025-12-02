@@ -22,6 +22,8 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.*;
+import org.jkiss.dbeaver.model.access.DBAAuthCredentials;
+import org.jkiss.dbeaver.model.access.DBAAuthCredentialsWithComplexProperties;
 import org.jkiss.dbeaver.model.app.DBPDataSourceRegistry;
 import org.jkiss.dbeaver.model.app.DBPProject;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
@@ -29,8 +31,11 @@ import org.jkiss.dbeaver.model.connection.DBPDriver;
 import org.jkiss.dbeaver.model.connection.DBPDriverConfigurationType;
 import org.jkiss.dbeaver.model.net.DBWHandlerConfiguration;
 import org.jkiss.dbeaver.model.net.DBWUtils;
+import org.jkiss.dbeaver.model.preferences.DBPPropertyDescriptor;
+import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.secret.DBSSecretValue;
 import org.jkiss.dbeaver.runtime.DBWorkbench;
+import org.jkiss.dbeaver.runtime.properties.PropertySourceEditable;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.utils.CommonUtils;
 
@@ -70,6 +75,7 @@ public class DataSourceUtils {
     private static final String PREFIX_HANDLER = "handler.";
     private static final String PREFIX_PROP = "prop.";
     private static final String PREFIX_AUTH_PROP = "authProp.";
+    private static final String PREFIX_ADVANCED_PROP = "advProp.";
 
     private static final Log log = Log.getLog(DataSourceUtils.class);
 
@@ -96,6 +102,7 @@ public class DataSourceUtils {
         Map<String, String> conProperties = new HashMap<>();
         Map<String, Map<String, String>> handlerProps = new HashMap<>();
         Map<String, String> authProperties = new HashMap<>();
+        Map<String, String> advancedProperties = new HashMap<>();
         DBPDataSourceFolder folder = null;
         String dsId = null, dsName = null;
 
@@ -206,6 +213,12 @@ public class DataSourceUtils {
                         Map<String, String> handlerPopMap = handlerProps.computeIfAbsent(handlerId, k -> new HashMap<>());
                         handlerPopMap.put(paramName, paramValue);
                         handled = true;
+                    } else if (paramName.startsWith(PREFIX_ADVANCED_PROP)) {
+                        String suffix = paramName.substring(PREFIX_ADVANCED_PROP.length());
+                        if (!suffix.isEmpty()) {
+                            advancedProperties.put(suffix, paramValue);
+                            handled = true;
+                        }
                     } else if (parameterHandler != null) {
                         handled = parameterHandler.setParameter(paramName, paramValue);
                     }
@@ -232,6 +245,7 @@ public class DataSourceUtils {
             if (!CommonUtils.isEmpty(password)) connConfig.setUserPassword(password);
             if (!CommonUtils.isEmpty(conProperties)) connConfig.setProperties(conProperties);
             if (!CommonUtils.isEmpty(authProperties)) connConfig.setAuthProperties(authProperties);
+            if (!CommonUtils.isEmpty(advancedProperties)) connConfig.setProviderProperties(advancedProperties);
             if (!CommonUtils.isEmpty(authModelId)) connConfig.setAuthModelId(authModelId);
 
             return dataSource;
@@ -330,6 +344,7 @@ public class DataSourceUtils {
         connConfig.setUserName(user);
         connConfig.setUserPassword(password);
         connConfig.setProperties(conProperties);
+        connConfig.setProviderProperties(advancedProperties);
         if (!CommonUtils.isEmpty(authProperties)) {
             connConfig.setAuthProperties(authProperties);
         }
@@ -391,7 +406,7 @@ public class DataSourceUtils {
         }
     }
 
-    public static boolean isFolderHasTemporaryDataSources(DataSourceFolder folder) {
+    public static boolean isFolderHasTemporaryDataSources(DBPDataSourceFolder folder) {
         return folder.getDataSourceRegistry().getDataSources().stream().anyMatch(d -> d.getFolder() == folder && d.isTemporary());
     }
 
@@ -416,5 +431,29 @@ public class DataSourceUtils {
             }
         }
         return "......";
+    }
+
+    public static void updateCredentialsFromProperties(
+        @NotNull DBRProgressMonitor monitor,
+        @NotNull DBAAuthCredentials credentials,
+        @NotNull Map<String, ?> properties
+    ) {
+        if (credentials instanceof DBAAuthCredentialsWithComplexProperties complexProperties) {
+            complexProperties.updateCredentialsFromComplexProperties(properties);
+        }
+        PropertySourceEditable editable = new PropertySourceEditable(credentials, credentials);
+        editable.collectProperties();
+        for (Map.Entry<String, ?> entry : properties.entrySet()) {
+            String propId = entry.getKey();
+            Object propValue = entry.getValue();
+            DBPPropertyDescriptor propDesc = editable.getProperty(propId);
+            if (propDesc != null) {
+                try {
+                    editable.setPropertyValue(monitor, propId, propValue);
+                } catch (Exception e) {
+                    log.error("Error setting credential property '" + propId + "'", e);
+                }
+            }
+        }
     }
 }

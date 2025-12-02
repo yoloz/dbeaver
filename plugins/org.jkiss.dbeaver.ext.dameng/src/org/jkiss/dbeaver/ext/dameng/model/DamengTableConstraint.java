@@ -16,6 +16,7 @@
  */
 package org.jkiss.dbeaver.ext.dameng.model;
 
+import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.dameng.DamengConstants;
 import org.jkiss.dbeaver.ext.generic.model.GenericTableBase;
@@ -85,8 +86,9 @@ public class DamengTableConstraint extends GenericUniqueKey implements DBPObject
         this.checkInfo = expression;
     }
 
+    @NotNull
     @Override
-    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+    public String getObjectDefinitionText(@NotNull DBRProgressMonitor monitor, @NotNull Map<String, Object> options) throws DBException {
         return DamengUtils.getDDL(monitor, this, DamengConstants.ObjectType.CONSTRAINT, this.getTable().getSchemaName());
     }
 

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -411,7 +411,7 @@ public class OracleTablespace extends OracleGlobalObject implements DBPRefreshab
 
     public static class TablespaceReferenceValidator implements IPropertyCacheValidator<DBSObjectLazy<OracleDataSource>> {
         @Override
-        public boolean isPropertyCached(DBSObjectLazy<OracleDataSource> object, Object propertyId)
+        public boolean isPropertyCached(@NotNull DBSObjectLazy<OracleDataSource> object, @NotNull Object propertyId)
         {
             return
                 object.getLazyReference(propertyId) instanceof OracleTablespace ||
@@ -421,8 +421,9 @@ public class OracleTablespace extends OracleGlobalObject implements DBPRefreshab
         }
     }
 
+    @NotNull
     @Override
-    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+    public String getObjectDefinitionText(@NotNull DBRProgressMonitor monitor, @NotNull Map<String, Object> options) throws DBException {
 
         if (ddlStringHolder != null) {
             return ddlStringHolder;

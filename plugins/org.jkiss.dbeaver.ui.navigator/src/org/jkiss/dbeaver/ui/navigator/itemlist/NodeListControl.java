@@ -77,11 +77,11 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
     private final NodeSelectionProvider selectionProvider;
 
     protected NodeListControl(
-        Composite parent,
+        @NotNull Composite parent,
         int style,
-        final IWorkbenchSite workbenchSite,
-        DBNNode rootNode,
-        IContentProvider contentProvider
+        @Nullable IWorkbenchSite workbenchSite,
+        @NotNull DBNNode rootNode,
+        @NotNull IContentProvider contentProvider
     ) {
         super(parent, style, contentProvider);
         this.workbenchSite = workbenchSite;
@@ -129,11 +129,11 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
     }
 
     NodeListControl(
-        Composite parent,
+        @NotNull Composite parent,
         int style,
-        final IWorkbenchSite workbenchSite,
-        DBNNode rootNode,
-        DBXTreeNode nodeMeta
+        @NotNull IWorkbenchSite workbenchSite,
+        @NotNull DBNNode rootNode,
+        @Nullable DBXTreeNode nodeMeta
     ) {
         this(parent, style, workbenchSite, rootNode, createContentProvider(rootNode, nodeMeta));
         this.nodeMeta = nodeMeta;
@@ -264,12 +264,13 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
         return getItemsViewer();
     }
 
+    @NotNull
     @Override
     public DBNNode getRootNode() {
         return rootNode;
     }
 
-    public void setRootNode(DBNNode rootNode) {
+    public void setRootNode(@NotNull DBNNode rootNode) {
         this.rootNode = rootNode;
     }
 
@@ -278,7 +279,7 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
     }
 
     @Override
-    protected Object getObjectValue(DBNNode item) {
+    protected Object getObjectValue(@NotNull DBNNode item) {
         if (item instanceof DBSWrapper wrapper) {
             return wrapper.getObject();
         } else if (item instanceof DBNObjectNode node) {
@@ -384,6 +385,7 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
             return getCurrentListObject();
         }
 
+        @NotNull
         @Override
         public Object getEditableValue() {
             return getObjectValue(getCurrentListObject());
@@ -408,6 +410,7 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
                 && DBWorkbench.getPlatform().getWorkspace().hasRealmPermission(RMConstants.PERMISSION_METADATA_EDITOR);
         }
 
+        @NotNull
         @Override
         public DBPPropertyDescriptor[] getProperties() {
             return getAllProperties().toArray(new DBPPropertyDescriptor[0]);
@@ -416,9 +419,9 @@ public abstract class NodeListControl extends ObjectListControl<DBNNode>
         @Override
         public void setPropertyValue(
             @Nullable DBRProgressMonitor monitor,
-            Object editableValue,
-            ObjectPropertyDescriptor prop,
-            Object newValue
+            @NotNull Object editableValue,
+            @NotNull ObjectPropertyDescriptor prop,
+            @Nullable Object newValue
         ) throws IllegalArgumentException {
             super.setPropertyValue(monitor, editableValue, prop, newValue);
             resetLazyPropertyCache(getCurrentListObject(), prop.getId());

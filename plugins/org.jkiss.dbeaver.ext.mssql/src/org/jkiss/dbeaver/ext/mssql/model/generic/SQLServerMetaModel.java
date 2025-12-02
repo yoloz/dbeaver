@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,8 +82,9 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         return productName != null && (productName.contains("IQ SAP") || productName.contains("SAP IQ") || productName.contains("Sybase IQ"));
     }
 
+    @NotNull
     @Override
-    public SQLServerGenericDataSource createDataSourceImpl(DBRProgressMonitor monitor, DBPDataSourceContainer container) throws DBException {
+    public SQLServerGenericDataSource createDataSourceImpl(@NotNull DBRProgressMonitor monitor, @NotNull DBPDataSourceContainer container) throws DBException {
         return new SQLServerGenericDataSource(monitor, container, this);
     }
 
@@ -102,7 +103,7 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public void loadProcedures(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container) throws DBException {
+    public void loadProcedures(@NotNull DBRProgressMonitor monitor, @NotNull GenericObjectContainer container) throws DBException {
         if (!isSqlServer()) {
             GenericDataSource dataSource = container.getDataSource();
             String dbName = DBUtils.getQuotedIdentifier(container.getParentObject());
@@ -144,13 +145,22 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         }
     }
 
+    @NotNull
     @Override
-    public SQLServerGenericProcedure createProcedureImpl(GenericStructContainer container, String procedureName, String specificName, String remarks, DBSProcedureType procedureType, GenericFunctionResultType functionResultType) {
+    public SQLServerGenericProcedure createProcedureImpl(
+        @NotNull GenericStructContainer container,
+        @NotNull String procedureName,
+        String specificName,
+        String remarks,
+        @NotNull
+        DBSProcedureType procedureType,
+        GenericFunctionResultType functionResultType
+    ) {
         return new SQLServerGenericProcedure(container, procedureName, specificName, remarks, procedureType, functionResultType);
     }
 
     @Override
-    public String getProcedureDDL(DBRProgressMonitor monitor, GenericProcedure sourceObject) throws DBException {
+    public String getProcedureDDL(@NotNull DBRProgressMonitor monitor, @NotNull GenericProcedure sourceObject) throws DBException {
         String objectName = sourceObject.getName();
         GenericDataSource dataSource = sourceObject.getDataSource();
         if (isSqlServer() && dataSource.isServerVersionAtLeast(SQLServerConstants.SQL_SERVER_2005_VERSION_MAJOR, 0)) {
@@ -180,8 +190,12 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
                             "LEFT JOIN " +
                             DBUtils.getQuotedIdentifier(sourceObject.getCatalog()) + ".dbo.sysobjects so " +
                             "ON so.id = s.object_id\n" +
-                            "WHERE s.proc_name=?")) {
+                            "LEFT JOIN " +
+                            DBUtils.getQuotedIdentifier(sourceObject.getCatalog()) + ".dbo.sysusers su " +
+                            "ON s.creator = su.uid\n" +
+                            "WHERE s.proc_name=? AND su.name=?")) {
                         dbStat.setString(1, objectName);
+                        dbStat.setString(2, sourceObject.getSchema().getName());
                         try (JDBCResultSet dbResult = dbStat.executeQuery()) {
                             if (dbResult.nextRow()) {
                                 String source = dbResult.getString(1);
@@ -212,6 +226,7 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         return true;
     }
 
+    @NotNull
     @Override
     public JDBCStatement prepareTableTriggersLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws SQLException {
         String schema = SQLServerUtils.getSystemSchemaFQN(container.getDataSource(), container.getCatalog().getName(), getSystemSchema());
@@ -239,6 +254,7 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         return dbStat;
     }
 
+    @NotNull
     @Override
     public GenericTrigger createTableTriggerImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer genericStructContainer, @NotNull GenericTableBase genericTableBase, String name, @NotNull JDBCResultSet resultSet) throws DBException {
         if (CommonUtils.isEmpty(name)) {
@@ -252,7 +268,7 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public List<GenericTrigger> loadTriggers(DBRProgressMonitor monitor, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws DBException {
+    public List<GenericTrigger> loadTriggers(@NotNull DBRProgressMonitor monitor, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws DBException {
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Read triggers")) {
 
             try (JDBCPreparedStatement dbStat = (JDBCPreparedStatement) prepareTableTriggersLoadStatement(session, container, table)) {
@@ -363,8 +379,9 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         return sqlServer ? ServerType.SQL_SERVER : ServerType.SYBASE;
     }
 
+    @NotNull
     @Override
-    public SQLServerGenericIndex createIndexImpl(GenericTableBase table, boolean nonUnique, String qualifier, long cardinality, String indexName, DBSIndexType indexType, boolean persisted) {
+    public SQLServerGenericIndex createIndexImpl(@NotNull GenericTableBase table, boolean nonUnique, String qualifier, long cardinality, String indexName, DBSIndexType indexType, boolean persisted) {
         return new SQLServerGenericIndex(table, nonUnique, qualifier, cardinality, indexName, indexType, persisted);
     }
 
@@ -383,12 +400,20 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
         return true;
     }
 
+    @Nullable
     @Override
-    public List<GenericSchema> loadSchemas(JDBCSession session, GenericDataSource dataSource, GenericCatalog catalog) throws DBException {
+    public List<GenericSchema> loadSchemas(
+        @NotNull JDBCSession session,
+        @NotNull GenericDataSource dataSource,
+        @Nullable GenericCatalog catalog
+    ) throws DBException {
         boolean showAllSchemas = SQLServerUtils.isShowAllSchemas(dataSource);
         final DBSObjectFilter schemaFilters = dataSource.getContainer().getObjectFilter(GenericSchema.class, catalog, false);
 
-        String sysSchema = SQLServerUtils.getSystemSchemaFQN(dataSource, catalog.getName(), getSystemSchema());
+        String sysSchema = SQLServerUtils.getSystemSchemaFQN(
+            dataSource,
+            catalog == null ? null : catalog.getName(),
+            getSystemSchema());
         String sql;
         if (showAllSchemas) {
             if (getServerType() == ServerType.SQL_SERVER && dataSource.isServerVersionAtLeast(SQLServerConstants.SQL_SERVER_2005_VERSION_MAJOR ,0)) {
@@ -463,10 +488,16 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public JDBCStatement prepareSequencesLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
+    public JDBCStatement prepareSequencesLoadStatement(
+        @NotNull JDBCSession session,
+        @NotNull GenericStructContainer container
+    ) throws SQLException {
         JDBCPreparedStatement dbStat = session.prepareStatement(
             "SELECT * FROM " +
-                SQLServerUtils.getSystemSchemaFQN(container.getDataSource(), container.getCatalog().getName(), getSystemSchema()) +
+                SQLServerUtils.getSystemSchemaFQN(
+                    container.getDataSource(),
+                    container.getCatalog() == null ? null : container.getCatalog().getName(),
+                    getSystemSchema()) +
                 ".sequences WHERE schema_name(schema_id)=?");
         dbStat.setString(1, container.getSchema().getName());
         return dbStat;
@@ -496,7 +527,10 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public JDBCStatement prepareSynonymsLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
+    public JDBCStatement prepareSynonymsLoadStatement(
+        @NotNull JDBCSession session,
+        @NotNull GenericStructContainer container
+    ) throws SQLException {
         JDBCPreparedStatement dbStat = session.prepareStatement(
             "SELECT * FROM " + SQLServerUtils.getSystemSchemaFQN(container.getDataSource(), container.getCatalog().getName(), getSystemSchema()) + ".synonyms WHERE schema_name(schema_id)=?");
         dbStat.setString(1, container.getSchema().getName());
@@ -504,7 +538,11 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public GenericSynonym createSynonymImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) {
+    public GenericSynonym createSynonymImpl(
+        @NotNull JDBCSession session,
+        @NotNull GenericStructContainer container,
+        @NotNull JDBCResultSet dbResult
+    ) {
         String name = JDBCUtils.safeGetString(dbResult, "name");
         if (CommonUtils.isEmpty(name)) {
             return null;
@@ -518,7 +556,12 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public GenericTableBase createTableOrViewImpl(GenericStructContainer container, String tableName, String tableType, JDBCResultSet dbResult) {
+    public GenericTableBase createTableOrViewImpl(
+        @NotNull GenericStructContainer container,
+        @Nullable String tableName,
+        @Nullable String tableType,
+        JDBCResultSet dbResult
+    ) {
         if (tableType != null && isView(tableType)) {
             return new SQLServerGenericView(container, tableName, tableType, dbResult);
         } else {
@@ -527,7 +570,26 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public GenericTableColumn createTableColumnImpl(@NotNull DBRProgressMonitor monitor, @Nullable JDBCResultSet dbResult, @NotNull GenericTableBase table, String columnName, String typeName, int valueType, int sourceType, int ordinalPos, long columnSize, long charLength, Integer scale, Integer precision, int radix, boolean notNull, String remarks, String defaultValue, boolean autoIncrement, boolean autoGenerated) throws DBException {
+    public GenericTableColumn createTableColumnImpl(
+        @NotNull DBRProgressMonitor monitor,
+        @Nullable JDBCResultSet dbResult,
+        @NotNull GenericTableBase table,
+        String columnName,
+        String typeName,
+        int valueType,
+        int sourceType,
+        int ordinalPos,
+        long columnSize,
+        long charLength,
+        Integer scale,
+        Integer precision,
+        int radix,
+        boolean notNull,
+        String remarks,
+        String defaultValue,
+        boolean autoIncrement,
+        boolean autoGenerated
+    ) throws DBException {
         return new SQLServerGenericTableColumn(table,
             columnName,
             typeName, valueType, sourceType, ordinalPos,
@@ -538,7 +600,7 @@ public class SQLServerMetaModel extends GenericMetaModel implements DBCQueryTran
     }
 
     @Override
-    public boolean isSystemTable(GenericTableBase table) {
+    public boolean isSystemTable(@NotNull GenericTableBase table) {
         return table.getSchema() != null && getSystemSchema().equals(table.getSchema().getName()) && table.getName().startsWith("sys");
     }
 

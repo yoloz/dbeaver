@@ -277,7 +277,6 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
 
     @Override
     public void close() {
-        columnBindings = null;
     }
     
     private boolean resolveOverwriteBlobFileConflict(@NotNull String fileName) {
@@ -638,8 +637,8 @@ public class StreamTransferConsumer implements IDataTransferConsumer<StreamConsu
     
     @Override
     public void setRuntimeParameters(Object runtimeParameters) {
-        if (runtimeParameters instanceof ConsumerRuntimeParameters) {
-            this.runtimeParameters = (ConsumerRuntimeParameters) runtimeParameters;
+        if (runtimeParameters instanceof ConsumerRuntimeParameters crp) {
+            this.runtimeParameters = crp;
         } else {
             throw new IllegalStateException("Unsupported stream transfer consumer runtime parameters " + runtimeParameters);
         }

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
-import org.jkiss.dbeaver.model.dpi.DPIContainer;
-import org.jkiss.dbeaver.model.dpi.DPIElement;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 
 import java.util.LinkedHashMap;
@@ -40,34 +38,29 @@ public abstract class AbstractDataSource implements DBPDataSource, DBSObject {
         this.container = container;
     }
 
-    @DPIContainer(root = true)
     @NotNull
     @Override
     public DBPDataSourceContainer getContainer() {
         return container;
     }
 
-    @DPIContainer
     @NotNull
     @Override
     public DBPDataSource getDataSource() {
         return this;
     }
 
-    @DPIContainer(root = true)
     @Override
     public DBSObject getParentObject() {
         return container;
     }
 
-    @DPIElement
     @NotNull
     @Override
     public String getName() {
         return container.getName();
     }
 
-    @DPIElement
     @Nullable
     @Override
     public String getDescription() {
@@ -84,6 +77,7 @@ public abstract class AbstractDataSource implements DBPDataSource, DBSObject {
         return null;
     }
 
+    @NotNull
     @Override
     public Map<String, ?> getContextAttributes() {
         return new LinkedHashMap<>(contextAttributes);
@@ -91,17 +85,22 @@ public abstract class AbstractDataSource implements DBPDataSource, DBSObject {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getContextAttribute(String attributeName) {
+    public <T> T getContextAttribute(@NotNull String attributeName) {
         return (T) contextAttributes.get(attributeName);
     }
 
     @Override
-    public <T> void setContextAttribute(String attributeName, T attributeValue) {
+    public <T> void setContextAttribute(@NotNull String attributeName, @Nullable T attributeValue) {
         contextAttributes.put(attributeName, attributeValue);
     }
 
     @Override
-    public void removeContextAttribute(String attributeName) {
+    public void removeContextAttribute(@NotNull String attributeName) {
         contextAttributes.remove(attributeName);
+    }
+
+    @Override
+    public String toString() {
+        return "datasource id=" + getContainer().getId();
     }
 }

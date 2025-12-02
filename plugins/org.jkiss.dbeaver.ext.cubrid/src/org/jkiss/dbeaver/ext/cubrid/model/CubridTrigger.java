@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 package org.jkiss.dbeaver.ext.cubrid.model;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
@@ -36,6 +32,10 @@ import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.meta.PropertyLength;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.sql.SQLUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class CubridTrigger extends GenericTableTrigger {
 
@@ -202,17 +202,17 @@ public class CubridTrigger extends GenericTableTrigger {
 
     @NotNull
     @Override
-    public String getFullyQualifiedName(DBPEvaluationContext context) {
+    public String getFullyQualifiedName(@NotNull DBPEvaluationContext context) {
         if (getTable().getDataSource().getSupportMultiSchema()) {
-            return DBUtils.getFullQualifiedName(getDataSource(), getTable().getSchema(), this);
+            return DBUtils.getQuotedIdentifier(getTable().getSchema()) + "." + DBUtils.getFullQualifiedName(getDataSource(), this);
         } else {
             return DBUtils.getFullQualifiedName(getDataSource(), this);
         }
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+    public String getObjectDefinitionText(@NotNull DBRProgressMonitor monitor, @NotNull Map<String, Object> options) throws DBException {
         if (persisted) {
             StringBuilder ddl = new StringBuilder();
             ddl.append("CREATE TRIGGER ");
@@ -225,9 +225,9 @@ public class CubridTrigger extends GenericTableTrigger {
                 ddl.append(getEvent());
             } else {
                 ddl.append(getEvent());
-                ddl.append(" ON ").append(getTable().getUniqueName());
+                ddl.append(" ON ").append(getTable().getFullyQualifiedName(DBPEvaluationContext.DDL));
                 if (getEvent().contains("UPDATE") && getTargetColumn() != null) {
-                    ddl.append("(" + getTargetColumn() + ")");
+                    ddl.append("(" + DBUtils.getQuotedIdentifier(getDataSource(), getTargetColumn()) + ")");
                 }
                 if (getCondition() != null) {
                     ddl.append("\nIF ").append(getCondition());
@@ -258,6 +258,7 @@ public class CubridTrigger extends GenericTableTrigger {
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(CubridTrigger object) {
             return object.columnList.toArray();
@@ -271,6 +272,7 @@ public class CubridTrigger extends GenericTableTrigger {
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(CubridTrigger object) {
             return CubridConstants.EVENT_OPTION;
@@ -284,6 +286,7 @@ public class CubridTrigger extends GenericTableTrigger {
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(CubridTrigger object) {
             return CubridConstants.ACTION_TIME_OPTION;
@@ -297,6 +300,7 @@ public class CubridTrigger extends GenericTableTrigger {
             return false;
         }
 
+        @Nullable
         @Override
         public Object[] getPossibleValues(CubridTrigger object) {
             return CubridConstants.ACTION_TYPE_OPTION;

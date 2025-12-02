@@ -184,8 +184,8 @@
                     <replace provider="mssql" driver="mssql_jdbc_ms_new"/>
                     <replace provider="mssql" driver="mssql_jdbc_legacy"/>
 
-                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[12.8.0.jre11]" bundle="!drivers.mssql.new"/>
-                    <file type="lib" path="maven:/com.microsoft.sqlserver:mssql-jdbc_auth:RELEASE[12.8.0.x64]" os="win32" arch="x86_64" optional="true" bundle="!drivers.mssql.new"/>
+                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[13.2.1.jre11]" bundle="!drivers.mssql.new"/>
+                    <file type="lib" path="maven:/com.microsoft.sqlserver:mssql-jdbc_auth:RELEASE[13.2.1.x64]" os="win32" arch="x86_64" optional="true" bundle="!drivers.mssql.new"/>
                     <file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>
 
                     <file type="jar" path="drivers/mssql/new" bundle="drivers.mssql.new"/>
@@ -218,7 +218,7 @@
 
                     <replace provider="mssql" driver="mssql_jdbc_azure"/>
 
-                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[12.8.0.jre11]" bundle="!drivers.mssql.new"/>
+                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[13.2.1.jre11]" bundle="!drivers.mssql.new"/>
                     <file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>
                     <file type="jar" path="drivers/mssql/new" bundle="drivers.mssql.new"/>
 
@@ -245,7 +245,7 @@
 
                     <replace provider="mssql" driver="mssql_jdbc_babelfish"/>
 
-                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[12.8.0.jre11]" bundle="!drivers.mssql.new"/>
+                    <file type="jar" path="maven:/com.microsoft.sqlserver:mssql-jdbc:RELEASE[13.2.1.jre11]" bundle="!drivers.mssql.new"/>
                     <file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>
                     <file type="jar" path="drivers/mssql/new" bundle="drivers.mssql.new"/>
                     <file type="license" path="drivers/mssql/new/LICENSE.txt" bundle="drivers.mssql.new"/>
@@ -289,16 +289,16 @@
                     <replace provider="mssql" driver="mssql_jdbc_ms_new"/>
                     <replace provider="mssql" driver="mssql_jdbc_legacy"/>
 
-                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.5]" bundle="!drivers.yzsec"/>
-<!--                    <file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>-->
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
+                    <!--<file type="license" path="https://raw.githubusercontent.com/microsoft/sql-server-samples/master/license.txt" bundle="!drivers.mssql.new"/>-->
 
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
-<!--                    <file type="license" path="drivers/mssql/new/LICENSE.txt" bundle="drivers.mssql.new"/>-->
+                    <!--<file type="license" path="drivers/mssql/new/LICENSE.txt" bundle="drivers.mssql.new"/>-->
 
                     <provider-properties>
                         <propertyGroup label="Advanced">
                             <property id="@dbeaver-show-all-schemas@" label="Show all schemas" type="boolean" description="Shows all database schemas. If disabled shows only non-empty schemas."/>
-<!--                            <property id="sslTrustServerCertificate" label="Trust Server Certificate" type="boolean" description="Trust Server Certificate"/>-->
+                            <!--<property id="sslTrustServerCertificate" label="Trust Server Certificate" type="boolean" description="Trust Server Certificate"/>-->
                         </propertyGroup>
                     </provider-properties>
                 </driver>
@@ -589,15 +589,15 @@
         <category id="sqlServerTool" parent="sqlserver" name="Tools" description="SQL Server database tools" icon="icons/mssql_icon.png"/>
 
         <!-- SQL tools -->
-        <task id="mssqlToolTableRebuild" name="%tasks.rebuild.table.node.name" description="%tasks.rebuild.table.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableRebuild">
+        <task id="mssqlToolTableRebuild" name="%tasks.rebuild.table.node.name" description="%tasks.rebuild.table.node.description" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableRebuild">
             <datasource id="sqlserver"/>
             <objectType name="org.jkiss.dbeaver.ext.mssql.model.SQLServerTableBase"/>
         </task>
-        <task id="mssqlToolTriggerEnable" name="Enable trigger" description="Enable trigger(s)" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableTriggerEnable">
+        <task id="mssqlToolTriggerEnable" name="Enable trigger" description="Enable trigger(s)" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableTriggerEnable">
             <datasource id="sqlserver"/>
             <objectType name="org.jkiss.dbeaver.ext.mssql.model.SQLServerTableTrigger" if="object.canEnable()"/>
         </task>
-        <task id="mssqlToolTriggerDisable" name="Disable trigger" description="Disable trigger(s)" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.png" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableTriggerDisable">
+        <task id="mssqlToolTriggerDisable" name="Disable trigger" description="Disable trigger(s)" icon="platform:/plugin/org.jkiss.dbeaver.model/icons/tree/admin.svg" type="sqlServerTool" handler="org.jkiss.dbeaver.ext.mssql.tasks.SQLServerToolTableTriggerDisable">
             <datasource id="sqlserver"/>
             <objectType name="org.jkiss.dbeaver.ext.mssql.model.SQLServerTableTrigger" if="object.canDisable()"/>
         </task>
@@ -612,8 +612,7 @@
                 description="SSL settings"
                 desktop="false"
                 secured="false"
-                pinned="true"
-                order="100"
+                order="2"
                 handlerClass="org.jkiss.dbeaver.ext.mssql.model.SQLServerSSLHandlerImpl">
             <propertyGroup label="Parameters">
                 <property id="ssl.keystore.value" label="Keystore" type="file" features="secured,password,file"/>

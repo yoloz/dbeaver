@@ -17,11 +17,13 @@
 
 package org.jkiss.dbeaver.model.cli;
 
+import org.eclipse.core.runtime.Platform;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.app.DBPWorkspace;
 import org.jkiss.dbeaver.utils.GeneralUtils;
+import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.rest.RestServer;
 
 import java.io.ByteArrayOutputStream;
@@ -50,6 +52,7 @@ public abstract class ApplicationInstanceServer<T extends ApplicationInstanceCon
         server = RestServer
             .builder(controllerClass, controllerClass.cast(this))
             .setFilter(address -> address.getAddress().isLoopbackAddress())
+            .setLandingPage(GeneralUtils.getProductTitle())
             .create();
 
         configFileChannel = FileChannel.open(
@@ -59,7 +62,7 @@ public abstract class ApplicationInstanceServer<T extends ApplicationInstanceCon
 
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             Properties props = new Properties();
-            props.setProperty("port", String.valueOf(server.getAddress().getPort()));
+            props.setProperty(portPropertyName(), String.valueOf(server.getAddress().getPort()));
             props.store(os, "DBeaver instance server properties");
             configFileChannel.write(ByteBuffer.wrap(os.toByteArray()));
         }
@@ -124,4 +127,44 @@ public abstract class ApplicationInstanceServer<T extends ApplicationInstanceCon
         }
     }
 
+    public static class InstanceConnectionParameters implements GeneralUtils.IParameterHandler {
+        boolean makeConnect = true;
+        boolean openConsole = false;
+        boolean createNewConnection = true;
+
+        @Override
+        public boolean setParameter(String name, String value) {
+            return switch (name) {
+                case "connect" -> {
+                    makeConnect = CommonUtils.toBoolean(value);
+                    yield true;
+                }
+                case "openConsole" -> {
+                    openConsole = CommonUtils.toBoolean(value);
+                    yield true;
+                }
+                case "create" -> {
+                    createNewConnection = CommonUtils.toBoolean(value);
+                    yield true;
+                }
+                default -> false;
+            };
+        }
+
+        public boolean isCreateNewConnection() {
+            return createNewConnection;
+        }
+
+        public boolean isMakeConnect() {
+            return makeConnect;
+        }
+
+        public boolean isOpenConsole() {
+            return openConsole;
+        }
+    }
+
+    protected static String portPropertyName() {
+        return Platform.getProduct().getId() + ".port";
+    }
 }

@@ -18,6 +18,7 @@ package org.jkiss.dbeaver.launcher;
 
 import org.eclipse.equinox.launcher.JNIBridge;
 
+import java.awt.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,24 +34,23 @@ import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.security.KeyStore;
 import java.security.ProtectionDomain;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import javax.swing.*;
 
 
 /**
  * The launcher for Eclipse.
- *
  * Copied from org.eclipse.equinox.launcher.Main
- *
  * <b>Note:</b> This class should not be referenced programmatically by
  * other Java code. This class exists only for the purpose of launching Eclipse
  * from the command line. To launch Eclipse programmatically, use
@@ -128,7 +128,10 @@ public class DBeaverLauncher {
     private String splashLocation = null;
     private String endSplash = null;
     private boolean initialize = false;
+    private boolean newInstance = false;
     protected boolean splashDown = false;
+    protected boolean cliMode = false;
+    protected String productId = null;
 
     public final class SplashHandler extends Thread {
         @Override
@@ -136,7 +139,9 @@ public class DBeaverLauncher {
             takeDownSplash();
         }
 
+        @SuppressWarnings("unused")
         public void updateSplash() {
+            // Called via reflection by org.eclipse.core.runtime.internal.adaptor.DefaultStartupMonitor.DefaultStartupMonitor
             if (bridge != null && !splashDown) {
                 bridge.updateSplash();
             }
@@ -174,6 +179,7 @@ public class DBeaverLauncher {
     private static final String APPEND_VMARGS = "--launcher.appendVmargs"; //$NON-NLS-1$
     private static final String OVERRIDE_VMARGS = "--launcher.overrideVmargs"; //$NON-NLS-1$
     private static final String NL = "-nl"; //$NON-NLS-1$
+    private static final String NEW_INSTANCE = "-newInstance"; //$NON-NLS-1$
     private static final String ENDSPLASH = "-endsplash"; //$NON-NLS-1$
     private static final String[] SPLASH_IMAGES = {"splash.png", //$NON-NLS-1$
             "splash.jpg", //$NON-NLS-1$
@@ -300,14 +306,17 @@ public class DBeaverLauncher {
     public static final String ARG_ECLIPSE_KEYRING = "-eclipse.keyring"; //$NON-NLS-1$
 
     private static final String DEFAULT_SECURE_STORAGE_FILENAME = ".eclipse/org.eclipse.equinox.security/secure_storage"; //$NON-NLS-1$
-    private static final String ENV_DATA_HOME_WIN = "APPDATA"; //$NON-NLS-1$
-    private static final String LOCATION_DATA_HOME_UNIX = "~/.local/share"; //$NON-NLS-1$
-    private static final String LOCATION_DATA_HOME_MAC = "~/Library"; //$NON-NLS-1$
-    private static final String DB_DATA_HOME = "@data.home"; //$NON-NLS-1$
 
     private static final String DBEAVER_CONFIG_FOLDER = "settings";
     private static final String DBEAVER_CONFIG_FILE = "global-settings.ini";
     private static final String DBEAVER_PROP_LANGUAGE = "nl";
+
+    // List of incompatible Windows versions for those which we want to show a warning dialog
+    private static final Set<String> INCOMPATIBLE_WINDOWS_VERSIONS = Set.of(
+        "Windows 7",
+        "Windows 8",
+        "Windows Server 2012"
+    );
 
     /**
      * A structured form for a version identifier.
@@ -318,13 +327,6 @@ public class DBeaverLauncher {
     static class Identifier {
         private static final String DELIM = ". _-"; //$NON-NLS-1$
         private int major, minor, service;
-
-        Identifier(int major, int minor, int service) {
-            super();
-            this.major = major;
-            this.minor = minor;
-            this.service = service;
-        }
 
         /**
          * @throws NumberFormatException if cannot parse the major and minor version components
@@ -584,6 +586,8 @@ public class DBeaverLauncher {
      * @throws Exception thrown if a problem occurs during the launch
      */
     protected void basicRun(String[] args) throws Exception {
+        checkCompatibleWindowsVersion();
+
         System.setProperty("eclipse.startTime", Long.toString(System.currentTimeMillis())); //$NON-NLS-1$
         commands = args;
         String[] passThruArgs = processCommandLine(args);
@@ -595,9 +599,13 @@ public class DBeaverLauncher {
         processConfiguration();
         processGlobalConfiguration();
         Path dbeaverDataDir = getDataDirectory();
+        if (log == null) {
+            openLogFile();
+        }
         try {
-            if (processCommandLineAsClient(args, dbeaverDataDir)) {
-                System.setProperty(PROP_EXITCODE, Integer.toString(0));
+            CommandLineExecuteResult commandLineExecuteResult = processCommandLineAsClient(passThruArgs, dbeaverDataDir);
+            if (commandLineExecuteResult.shutdown()) {
+                System.setProperty(PROP_EXITCODE, Integer.toString(commandLineExecuteResult.exitCode()));
                 return;
             }
         } catch (Exception e) {
@@ -638,44 +646,106 @@ public class DBeaverLauncher {
         //if (!checkConfigurationLocation(configurationLocation))
         //    return;
 
-        // splash handling is done here, because the default case needs to know
-        // the location of the boot plugin we are going to use
-        handleSplash(bootPath);
+        if (!hasAppParameters(passThruArgs)) {
+            // splash handling is done here, because the default case needs to know
+            // the location of the boot plugin we are going to use
+            handleSplash(bootPath);
+        } else {
+            passThruArgs = Stream.concat(Arrays.stream(passThruArgs), Arrays.stream(new String[] {NOSPLASH}))
+                .toArray(String[]::new);
+        }
 
         beforeFwkInvocation();
         invokeFramework(passThruArgs, bootPath);
     }
 
-
-    private boolean processCommandLineAsClient(String[] args, Path dbeaverDataDir) throws Exception {
-        if (args == null || args.length == 0) {
-            return false;
+    // Verifies that args has any non-standard parameters
+    private boolean hasAppParameters(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg.equals(PRODUCT) || arg.equals(DEV) ||
+                arg.equals(STARTUP) ||
+                arg.equals(OS) || arg.equals(WS) || arg.equals(ARCH) ||
+                arg.equals(ARG_ECLIPSE_KEYRING) || arg.equals(LAUNCHER)) {
+                i++;
+                continue;
+            }
+            if (arg.equals("-consoleLog")) {
+                continue;
+            }
+            return true;
         }
+        return false;
+    }
+
+    private void checkCompatibleWindowsVersion() {
+        if (GraphicsEnvironment.isHeadless() || isCompatibleWindowsVersion()) {
+            return;
+        }
+
+        try {
+            SwingUtilities.invokeAndWait(() -> JOptionPane.showMessageDialog(
+                null,
+                """
+                    You are using an incompatible operating system version: minimal supported
+                    version is Windows 10 (1607) or Windows Server 2016.
+                    
+                    You might experience issues and unexpected behavior when running DBeaver.
+                    
+                    Consider using an older version of DBeaver that supports your operating
+                    system, or upgrade your operating system to a newer version.
+                    """,
+                "Incompatible OS",
+                JOptionPane.ERROR_MESSAGE
+            ));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static boolean isCompatibleWindowsVersion() {
+        String name = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+        for (String other : INCOMPATIBLE_WINDOWS_VERSIONS) {
+            if (name.startsWith(other.toLowerCase(Locale.ROOT))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private CommandLineExecuteResult processCommandLineAsClient(String[] args, Path dbeaverDataDir) throws Exception {
         Path workspacePath = detectDefaultWorkspaceLocation(args, dbeaverDataDir);
+
+        if (args == null || args.length == 0 || newInstance) {
+            return new CommandLineExecuteResult(cliMode);
+        }
+
         if (Files.notExists(workspacePath)) {
-            return false;
+            return new CommandLineExecuteResult(cliMode);
         }
         Integer serverPort = readDBeaverServerPort(workspacePath);
+
         if (serverPort == null) {
-            return false;
+            return new CommandLineExecuteResult(cliMode);
         }
-        //TODO auto-closable after full 21 java migration
+
         ExecutorService httpExecutor = Executors.newSingleThreadExecutor();
-        HttpClient client = HttpClient.newBuilder()
-            .executor(httpExecutor)
-            .cookieHandler(new CookieManager())
-            .sslContext(initCustomSslContext())
-            .build();
-        boolean shutdownApplication = false;
-        try {
+        try (
+            HttpClient client = HttpClient.newBuilder()
+                .executor(httpExecutor)
+                .cookieHandler(new CookieManager())
+                .sslContext(initCustomSslContext())
+                .build()
+        ) {
+            boolean shutdownApplication;
+            short exitCode = -1;
+
             HttpResponse.BodyHandler<String> stringBodyHandler =
                 response -> HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
-            String json = "{args=[" +
-                Arrays.stream(args)
-                    .filter(Objects::nonNull)
-                    .map(arg -> "\"" + LauncherUtils.escape(arg) + "\"")
-                    .collect(Collectors.joining(","))
-                + "]}";
+            String json = Arrays.stream(args)
+                .filter(Objects::nonNull)
+                .map(arg -> "\"" + LauncherUtils.escape(arg) + "\"")
+                .collect(Collectors.joining(",", "{\"args\":[", "]}"));
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + serverPort + "/handleCommandLine"))
                 .header("Content-Type", "application/json")
@@ -685,17 +755,14 @@ public class DBeaverLauncher {
             String responseData = response.body();
             if (!responseData.startsWith("{") || !responseData.endsWith("}")) {
                 System.out.println("Response is not expected json: " + responseData);
-                return false;
+                return new CommandLineExecuteResult(cliMode);
             }
-            // remove json '{' '}' braces
-            //            responseData = responseData.substring(1, responseData.length() - 1);
-            Pattern actionPattern = Pattern.compile("\"postAction\"\s*:\s*\"([^,]*)\",");
-            Pattern outputPattern = Pattern.compile("\"output\"\s*:\s*\"(.*?)\"}");
 
             String action = null;
             String output = null;
-            Matcher actionMatcher = actionPattern.matcher(responseData);
-            Matcher outputMatcher = outputPattern.matcher(responseData);
+            Matcher actionMatcher = CommandLineConstants.ACTION_PATTERN.matcher(responseData);
+            Matcher outputMatcher = CommandLineConstants.OUTPUT_PATTERN.matcher(responseData);
+            Matcher exitCodeMatcher = CommandLineConstants.EXIT_CODE_PATTERN.matcher(responseData);
 
             if (actionMatcher.find()) {
                 action = actionMatcher.group(1);
@@ -703,7 +770,13 @@ public class DBeaverLauncher {
             if (outputMatcher.find()) {
                 output = outputMatcher.group(1);
             }
-
+            if (exitCodeMatcher.find()) {
+                try {
+                    exitCode = Short.parseShort(exitCodeMatcher.group(1));
+                } catch (NumberFormatException e) {
+                    System.out.println("Error parsing exit code: " + e.getMessage());
+                }
+            }
             shutdownApplication = "SHUTDOWN".equals(action);
 
             if ("ERROR".equals(action)) {
@@ -711,17 +784,30 @@ public class DBeaverLauncher {
             }
 
             if (output != null && !output.isEmpty()) {
-                output = output.replace("\\n", "\n");
+                // since we don't have gson and don't deserialize the response, remove escaping for cleaner output
+                output = output
+                    .replace("\\\\\\\"", "\"")
+                    .replace("\\\"", "\"")
+                    .replace("\\\\\\\\t", "\t")
+                    .replace("\\\\t", "\t")
+                    .replace("\\\"{", "{")
+                    .replace("}\\\"", "}")
+                    .replace("\\\\\\\\n", "\n")
+                    .replace("\\\\n", "\n")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "")
+                ;
                 System.out.println(output);
             }
+            return new CommandLineExecuteResult(shutdownApplication || cliMode, exitCode);
         } catch (Exception e) {
             if (e.getMessage() != null) {
                 System.out.println("Error during calling DBeaver server: " + e.getMessage());
             }
+            return new CommandLineExecuteResult(false, (short) -1);
         } finally {
             httpExecutor.shutdown();
         }
-        return shutdownApplication;
     }
 
     /**
@@ -742,6 +828,7 @@ public class DBeaverLauncher {
             String arg = args[i];
             if (PRODUCT.equals(arg)) {
                 productName = args[++i];
+                productId = productName;
             }
             if (ARG_DATA.equals(arg)) {
                 customWorkspacePath = args[++i];
@@ -765,16 +852,19 @@ public class DBeaverLauncher {
         if (Files.notExists(dbeaverProperties)) {
             return null;
         }
+        if (productId == null || productId.isEmpty()) {
+            return null;
+        }
         Properties properties = new Properties();
         try (var is = Files.newInputStream(dbeaverProperties)) {
             properties.load(is);
-            String portProperty = properties.getProperty(Constants.PROPERTY_PORT);
+            String portProperty = properties.getProperty(productId + "." + Constants.PROPERTY_PORT);
             if (portProperty == null || portProperty.isBlank()) {
                 return null;
             }
             return Integer.valueOf(portProperty);
         } catch (Exception e) {
-            e.printStackTrace();
+            log(e);
             return null;
         }
     }
@@ -822,10 +912,10 @@ public class DBeaverLauncher {
         try {
             method.invoke(clazz, passThruArgs, splashHandler);
         } catch (InvocationTargetException e) {
-            if (e.getTargetException() instanceof Error)
-                throw (Error) e.getTargetException();
-            else if (e.getTargetException() instanceof Exception)
-                throw (Exception) e.getTargetException();
+            if (e.getTargetException() instanceof Error error)
+                throw error;
+            else if (e.getTargetException() instanceof Exception exception)
+                throw exception;
             else
                 //could be a subclass of Throwable!
                 throw e;
@@ -1545,18 +1635,6 @@ public class DBeaverLauncher {
     }
 
     /**
-     * Runs this launcher with the arguments specified in the given string.
-     *
-     * @param argString the arguments string
-     */
-    public static void main(String argString) {
-        ArrayList<String> list = new ArrayList<>(5);
-        for (StringTokenizer tokens = new StringTokenizer(argString, " "); tokens.hasMoreElements(); ) //$NON-NLS-1$
-            list.add(tokens.nextToken());
-        main(list.toArray(new String[0]));
-    }
-
-    /**
      * Runs the platform with the given arguments.  The arguments must identify
      * an application to run (e.g., <code>-application com.example.application</code>).
      * After running the application <code>System.exit(N)</code> is executed.
@@ -1693,6 +1771,17 @@ public class DBeaverLauncher {
 
             //just consume the --launcher.overrideVmargs and --launcher.appendVmargs
             if (args[i].equalsIgnoreCase(APPEND_VMARGS) || args[i].equalsIgnoreCase(OVERRIDE_VMARGS)) {
+                found = true;
+            }
+
+            // look for the new instance arg
+            if (args[i].equalsIgnoreCase(NEW_INSTANCE)) {
+                newInstance = true;
+                found = true;
+            }
+
+            if (args[i].equalsIgnoreCase(Constants.ARG_FORCE_CLI_MODE)) {
+                cliMode = true;
                 found = true;
             }
 
@@ -1969,6 +2058,9 @@ public class DBeaverLauncher {
 
     private Path useCustomSecretStorage(Path localPath) {
         try {
+            if (!Files.exists(localPath)) {
+                Files.createDirectories(localPath);
+            }
             if (Files.exists(localPath)) {
                 Path storagePath =
                     localPath
@@ -2067,7 +2159,12 @@ public class DBeaverLauncher {
     private void processGlobalConfiguration() {
         try {
             final Properties config = readGlobalConfiguration();
-            setSystemPropertyIfNotSet(PROP_NL, config.getProperty(DBEAVER_PROP_LANGUAGE));
+            String nlProperty = config.getProperty(DBEAVER_PROP_LANGUAGE);
+            if (nlProperty == null || nlProperty.isBlank()) {
+                // Make English the default language
+                nlProperty = "en";
+            }
+            setSystemPropertyIfNotSet(PROP_NL, nlProperty);
         } catch (IOException e) {
             log("Unable to read global configuration file: " + e.getMessage());
         }
@@ -2198,6 +2295,9 @@ public class DBeaverLauncher {
                         System.out.println("Shared configuration location:\n    " + sharedConfigURL.toExternalForm()); //$NON-NLS-1$
                 }
             }
+        }
+        if (configuration != null && configuration.containsKey(Constants.ECLIPSE_PROPERTY_PRODUCT_ID)) {
+            productId = configuration.getProperty(Constants.ECLIPSE_PROPERTY_PRODUCT_ID);
         }
         // setup the path to the framework
         String urlString = System.getProperty(PROP_FRAMEWORK, null);

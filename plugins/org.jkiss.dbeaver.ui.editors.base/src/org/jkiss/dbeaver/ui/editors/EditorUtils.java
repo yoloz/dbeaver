@@ -37,6 +37,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.app.DBPPlatformDesktop;
@@ -232,6 +233,8 @@ public class EditorUtils {
     public static DatabaseEditorContext getEditorContext(IEditorInput editorInput) {
         if (editorInput instanceof IInMemoryEditorInput) {
             return (DatabaseEditorContext) ((IInMemoryEditorInput) editorInput).getProperty(PROP_EDITOR_CONTEXT);
+        } else if (editorInput instanceof IncludedScriptFileEditorInput input) {
+            return input.getDatabaseEditorContext();
         }
         return null;
     }
@@ -244,6 +247,10 @@ public class EditorUtils {
     }
 
     public static DBPDataSourceContainer getInputDataSource(IEditorInput editorInput) {
+        return getInputDataSource(editorInput, true);
+    }
+
+    public static DBPDataSourceContainer getInputDataSource(IEditorInput editorInput, boolean forceRegistryLoad) {
         if (editorInput instanceof IDatabaseEditorInput dei) {
             final DBSObject object = dei.getDatabaseObject();
             if (object != null && object.getDataSource() != null) {
@@ -258,7 +265,7 @@ public class EditorUtils {
         } else {
             IFile file = getFileFromInput(editorInput);
             if (file != null) {
-                return getFileDataSource(file);
+                return getFileDataSource(file, forceRegistryLoad);
             } else {
                 File localFile = getLocalFileFromInput(editorInput);
                 if (localFile != null) {
@@ -274,7 +281,9 @@ public class EditorUtils {
                         return null;
                     }
                     DBPProject projectMeta = DBPPlatformDesktop.getInstance().getWorkspace().getProject(project);
-                    return projectMeta == null ? null : projectMeta.getDataSourceRegistry().getDataSource(dataSourceId);
+                    return projectMeta == null || (!forceRegistryLoad && !projectMeta.isRegistryLoaded()) ?
+                        null :
+                        projectMeta.getDataSourceRegistry().getDataSource(dataSourceId);
 
                 } else {
                     return null;
@@ -322,13 +331,18 @@ public class EditorUtils {
 
     @Nullable
     public static DBPDataSourceContainer getFileDataSource(IFile file) {
+        return getFileDataSource(file, true);
+    }
+
+    @Nullable
+    public static DBPDataSourceContainer getFileDataSource(IFile file, boolean forceRegistryLoad) {
         if (!file.exists()) {
             return null;
         }
         RCPProject projectMeta = DBPPlatformDesktop.getInstance().getWorkspace().getProject(file.getProject());
         if (projectMeta != null) {
             Object dataSourceId = EditorUtils.getResourceProperty(projectMeta, file, PROP_CONTEXT_DEFAULT_DATASOURCE);
-            if (dataSourceId != null) {
+            if (dataSourceId != null && (forceRegistryLoad || projectMeta.isRegistryLoaded())) {
                 DBPDataSourceContainer dataSource = projectMeta.getDataSourceRegistry().getDataSource(dataSourceId.toString());
                 if (dataSource == null) {
                     log.debug("Datasource " + dataSourceId + " not found in project " + projectMeta.getName() + " (" + file.getFullPath().toString() + ")");
@@ -368,6 +382,9 @@ public class EditorUtils {
                 }
             }
             return;
+        }
+        if (editorInput instanceof IncludedScriptFileEditorInput input) {
+            input.setDatabaseEditorContext(context);
         }
         IFile file = getFileFromInput(editorInput);
         if (file != null) {
@@ -426,8 +443,6 @@ public class EditorUtils {
 
         String resourcePath = projectMeta.getResourcePath(file);
         projectMeta.setResourceProperty(resourcePath, PROP_CONTEXT_DEFAULT_DATASOURCE, dataSourceId);
-        projectMeta.setResourceProperty(resourcePath, PROP_CONTEXT_DEFAULT_CATALOG, null);
-        projectMeta.setResourceProperty(resourcePath, PROP_CONTEXT_DEFAULT_SCHEMA, null);
         if (!isDefaultContextSettings(context)) {
             String defaultCatalogName = getDefaultCatalogName(context);
             if (!CommonUtils.isEmpty(defaultCatalogName)) {
@@ -572,7 +587,7 @@ public class EditorUtils {
                         RuntimeUtils.runTask(monitor -> {
                             try (DBCSession session = executionContext.openSession(monitor, DBCExecutionPurpose.UTIL, "Rollback editor transaction")) {
                                 txnManager.rollback(session, null);
-                            } catch (DBCException e) {
+                            } catch (DBException e) {
                                 throw new InvocationTargetException(e);
                             }
                         }, "End editor transaction", 5000);
