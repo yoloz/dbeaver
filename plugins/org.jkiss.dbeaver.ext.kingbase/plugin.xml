@@ -66,6 +66,27 @@
                         <property name="connectTimeout" value="20"/>
                         <property name="escapeSyntaxCallMode" value="callIfNoReturn"/>
                 </driver>
+                <driver
+                        id="kingbase-jdbc-yzsec"
+                        label="Kingbase(YZSec)"
+                        icon="icons/kingbase_icon.png"
+                        iconBig="icons/kingbase_icon_big.png"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        defaultPort="10000"
+                        defaultDatabase="test"
+                        defaultUser="system"
+                        description="YZSec JDBC driver for Kingbase database"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        categories="sql"
+                        dialect="kingbase">
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+                    <parameter name="serverType" value="kingbase"/>
+                    <property name="loginTimeout" value="20"/>
+                    <property name="connectTimeout" value="20"/>
+                    <property name="escapeSyntaxCallMode" value="callIfNoReturn"/>
+                </driver>
             </drivers>
         </datasource>
     </extension>

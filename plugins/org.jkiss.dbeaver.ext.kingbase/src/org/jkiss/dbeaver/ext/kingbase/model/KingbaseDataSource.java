@@ -70,7 +70,7 @@ public class KingbaseDataSource extends PostgreDataSource {
     protected boolean isReadDatabaseList(DBPConnectionConfiguration configuration) {
         // It is configurable by default
         return configuration.getConfigurationType() != DBPDriverConfigurationType.URL
-            && CommonUtils.getBoolean(configuration.getProviderProperty(PostgreConstants.PROP_SHOW_NON_DEFAULT_DB), true);
+            && CommonUtils.getBoolean(configuration.getProviderProperty(PostgreConstants.PROP_SHOW_NON_DEFAULT_DB), false);
     }
     
     @Override
