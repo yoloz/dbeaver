@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.impl.jdbc.cache.JDBCObjectCache;
 import org.jkiss.dbeaver.model.meta.Association;
 import org.jkiss.dbeaver.model.meta.Property;
-import org.jkiss.dbeaver.model.preferences.DBPPropertySource;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.struct.*;
 import org.jkiss.dbeaver.model.struct.rdb.DBSCheckConstraintContainer;
@@ -74,21 +73,21 @@ public class SQLServerTable extends SQLServerTableBase
         return false;
     }
 
-    @Property(category = DBConstants.CAT_STATISTICS, viewable = false, expensive = true, order = 30)
+    @Property(viewable = true, category = DBConstants.CAT_STATISTICS, visibleIf = IsPersistedValidator.class, order = 30)
     @Override
-    public Long getRowCount(DBRProgressMonitor monitor) throws DBCException {
+    public Long getRowCount(@Nullable DBRProgressMonitor monitor) throws DBCException {
         readTableStats(monitor);
         return super.getRowCount(monitor);
     }
 
-    @Property(viewable = true, category = DBConstants.CAT_STATISTICS, order = 31)
-    public long getTotalBytes(DBRProgressMonitor monitor) throws DBCException {
+    @Property(viewable = true, category = DBConstants.CAT_STATISTICS, visibleIf = IsPersistedValidator.class, order = 31)
+    public long getTotalBytes(@Nullable DBRProgressMonitor monitor) throws DBCException {
         readTableStats(monitor);
         return totalBytes;
     }
 
-    @Property(viewable = true, category = DBConstants.CAT_STATISTICS, order = 32)
-    public long getUsedBytes(DBRProgressMonitor monitor) throws DBCException {
+    @Property(viewable = true, category = DBConstants.CAT_STATISTICS, visibleIf = IsPersistedValidator.class, order = 32)
+    public long getUsedBytes(@Nullable DBRProgressMonitor monitor) throws DBCException {
         readTableStats(monitor);
         return usedBytes;
     }
@@ -213,14 +212,8 @@ public class SQLServerTable extends SQLServerTableBase
         return totalBytes;
     }
 
-    @Nullable
-    @Override
-    public DBPPropertySource getStatProperties() {
-        return null;
-    }
-
-    private void readTableStats(DBRProgressMonitor monitor) throws DBCException {
-        if (hasStatistics()) {
+    private void readTableStats(@Nullable DBRProgressMonitor monitor) throws DBCException {
+        if (monitor == null || monitor.isForceCacheUsage() || hasStatistics()) {
             return;
         }
         if (SQLServerUtils.isDriverBabelfish(getDataSource().getContainer().getDriver())) {

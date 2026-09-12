@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
  */
 package org.jkiss.dbeaver.ui.ai.format;
 
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.model.ai.AIConstants;
 import org.jkiss.dbeaver.model.ai.AIQueryConfirmationRule;
@@ -40,11 +40,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultFormattingConfigurator implements IObjectPropertyConfigurator<AISchemaGenerator, AISettings> {
-    private Button includeSourceTextInCommentCheck;
-    private Button executeQueryImmediatelyCheck;
-
     private Button sendTypeInfoCheck;
-
     private Button sendDescriptionCheck;
 
     protected Composite settingsPanel;
@@ -65,25 +61,29 @@ public class DefaultFormattingConfigurator implements IObjectPropertyConfigurato
         settingsPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         Composite leftPanel = UIUtils.createComposite(settingsPanel, 1);
-        leftPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        leftPanel.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.HORIZONTAL_ALIGN_BEGINNING));
         createLeftPanel(leftPanel, propertyChangeListener);
 
         Composite rightPanel = UIUtils.createComposite(settingsPanel, 1);
-        rightPanel.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+        GridData rightPanelData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.HORIZONTAL_ALIGN_BEGINNING);
+        rightPanelData.horizontalIndent = 20;
+        rightPanel.setLayoutData(rightPanelData);
         createRightPanel(rightPanel);
     }
 
     protected void createLeftPanel(@NotNull Composite leftPanel, @NotNull Runnable propertyChangeListener) {
-        Group generalComposite = UIUtils.createControlGroup(
-            leftPanel, UIMessages.ui_properties_tree_viewer_category_general, 2,
-            GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING, SWT.DEFAULT
+        Composite generalComposite = UIUtils.createTitledComposite(
+            leftPanel,
+            UIMessages.ui_properties_tree_viewer_category_general,
+            2,
+            GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING
         );
         languageText = UIUtils.createLabelCombo(
             generalComposite,
             UIMessages.controls_locale_selector_label_language,
             SWT.DROP_DOWN
         );
-        ((GridData)languageText.getLayoutData()).widthHint = 100;
+        languageText.setLayoutData(GridDataFactory.create(GridData.FILL_HORIZONTAL).hint(150, -1).create());
         languageText.setToolTipText(
             """
                 Language AI engine should use in chat by default.
@@ -96,26 +96,13 @@ public class DefaultFormattingConfigurator implements IObjectPropertyConfigurato
         }
         languageText.setItems(languages.toArray(new String[0]));
 
-        Group completionGroup = UIUtils.createControlGroup(
-            leftPanel, "SQL Completion", 1,
-            GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING,
-            SWT.DEFAULT
-        );
-        Composite appearanceSettings = UIUtils.createComposite(completionGroup, 2);
-        appearanceSettings.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL));
+        createCompletionGroup(leftPanel, propertyChangeListener);
 
-        createAppearanceSettings(appearanceSettings, propertyChangeListener);
-
-        Composite completionComposite = UIUtils.createComposite(completionGroup, 2);
-        completionComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        createCompletionSettings(completionComposite, propertyChangeListener);
-
-        Group queryExecutionSettingsGroup = UIUtils.createControlGroup(
+        Composite queryExecutionSettingsGroup = UIUtils.createTitledComposite(
             leftPanel,
             AIUIMessages.gpt_preference_page_ai_query_confirm_group,
             2,
-            GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING,
-            SWT.DEFAULT
+            GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING
         );
         createQueryExecutionSettings(queryExecutionSettingsGroup);
     }
@@ -172,25 +159,16 @@ public class DefaultFormattingConfigurator implements IObjectPropertyConfigurato
     }
 
     protected void createRightPanel(Composite rightPanel) {
-        Group schemaGroup = UIUtils.createControlGroup(
+        Composite schemaGroup = UIUtils.createTitledComposite(
             rightPanel,
             AIUIMessages.gpt_preference_page_schema_group,
             2,
-            SWT.NONE,
-            5
+            GridData.FILL_HORIZONTAL
         );
         createSchemaSettings(schemaGroup);
     }
 
-    protected void createCompletionSettings(Composite completionGroup, Runnable propertyChangeListener) {
-        completionGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        executeQueryImmediatelyCheck = UIUtils.createCheckbox(
-            completionGroup,
-            AIUIMessages.gpt_preference_page_completion_execute_immediately_label,
-            AIUIMessages.gpt_preference_page_completion_execute_immediately_tip,
-            false,
-            2);
-
+    protected void createCompletionGroup(@NotNull Composite leftPanel, @NotNull Runnable propertyChangeListener) {
     }
 
     protected void createSchemaSettings(Composite schemaGroup) {
@@ -209,22 +187,10 @@ public class DefaultFormattingConfigurator implements IObjectPropertyConfigurato
             2);
     }
 
-    protected void createAppearanceSettings(Composite appearanceGroup, Runnable propertyChangeListener) {
-        includeSourceTextInCommentCheck = UIUtils.createCheckbox(
-            appearanceGroup,
-            AIUIMessages.gpt_preference_page_completion_include_source_label,
-            AIUIMessages.gpt_preference_page_completion_include_source_tip,
-            false,
-            2);
-    }
-
-
     @Override
     public void loadSettings(@NotNull AISettings aiSettings) {
         DBPPreferenceStore store = DBWorkbench.getPlatform().getPreferenceStore();
         languageText.setText(CommonUtils.notEmpty(store.getString(AIConstants.AI_RESPONSE_LANGUAGE)));
-        includeSourceTextInCommentCheck.setSelection(store.getBoolean(AIConstants.AI_INCLUDE_SOURCE_TEXT_IN_QUERY_COMMENT));
-        executeQueryImmediatelyCheck.setSelection(store.getBoolean(AIConstants.AI_COMPLETION_EXECUTE_IMMEDIATELY));
         sendTypeInfoCheck.setSelection(store.getBoolean(AIConstants.AI_SEND_TYPE_INFO));
         sendDescriptionCheck.setSelection(store.getBoolean(AIConstants.AI_SEND_DESCRIPTION));
 
@@ -261,8 +227,6 @@ public class DefaultFormattingConfigurator implements IObjectPropertyConfigurato
     public void saveSettings(@NotNull AISettings aiSettings) {
         DBPPreferenceStore store = DBWorkbench.getPlatform().getPreferenceStore();
         store.setValue(AIConstants.AI_RESPONSE_LANGUAGE, languageText.getText());
-        store.setValue(AIConstants.AI_INCLUDE_SOURCE_TEXT_IN_QUERY_COMMENT, includeSourceTextInCommentCheck.getSelection());
-        store.setValue(AIConstants.AI_COMPLETION_EXECUTE_IMMEDIATELY, executeQueryImmediatelyCheck.getSelection());
         store.setValue(AIConstants.AI_SEND_TYPE_INFO, sendTypeInfoCheck.getSelection());
         store.setValue(AIConstants.AI_SEND_DESCRIPTION, sendDescriptionCheck.getSelection());
         store.setValue(

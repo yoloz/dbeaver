@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 /**
  * DBeaver UI core
@@ -110,8 +111,9 @@ public class DesktopUI extends ConsoleUserInterface {
     // This method is called during startup thru @ComponentReference in workbench
     public void initialize() {
         new AbstractJob("Workbench listener") {
+            @NotNull
             @Override
-            protected IStatus run(DBRProgressMonitor monitor) {
+            protected IStatus run(@NotNull DBRProgressMonitor monitor) {
                 if (PlatformUI.isWorkbenchRunning() && !PlatformUI.getWorkbench().isStarting()) {
                     UIUtils.asyncExec(() -> contextListener = WorkbenchContextListener.registerInWorkbench());
                 } else {
@@ -166,7 +168,7 @@ public class DesktopUI extends ConsoleUserInterface {
             // Display the dialog
             StandardErrorDialog dialog = new StandardErrorDialog(
                 UIUtils.getActiveWorkbenchShell(),
-                Objects.requireNonNull(title, "Error"),
+                CommonUtils.notNull(title, "Error"),
                 message,
                 status,
                 IStatus.ERROR);
@@ -427,6 +429,19 @@ public class DesktopUI extends ConsoleUserInterface {
         }.execute();
     }
 
+    @Override
+    public boolean promptAuthModelCredentials(
+        @NotNull DBPDataSourceContainer dataSourceContainer
+    ) {
+        return new UITask<Boolean>() {
+            @Override
+            public Boolean runTask() {
+                final Shell shell = UIUtils.getActiveWorkbenchShell();
+                return AuthModelCredentialsDialog.openDialog(shell, dataSourceContainer);
+            }
+        }.execute();
+    }
+
     @Nullable
     @Override
     public DBAPasswordChangeInfo promptUserPasswordChange(String prompt, String userName, String oldPassword, boolean userEditable, boolean oldPasswordVisible) {
@@ -446,17 +461,47 @@ public class DesktopUI extends ConsoleUserInterface {
     }
 
     @Override
-    public String promptProperty(String prompt, String defValue) {
+    @Nullable
+    public String promptProperty(@NotNull String prompt, @Nullable String defValue) {
+        return promptProperty(s -> new EnterNameDialog(s, prompt, defValue));
+    }
+
+    @Override
+    @Nullable
+    public String promptProperty(@NotNull String title, @NotNull String prompt, @Nullable String defValue) {
+        return promptProperty(s -> new EnterNameDialog(s, prompt, defValue) {
+            @NotNull
+            @Override
+            protected String createTitle() {
+                return title;
+            }
+        });
+    }
+
+    @Nullable
+    private String promptProperty(@NotNull Function<Shell, EnterNameDialog> dialogFactory) {
         return new UITask<String>() {
             @Override
+            @Nullable
             public String runTask() {
                 final Shell shell = UIUtils.getActiveWorkbenchShell();
-                final EnterNameDialog dialog = new EnterNameDialog(shell, prompt, defValue);
+                final EnterNameDialog dialog = dialogFactory.apply(shell);
                 if (dialog.open() == IDialogConstants.OK_ID) {
                     return dialog.getResult();
                 } else {
                     return null;
                 }
+            }
+        }.execute();
+    }
+
+    @Override
+    public String promptText(String title, String prompt, String defValue) {
+        return new UITask<String>() {
+            @Override
+            public String runTask() {
+                final Shell shell = UIUtils.getActiveWorkbenchShell();                
+                return EditTextDialog.editText(shell, title, defValue, prompt);
             }
         }.execute();
     }
@@ -484,9 +529,7 @@ public class DesktopUI extends ConsoleUserInterface {
     @Override
     public void openConnectionEditor(@NotNull DBPDataSourceContainer dataSourceContainer) {
         UIUtils.syncExec(() ->
-            NavigatorHandlerObjectOpen.openConnectionEditor(
-                UIUtils.getActiveWorkbenchWindow(),
-                dataSourceContainer));
+            NavigatorHandlerObjectOpen.openConnectionEditor(dataSourceContainer));
     }
 
     @Override
@@ -540,8 +583,9 @@ public class DesktopUI extends ConsoleUserInterface {
         @NotNull DBRRunnableWithResult<Future<T>> runnable
     ) {
         final AbstractJob job = new AbstractJob(operationDescription) {
+            @NotNull
             @Override
-            protected IStatus run(DBRProgressMonitor monitor) {
+            protected IStatus run(@NotNull DBRProgressMonitor monitor) {
                 monitor.beginTask(operationDescription, IProgressMonitor.UNKNOWN);
                 try {
                     UIExecutionQueue.blockQueue();
@@ -649,12 +693,12 @@ public class DesktopUI extends ConsoleUserInterface {
 
     @NotNull
     @Override
-    public <RESULT> Job createLoadingService(ILoadService<RESULT> loadingService, ILoadVisualizer<RESULT> visualizer) {
+    public <RESULT> Job createLoadingService(@NotNull ILoadService<RESULT> loadingService, @NotNull ILoadVisualizer<RESULT> visualizer) {
         return LoadingJob.createService(loadingService, visualizer);
     }
 
     @Override
-    public void copyTextToClipboard(String text, boolean htmlFormat) {
+    public void copyTextToClipboard(@NotNull String text, boolean htmlFormat) {
         if (CommonUtils.isEmpty(text)) {
             return;
         }
@@ -676,7 +720,7 @@ public class DesktopUI extends ConsoleUserInterface {
     }
 
     @Override
-    public void executeShellProgram(String shellCommand) {
+    public void executeShellProgram(@NotNull String shellCommand) {
         UIUtils.asyncExec(() -> ShellUtils.launchProgram(shellCommand));
     }
 

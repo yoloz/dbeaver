@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,83 +20,75 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.model.ai.engine.AIModel;
 import org.jkiss.dbeaver.model.ai.engine.AIModelFeature;
+import org.jkiss.dbeaver.model.ai.utils.AIUtils;
+import org.jkiss.utils.CommonUtils;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 public final class OpenAIModels {
+    private static final Pattern EMBEDDING_MODEL_PATTERN = Pattern.compile("text-embedding-.*");
+
     private OpenAIModels() {
     }
 
-    public static final String DEFAULT_MODEL = "gpt-4o";
-
-    public static final Map<String, AIModel> KNOWN_MODELS = Stream.of(
-        new AIModel("o4-mini", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
-        new AIModel("o3-pro", 200_000, Set.of(AIModelFeature.CHAT)),
-        new AIModel("o3", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
-        new AIModel("o3-mini", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+    public static final Map<String, AIModel> KNOWN_MODELS = AIUtils.modelMap(
         new AIModel("o1-pro", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
         new AIModel("o1", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
         new AIModel("o1-mini", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
-        new AIModel("gpt-5", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
-        new AIModel("gpt-5-mini", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
-        new AIModel("gpt-5-nano", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
-        new AIModel("gpt-4.1", 1_048_576, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
-        new AIModel("gpt-4o", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
-        new AIModel("gpt-4o-mini", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
-        new AIModel("gpt-4-turbo", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("o3", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("o3-mini", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("o3-pro", 200_000, Set.of(AIModelFeature.CHAT)),
+        new AIModel("o4-mini", 200_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
         new AIModel("gpt-3.5-turbo", 16_384, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
         new AIModel("gpt-4", 8_192, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4-turbo", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4.1", 1_048_576, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4.1-mini", 1_048_576, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4.1-nano", 1_048_576, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4o", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-4o-mini", 128_000, Set.of(AIModelFeature.CHAT, AIModelFeature.STREAMING)),
+        new AIModel("gpt-5", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5-codex", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5-mini", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5-nano", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5.1", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5.1-codex", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5.2", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
+        new AIModel("gpt-5.2-pro", 400_000, Set.of(AIModelFeature.CHAT, AIModelFeature.ALWAYS_DEFAULT_TEMPERATURE), 1),
 
         new AIModel("gpt-4o-transcribe", 128_000, Set.of(AIModelFeature.SPEECH_TO_TEXT)),
         new AIModel("gpt-4o-mini-transcribe", 128_000, Set.of(AIModelFeature.SPEECH_TO_TEXT)),
-        new AIModel("whisper-1", 30_000, Set.of(AIModelFeature.SPEECH_TO_TEXT))
-    ).collect(Collectors.toMap(
-        AIModel::name,
-        Function.identity()
-    ));
+        new AIModel("whisper-1", 30_000, Set.of(AIModelFeature.SPEECH_TO_TEXT)),
 
-    public static final Set<String> DEPRECATED_MODELS = Set.of(
-        "gpt-3.5-turbo-0301",
-        "gpt-3.5-turbo-0613",
-        "gpt-3.5-turbo-1106",
-        "gpt-3.5-turbo-16k",
-        "gpt-3.5-turbo-16k-0613",
-        "gpt-3.5-turbo-16k-1106"
+        new AIModel("text-embedding-3-small", 65_536, Set.of(AIModelFeature.EMBEDDING)),
+        new AIModel("text-embedding-3-large", 65_536, Set.of(AIModelFeature.EMBEDDING)),
+        new AIModel("text-embedding-ada-002", 65_536, Set.of(AIModelFeature.EMBEDDING))
     );
 
     /**
-     * Returns the replacement model name for the given model name.
-     * If the model name is null or empty, returns the default model.
+     * Returns the effective model name for the given model name.
+     * If the model name is null or empty, returns null.
      * If the model name is known, returns it in lowercase.
-     * If the model name is deprecated, returns the default model.
      *
      * @param modelName the model name to check
-     * @return the replacement model name
+     * @return the effective model name
      */
+    @Nullable
     public static String getEffectiveModelName(@Nullable String modelName) {
-        if (modelName == null || modelName.isEmpty()) {
-            return DEFAULT_MODEL;
+        if (CommonUtils.isEmpty(modelName)) {
+            return null;
         }
         String lowerCaseModelName = modelName.toLowerCase(Locale.ROOT);
         if (KNOWN_MODELS.containsKey(lowerCaseModelName)) {
             return lowerCaseModelName;
-        }
-        if (DEPRECATED_MODELS.contains(lowerCaseModelName)) {
-            return DEFAULT_MODEL;
         }
         return modelName;
     }
 
     @NotNull
     public static Optional<AIModel> getModelByName(@Nullable String modelName) {
-        if (modelName == null || modelName.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(KNOWN_MODELS.get(modelName.toLowerCase(Locale.ROOT)));
+        return AIUtils.getModelByName(KNOWN_MODELS, modelName);
     }
 
     public static Set<AIModelFeature> detectModelFeatures(@NotNull String modelName) {
@@ -111,6 +103,10 @@ public final class OpenAIModels {
         if (isChatModel(modelName)) {
             features.add(AIModelFeature.CHAT);
             features.add(AIModelFeature.STREAMING);
+        }
+
+        if (EMBEDDING_MODEL_PATTERN.matcher(modelName).matches()) {
+            features.add(AIModelFeature.EMBEDDING);
         }
 
         return features;

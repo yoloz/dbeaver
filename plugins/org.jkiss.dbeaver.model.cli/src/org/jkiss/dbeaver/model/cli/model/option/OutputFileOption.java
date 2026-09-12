@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import picocli.CommandLine;
 
 import java.nio.file.Path;
 
-public class OutputFileOption {
+public class OutputFileOption extends AbstractFileOption {
     //stdin file name
 
     @Nullable
@@ -30,10 +30,10 @@ public class OutputFileOption {
         arity = "1",
         description = "Write the execution result to a file."
     )
-    private Path outputFile;
+    private String outputFile;
 
     @Nullable
     public Path getOutputFile() {
-        return outputFile;
+        return getPath(outputFile);
     }
 }

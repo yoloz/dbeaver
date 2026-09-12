@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.jkiss.utils.CommonUtils;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Client-side data container.
@@ -57,13 +58,27 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
     private final IResultSetController controller;
     private final DBSDataContainer dataContainer;
     private final ResultSetModel model;
-    private ResultSetDataContainerOptions options;
+    private final ResultSetDataContainerOptions options;
     private boolean filterAttributes;
 
-    public ResultSetDataContainer(IResultSetController controller, ResultSetDataContainerOptions options) {
+    public ResultSetDataContainer(@NotNull IResultSetController controller, @NotNull ResultSetDataContainerOptions options) {
+        this(
+            controller,
+            Objects.requireNonNull(controller.getDataContainer()),
+            controller.getModel(),
+            options
+        );
+    }
+
+    public ResultSetDataContainer(
+        @NotNull IResultSetController controller,
+        @NotNull DBSDataContainer dataContainer,
+        @NotNull ResultSetModel model,
+        @NotNull ResultSetDataContainerOptions options
+    ) {
         this.controller = controller;
-        this.dataContainer = controller.getDataContainer();
-        this.model = controller.getModel();
+        this.dataContainer = dataContainer;
+        this.model = model;
         this.options = options;
     }
 
@@ -77,7 +92,7 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
         return dataContainer.getParentObject();
     }
 
-    @NotNull
+    @Nullable
     @Override
     public DBPDataSource getDataSource() {
         return dataContainer.getDataSource();
@@ -86,11 +101,7 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
     @NotNull
     @Override
     public String[] getSupportedFeatures() {
-        return new String[] {FEATURE_DATA_SELECT, FEATURE_DATA_COUNT};
-    }
-
-    public ResultSetDataContainerOptions getOptions() {
-        return options;
+        return new String[] {FEATURE_DATA_SELECT, FEATURE_DATA_COUNT, FEATURE_DATA_READ_FETCHED};
     }
 
     @NotNull
@@ -105,9 +116,13 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
         long flags,
         int fetchSize
     ) throws DBException {
-        filterAttributes = proceedSelectedColumnsOnly(flags);
-        if (filterAttributes || proceedSelectedRowsOnly(flags)) {
+        boolean fetchedRowsOnly = proceedFetchedRowsOnly(flags);
+        boolean selectedRowsOnly = proceedSelectedRowsOnly(flags);
+        boolean selectedColumnsOnly = proceedSelectedColumnsOnly(flags);
 
+        filterAttributes = selectedColumnsOnly;
+
+        if ((fetchedRowsOnly || selectedRowsOnly || selectedColumnsOnly) && (dataFilter == null || !dataFilter.hasConditions())) {
             long startTime = System.currentTimeMillis();
             DBCStatistics statistics = new DBCStatistics();
             statistics.setExecuteTime(System.currentTimeMillis() - startTime);
@@ -118,7 +133,7 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
             try (resultSet) {
                 DBDDataReceiver.startFetchWorkflow(dataReceiver, session, resultSet, firstRow, maxRows);
                 while (!session.getProgressMonitor().isCanceled() && resultSet.nextRow()) {
-                    if (!proceedSelectedRowsOnly(flags) || options.getSelectedRows().contains(resultSet.curRow.getRowNumber())) {
+                    if (!selectedRowsOnly || options.getSelectedRows().contains(resultSet.curRow.getRowNumber())) {
                         dataReceiver.fetchRow(session, resultSet);
                     }
                     resultCount++;
@@ -161,6 +176,10 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
         }
     }
 
+    private boolean proceedFetchedRowsOnly(long flags) {
+        return (flags & DBSDataContainer.FLAG_USE_FETCHED_ROWS) != 0 || options.isForceFetchedRowsOnly();
+    }
+
     private boolean proceedSelectedColumnsOnly(long flags) {
         return (flags & DBSDataContainer.FLAG_USE_SELECTED_COLUMNS) != 0 && !CommonUtils.isEmpty(options.getSelectedColumns());
     }
@@ -173,7 +192,7 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
     public long countData(@NotNull DBCExecutionSource source, @NotNull DBCSession session, @Nullable DBDDataFilter dataFilter, long flags) throws DBException {
         if (proceedSelectedRowsOnly(flags)) {
             return options.getSelectedRows().size();
-        } else if (proceedSelectedColumnsOnly(flags)) {
+        } else if (proceedFetchedRowsOnly(flags) || proceedSelectedColumnsOnly(flags)) {
             return model.getRowCount();
         } else {
             return dataContainer.countData(source, session, dataFilter, flags);
@@ -193,6 +212,9 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
 
     @Override
     public <T> T getAdapter(@NotNull Class<T> adapter) {
+        if (adapter.isInstance(dataContainer)) {
+            return adapter.cast(dataContainer);
+        }
         Object result = GeneralUtils.adapt(dataContainer, adapter);
         if (result == null) {
             result = GeneralUtils.adapt(controller, adapter);
@@ -209,8 +231,9 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
         return controller.getExecutionContext();
     }
 
+    @NotNull
     @Override
-    public DBDAttributeBinding[] filterAttributeBindings(DBDAttributeBinding[] attributes) {
+    public DBDAttributeBinding[] filterAttributeBindings(@NotNull DBDAttributeBinding[] attributes) {
         DBDDataFilter dataFilter = model.getDataFilter();
         List<DBDAttributeBinding> filtered = new ArrayList<>();
         DBDAttributeBinding[] preFiltered;
@@ -357,8 +380,8 @@ public class ResultSetDataContainer implements DBSDataContainer, DBPContextProvi
         }
 
         @Override
-        public void close() {
-            // do nothing
+        public void close() throws DBException {
+            localStatement.close();
         }
 
         private class CustomResultSetMeta extends LocalResultSetMeta {

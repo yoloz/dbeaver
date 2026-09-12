@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.jkiss.dbeaver.ext.cubrid.model.plan.CubridQueryPlanner;
 import org.jkiss.dbeaver.ext.generic.model.*;
 import org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaModel;
 import org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.DBCQueryTransformProvider;
@@ -51,6 +52,14 @@ import java.util.Map;
 
 public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransformProvider {
     private static final Log log = Log.getLog(CubridMetaModel.class);
+
+    @NotNull
+    @Override
+    public GenericDataSource createDataSourceImpl(
+            @NotNull DBRProgressMonitor monitor,
+            @NotNull DBPDataSourceContainer container) throws DBException {
+        return new CubridDataSource(monitor, container, this);
+    }
 
     @Nullable
     public String getTableOrViewName(@Nullable GenericTableBase base) {
@@ -80,10 +89,6 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
                     String name = JDBCUtils.safeGetStringTrimmed(dbResult, CubridConstants.NAME);
                     String description = JDBCUtils.safeGetStringTrimmed(dbResult, CubridConstants.COMMENT);
                     CubridUser user = new CubridUser(dataSource, name, description);
-                    String defaultUser = ((CubridDataSource) dataSource).getCurrentUser();
-                    if (defaultUser.equalsIgnoreCase(user.getName())) {
-                        user.setVirtual(true);
-                    }
                     users.add(user);
 	            }
             }
@@ -165,14 +170,15 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             throws SQLException, DBException {
         CubridTable table = (CubridTable) forTable;
         String sql = "select *, t1.index_name as PK_NAME from db_index t1 join db_index_key t2 \n"
-                + "on t1.index_name = t2.index_name where is_unique = 'YES' and t1.class_name = ? \n"
+                + "on t1.index_name = t2.index_name where is_unique = 'YES' and t1.class_name = ? and t2.class_name = ? \n"
                 + (table.getDataSource().getSupportMultiSchema() ? "and t1.owner_name = ? and t2.owner_name = ?" : "");
         sql = ((CubridDataSource) owner.getDataSource()).wrapShardQuery(sql);
         final JDBCPreparedStatement dbStat = session.prepareStatement(sql);
         dbStat.setString(1, table.getName());
+        dbStat.setString(2, table.getName());
         if (table.getDataSource().getSupportMultiSchema()) {
-            dbStat.setString(2, table.getSchema().getName());
             dbStat.setString(3, table.getSchema().getName());
+            dbStat.setString(4, table.getSchema().getName());
         }
         return dbStat;
     }
@@ -227,7 +233,7 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
         return table;
     }
 
-    @Nullable
+    @NotNull
     @Override
     public GenericTableBase createTableOrViewImpl(
             @NotNull GenericStructContainer container,
@@ -340,7 +346,7 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             throws DBException {
         String name = JDBCUtils.safeGetString(dbResult, CubridConstants.NAME);
         String description = JDBCUtils.safeGetString(dbResult, CubridConstants.COMMENT);
-        return new CubridTrigger(table, name, description, dbResult);
+        return new CubridTrigger(container, (CubridTable) table, name, description, dbResult);
     }
 
     @NotNull
@@ -368,10 +374,13 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
         String name = JDBCUtils.safeGetString(dbResult, CubridConstants.NAME);
         String description = JDBCUtils.safeGetString(dbResult, CubridConstants.COMMENT);
         String tableName = JDBCUtils.safeGetString(dbResult, "target_class_name");
-        String owner = JDBCUtils.safeGetString(dbResult, "target_owner_name");
+        String targerOwner = JDBCUtils.safeGetString(dbResult, "target_owner_name");
         DBRProgressMonitor monitor = dbResult.getSession().getProgressMonitor();
-        CubridTable cubridTable = (CubridTable) container.getDataSource().findTable(monitor, null, owner, tableName);
-        return new CubridTrigger(cubridTable, name, description, dbResult);
+        CubridTable table = null;
+        if (tableName != null) {
+            table = (CubridTable) container.getDataSource().findTable(monitor, null, targerOwner, tableName);
+        }
+        return new CubridTrigger(container, table, name, description, dbResult);
     }
 
     @Override

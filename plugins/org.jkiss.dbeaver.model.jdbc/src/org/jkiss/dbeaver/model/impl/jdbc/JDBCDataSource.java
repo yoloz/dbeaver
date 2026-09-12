@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 package org.jkiss.dbeaver.model.impl.jdbc;
 
-import org.eclipse.core.runtime.IAdaptable;
 import org.jkiss.api.ObjectWithContextParameters;
 import org.jkiss.api.verification.FileSystemAccessVerifyer;
 import org.jkiss.api.verification.ObjectWithVerification;
@@ -74,8 +73,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
         DBSObject,
         DBSObjectContainer,
         DBSInstanceContainer,
-        DBCQueryTransformProvider,
-        IAdaptable
+        DBCQueryTransformProvider
 {
     private static final Log log = Log.getLog(JDBCDataSource.class);
 
@@ -89,6 +87,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
     private JDBCRemoteInstance defaultRemoteInstance;
 
     protected Version databaseVersion = null;
+    protected Version driverVersion = null;
 
     private final transient List<Connection> closingConnections = new ArrayList<>();
     protected List<Path> tempFiles;
@@ -145,13 +144,23 @@ public abstract class JDBCDataSource extends AbstractDataSource
     ) throws DBCException {
         DBPDriver driver = container.getDriver();
         Properties connectProps = getAllConnectionProperties(monitor, context, purpose, connectionInfo);
-        String url = getConnectionURL(connectionInfo);
+        String url;
+        try {
+            url = getConnectionURL(connectionInfo);
+        } catch (DBException ex) {
+            throw new DBCException("Connection URL preparation error", ex);
+        }
 
         url = substituteDriverIfNeeded(monitor, connectionInfo, connectProps, url);
 
         final JDBCConnectionConfigurer connectionConfigurer = GeneralUtils.adapt(this, JDBCConnectionConfigurer.class);
 
         DBPAuthModelDescriptor authModelDescriptor = driver.getDataSourceProvider().detectConnectionAuthModel(driver, connectionInfo);
+        if (!authModelDescriptor.isApplicableTo(driver)) {
+            throw new DBCException(
+                "Authentication model '" + authModelDescriptor.getId() + "' is not applicable to connection '" + getName() + "'");
+        }
+
         DBAAuthModel<DBAAuthCredentials> authModel = authModelDescriptor.getInstance();
 
         // Obtain connection
@@ -321,7 +330,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
     }
 
     @Nullable
-    private Driver createDriverInstance(@NotNull DBRProgressMonitor monitor, DBPDriver driver) throws DBCException {
+    protected Driver createDriverInstance(@NotNull DBRProgressMonitor monitor, DBPDriver driver) throws DBCException {
         // It MUST be a JDBC driver
         Driver driverInstance = null;
         String driverClassName = driver.getDriverClassName();
@@ -349,7 +358,10 @@ public abstract class JDBCDataSource extends AbstractDataSource
         return driverInstance;
     }
 
-    protected void fillConnectionProperties(DBPConnectionConfiguration connectionInfo, Properties connectProps) {
+    protected void fillConnectionProperties(
+        @NotNull DBPConnectionConfiguration connectionInfo,
+        @NotNull Properties connectProps
+    ) {
         {
             // Use driver properties
             final Map<String, Object> driverProperties = container.getDriver().getConnectionProperties();
@@ -364,7 +376,12 @@ public abstract class JDBCDataSource extends AbstractDataSource
     }
 
     @NotNull
-    protected Properties getAllConnectionProperties(@NotNull DBRProgressMonitor monitor, JDBCExecutionContext context, String purpose, DBPConnectionConfiguration connectionInfo) throws DBCException {
+    protected Properties getAllConnectionProperties(
+        @NotNull DBRProgressMonitor monitor,
+        @NotNull JDBCExecutionContext context,
+        @NotNull String purpose,
+        @NotNull DBPConnectionConfiguration connectionInfo
+    ) throws DBCException {
         // Set properties
         Properties connectProps = new Properties();
 
@@ -381,7 +398,8 @@ public abstract class JDBCDataSource extends AbstractDataSource
         return connectProps;
     }
 
-    protected String getConnectionURL(DBPConnectionConfiguration connectionInfo) {
+    @Nullable
+    protected String getConnectionURL(@NotNull DBPConnectionConfiguration connectionInfo) throws DBException {
         String url = connectionInfo.getUrl();
         if (CommonUtils.isEmpty(url)) {
             url = getContainer().getDriver().getConnectionURL(connectionInfo);
@@ -528,6 +546,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
             JDBCDatabaseMetaData metaData = session.getMetaData();
 
             readDatabaseServerVersion(session, metaData);
+            readDriverVersion(metaData);
 
             if (this.sqlDialect instanceof JDBCSQLDialect jdbcDialect) {
                 try {
@@ -570,6 +589,20 @@ public abstract class JDBCDataSource extends AbstractDataSource
         }
     }
 
+    protected synchronized void readDriverVersion(@NotNull DatabaseMetaData metaData) {
+        if (driverVersion == null) {
+            try {
+                driverVersion = new Version(
+                    metaData.getDriverMajorVersion(),
+                    metaData.getDriverMinorVersion(),
+                    0);
+            } catch (Throwable e) {
+                log.error("Error determining driver version", e);
+                driverVersion = new Version(0, 0, 0);
+            }
+        }
+    }
+
     public boolean isServerVersionAtLeast(int major, int minor) {
         if (databaseVersion == null) {
             log.warn(new DBException("Checking server version before connection initialization"));
@@ -584,15 +617,21 @@ public abstract class JDBCDataSource extends AbstractDataSource
     }
 
     public boolean isDriverVersionAtLeast(int major, int minor) {
+        if (driverVersion != null) {
+            if (driverVersion.getMajor() < major) {
+                return false;
+            } else {
+                return driverVersion.getMajor() != major || driverVersion.getMinor() >= minor;
+            }
+        }
         try {
             Driver driver = getDriverInstance(new VoidProgressMonitor());
             int majorVersion = driver.getMajorVersion();
             if (majorVersion < major) {
                 return false;
-            } else if (majorVersion == major && driver.getMinorVersion() < minor) {
-                return false;
+            } else {
+                return majorVersion != major || driver.getMinorVersion() >= minor;
             }
-            return true;
         } catch (DBException e) {
             log.debug("Can't obtain driver instance", e);
             return false;
@@ -648,63 +687,9 @@ public abstract class JDBCDataSource extends AbstractDataSource
     }
 
     @NotNull
-    public static DBPDataKind getDataKind(@NotNull String typeName, int valueType)
-    {
-        // HERE!
-        switch (getValueTypeByTypeName(typeName, valueType)) {
-            case Types.BOOLEAN:
-                return DBPDataKind.BOOLEAN;
-            case Types.CHAR:
-            case Types.VARCHAR:
-            case Types.NVARCHAR:
-            case Types.LONGVARCHAR:
-            case Types.LONGNVARCHAR:
-                return DBPDataKind.STRING;
-            case Types.BIGINT:
-            case Types.DECIMAL:
-            case Types.DOUBLE:
-            case Types.FLOAT:
-            case Types.INTEGER:
-            case Types.NUMERIC:
-            case Types.REAL:
-            case Types.SMALLINT:
-                return DBPDataKind.NUMERIC;
-            case Types.BIT:
-            case Types.TINYINT:
-                if (typeName.toLowerCase().contains("bool")) {
-                    // Declared as numeric but actually it's a boolean
-                    return DBPDataKind.BOOLEAN;
-                }
-                return DBPDataKind.NUMERIC;
-            case Types.DATE:
-            case Types.TIME:
-            case Types.TIME_WITH_TIMEZONE:
-            case Types.TIMESTAMP:
-            case Types.TIMESTAMP_WITH_TIMEZONE:
-                return DBPDataKind.DATETIME;
-            case Types.BINARY:
-            case Types.VARBINARY:
-            case Types.LONGVARBINARY:
-                return DBPDataKind.BINARY;
-            case Types.BLOB:
-            case Types.CLOB:
-            case Types.NCLOB:
-                return DBPDataKind.CONTENT;
-            case Types.SQLXML:
-                return DBPDataKind.CONTENT;
-            case Types.STRUCT:
-                return DBPDataKind.STRUCT;
-            case Types.ARRAY:
-                return DBPDataKind.ARRAY;
-            case Types.ROWID:
-                return DBPDataKind.ROWID;
-            case Types.REF:
-                return DBPDataKind.REFERENCE;
-            case Types.OTHER:
-                // TODO: really?
-                return DBPDataKind.OBJECT;
-        }
-        return DBPDataKind.UNKNOWN;
+    public static DBPDataKind getDataKind(@NotNull String typeName, int valueType) {
+        int typeId = getValueTypeByTypeName(typeName, valueType);
+        return JDBCUtils.getDataKindByTypeID(typeId, typeName);
     }
 
     @Nullable
@@ -745,21 +730,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
 
     @NotNull
     protected String getStandardSQLDataTypeName(@NotNull DBPDataKind dataKind) {
-        return switch (dataKind) {
-            case BOOLEAN -> "BOOLEAN";
-            case NUMERIC -> "NUMERIC";
-            case STRING -> "VARCHAR";
-            case DATETIME -> "TIMESTAMP";
-            case BINARY -> "BLOB";
-            case CONTENT -> "BLOB";
-            case STRUCT -> "VARCHAR";
-            case ARRAY -> "VARCHAR";
-            case OBJECT -> "VARCHAR";
-            case REFERENCE -> "VARCHAR";
-            case ROWID -> "ROWID";
-            case ANY -> "VARCHAR";
-            default -> "VARCHAR";
-        };
+        return JDBCUtils.getTypeNameByDataKind(dataKind);
     }
 
     /////////////////////////////////////////////////
@@ -816,6 +787,9 @@ public abstract class JDBCDataSource extends AbstractDataSource
     {
         String sqlState = SQLState.getStateFromException(error);
         if (sqlState != null) {
+            if (SQLState.SQL_HY008.getCode().equals(sqlState)) {
+                return ErrorType.EXECUTION_CANCELED;
+            }
             if (SQLState.SQL_08000.getCode().equals(sqlState) ||
                     SQLState.SQL_08003.getCode().equals(sqlState) ||
                     SQLState.SQL_08006.getCode().equals(sqlState) ||
@@ -858,7 +832,7 @@ public abstract class JDBCDataSource extends AbstractDataSource
     }
 
     @Override
-    public <T> T getAdapter(Class<T> adapter) {
+    public <T> T getAdapter(@NotNull Class<T> adapter) {
         if (adapter == DBCTransactionManager.class) {
             return adapter.cast(DBUtils.getDefaultContext(getDefaultInstance(), false));
         } else if (adapter == DBCQueryTransformProvider.class) {

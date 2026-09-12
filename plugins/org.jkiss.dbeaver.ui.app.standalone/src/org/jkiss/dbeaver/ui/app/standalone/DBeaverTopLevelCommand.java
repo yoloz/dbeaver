@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ package org.jkiss.dbeaver.ui.app.standalone;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.model.cli.CLIConstants;
-import org.jkiss.dbeaver.model.cli.CLIProcessResult;
-import org.jkiss.dbeaver.model.cli.CLIRunMeta;
-import org.jkiss.dbeaver.model.cli.CommandLineContext;
+import org.jkiss.dbeaver.model.cli.*;
 import org.jkiss.dbeaver.model.cli.command.AbstractTopLevelCommand;
+import org.jkiss.dbeaver.model.cli.model.NonExecutableOption;
 import org.jkiss.dbeaver.ui.actions.ConnectionCommands;
 import org.jkiss.dbeaver.ui.app.standalone.rpc.IInstanceController;
 import org.jkiss.dbeaver.utils.SystemVariablesResolver;
@@ -41,7 +39,12 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
     private static final Log log = Log.getLog(DBeaverTopLevelCommand.class);
 
     // Eclipse cmd for desktop
-    @CommandLine.Option(names = {"-nosplash"}, description = "Hide splash screen on start")
+    @NonExecutableOption
+    @CommandLine.Option(
+        names = {NOSPASH_OPTION},
+        description = "Hide splash screen on start",
+        scope = CommandLine.ScopeType.INHERIT
+    )
     private boolean noSplash;
 
     @CommandLine.Option(names = {"-vars", "-variablesFile"}, description = "Uses a specified configuration file for variable resolving")
@@ -60,11 +63,15 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
     private List<String> filesToOpen;
 
     // open files via double-click or "Open with DBeaver"
-    @CommandLine.Parameters(index = "0", arity = "0..*", description = "Open files", hidden = true)
+    @CommandLine.Parameters(index = "0", arity = "0..*", description = "Open files")
     private List<String> filesToOpenParams;
 
 
-    @CommandLine.Option(names = {"-con", "-connect"}, arity = "1", split = ",", description = "Connects to a specified database")
+    @CommandLine.Option(
+        names = {"-con", "-connect", "-ds-spec", "--datasource-specification"},
+        arity = "1..*",
+        description = "Connects to a specified database"
+    )
     private List<String> connectionSpecs;
 
     @CommandLine.Option(names = {"-disconnectAll"}, description = "Disconnect from all databases")
@@ -75,7 +82,7 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
 
     @CommandLine.Option(names = {"-bringToFront"}, description = "Bring DBeaver window on top of other applications")
     private boolean bringToFront;
-    @CommandLine.Option(names = {"-q"}, description = "Run quietly (do not print logs)")
+    @CommandLine.Option(names = {"-q", "-quiet"}, description = "Run quietly (do not print logs)")
     private boolean quiet;
 
     @Nullable
@@ -83,7 +90,7 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
 
     protected DBeaverTopLevelCommand(
         @Nullable IInstanceController controller,
-        @NotNull CommandLineContext context,
+        @NotNull CLIContextImpl context,
         @NotNull CLIRunMeta meta
     ) {
         super(controller, context, meta);
@@ -91,13 +98,13 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
     }
 
     @Override
-    public void run() {
+    public void run() throws CLIException {
         super.run();
         if (context.getPostAction() != null) {
             return;
         }
 
-        if (newInstance) {
+        if (meta.isSupportNewInstance() && newInstance) {
             context.setPostAction(CLIProcessResult.PostAction.START_INSTANCE);
             return;
         }
@@ -114,7 +121,7 @@ public class DBeaverTopLevelCommand extends AbstractTopLevelCommand {
         }
 
         if (instanceController == null) {
-            log.debug("Can't process commands because no running instance is present");
+            log.trace("Can't process commands because no running instance is present");
             context.setPostAction(CLIProcessResult.PostAction.START_INSTANCE);
             return;
         }

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,10 +65,12 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
     public static final String NETWORK_TEST_URL = "https://repo1.maven.org";
 
     private DriverDependenciesTree depsTree;
+    private final boolean isExpanded;
 
-    DriverDownloadAutoPage() {
+    DriverDownloadAutoPage(boolean isExpanded) {
         super(UIConnectionMessages.dialog_driver_download_auto_page_auto_download, UIConnectionMessages.dialog_driver_download_auto_page_download_driver_files, null);
         setPageComplete(false);
+        this.isExpanded = isExpanded;
     }
 
     @Override
@@ -98,8 +100,10 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
 
         expander.addExpansionListener(new ExpansionAdapter() {
             public void expansionStateChanged(ExpansionEvent e) {
+                setTreeSizes(depsTree.getTree());
                 parent.getShell().pack(true);
                 UIUtils.resizeShell(parent.getShell());
+                UIUtils.centerShell(UIUtils.getActiveWorkbenchShell(), parent.getShell());
             }
         });
         expander.setText(UIConnectionMessages.dialog_driver_download_auto_page_show_details);
@@ -107,6 +111,7 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
             GridDataFactory.fillDefaults().grab(true, true).indent(0, 10).create()
         );
         expander.setClient(details);
+        expander.setExpanded(isExpanded);
         return expander;
     }
 
@@ -208,12 +213,11 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
         }
 
         {
-            Group filesGroup = UIUtils.createControlGroup(
+            Composite filesGroup = UIUtils.createTitledComposite(
                 composite,
                 UIConnectionMessages.dialog_driver_download_auto_page_required_files,
                 1,
-                GridData.FILL_BOTH,
-                SWT.DEFAULT
+                GridData.FILL_BOTH
             );
             filesGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -237,9 +241,7 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
 
             };
 
-            GridData treeGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-            treeGridData.widthHint = 600;
-            depsTree.getTree().setLayoutData(treeGridData);
+            setTreeSizes(depsTree.getTree());
 
             Composite infoPanel = UIUtils.createComposite(filesGroup, 2);
             infoPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -269,6 +271,14 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
 
         createLinksPanel(composite);
         return composite;
+    }
+
+    private static void setTreeSizes(Tree tree) {
+        int maxHeight = tree.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+        GridData treeGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        treeGridData.widthHint = 600;
+        treeGridData.heightHint = Math.min(300, maxHeight);
+        tree.setLayoutData(treeGridData);
     }
 
 
@@ -427,7 +437,6 @@ class DriverDownloadAutoPage extends DriverDownloadPage {
                 IDialogConstants.IGNORE_ID,
                 IDialogConstants.IGNORE_LABEL,
                 false);
-            createDetailsButton(parent);
         }
 
         @Override

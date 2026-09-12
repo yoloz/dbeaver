@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,28 +23,19 @@ import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
 import org.jkiss.dbeaver.model.exec.DBExecUtils;
-import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.impl.edit.TestCommandContext;
-import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.sql.SQLUtils;
-import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.runtime.properties.PropertySourceEditable;
 import org.jkiss.junit.DBeaverUnitTest;
-import org.jkiss.utils.StandardConstants;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 public class PostgreTableBaseTest extends DBeaverUnitTest {
-
-    @Mock
-    DBRProgressMonitor monitor;
 
     private PostgreDataSource testDataSource;
     private PostgreDatabase testDatabase;
@@ -54,18 +45,11 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
 
     private PostgreExecutionContext postgreExecutionContext;
 
-    @Mock
-    JDBCResultSet mockResults;
-    @Mock
-    DBPDataSourceContainer mockDataSourceContainer;
-
-    private final String lineBreak = System.getProperty(StandardConstants.ENV_LINE_SEPARATOR);
-
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        Mockito.when(mockDataSourceContainer.getDriver()).thenReturn(DBWorkbench.getPlatform().getDataSourceProviderRegistry().findDriver("postgresql"));
+        DBPDataSourceContainer dataSourceContainer = configureTestContainer("postgresql");
 
-        testDataSource = new PostgreDataSource(mockDataSourceContainer, "PG Test", "postgres") {
+        testDataSource = new PostgreDataSource(dataSourceContainer, "PG Test", "postgres") {
             @Override
             public boolean isServerVersionAtLeast(int major, int minor) {
                 return major <= 10;
@@ -81,8 +65,6 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
         PostgreRole testUser = new PostgreRole(null, "tester", "test", true);
         testDatabase = testDataSource.createDatabaseImpl(monitor, "testdb", testUser, null, null, null);
         testSchema = new PostgreSchema(testDatabase, "test_schema", testUser);
-
-        Mockito.when(mockDataSourceContainer.getPreferenceStore()).thenReturn(DBWorkbench.getPlatform().getPreferenceStore());
 
 //        Mockito.when(mockResults.getString("relname")).thenReturn("sampleTable");
 //        long sampleId = 111111;
@@ -129,7 +111,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
                 ");" + lineBreak;
 
         String tableDDL = tableRegular.getObjectDefinitionText(monitor, Collections.emptyMap());
-        Assert.assertEquals(expectedDDL, tableDDL);
+        Assertions.assertEquals(expectedDDL, tableDDL);
     }
 
     @Test
@@ -152,7 +134,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
                 ");" + lineBreak;
 
         String tableDDL = tableRegular.getObjectDefinitionText(monitor, Collections.emptyMap());
-        Assert.assertEquals(expectedDDL, tableDDL);
+        Assertions.assertEquals(expectedDDL, tableDDL);
     }
 
     // Generation table/view comment statement tests
@@ -170,7 +152,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
         String script = SQLUtils.generateScript(testDataSource, actions.toArray(new DBEPersistAction[0]), false);
 
         String expectedDDL = "COMMENT ON TABLE test_schema.test_table_regular IS 'Test comment';" + lineBreak;
-        Assert.assertEquals(expectedDDL, script);
+        Assertions.assertEquals(expectedDDL, script);
     }
 
     @Test
@@ -190,7 +172,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
         String script = SQLUtils.generateScript(testDataSource, actions.toArray(new DBEPersistAction[0]), false);
 
         String expectedDDL = "COMMENT ON FOREIGN TABLE test_schema.\"testForeignTable\" IS 'Test comment';" + lineBreak;
-        Assert.assertEquals(expectedDDL, script);
+        Assertions.assertEquals(expectedDDL, script);
     }
 
     @Test
@@ -206,7 +188,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
         String script = SQLUtils.generateScript(testDataSource, actions.toArray(new DBEPersistAction[0]), false);
 
         String expectedDDL = "COMMENT ON VIEW test_schema.\"testView\" IS 'Test comment';" + lineBreak;
-        Assert.assertEquals(expectedDDL, script);
+        Assertions.assertEquals(expectedDDL, script);
     }
 
     @Test
@@ -226,14 +208,14 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
         String script = SQLUtils.generateScript(testDataSource, actions.toArray(new DBEPersistAction[0]), false);
 
         String expectedDDL = "COMMENT ON MATERIALIZED VIEW test_schema.\"testMView\" IS 'Test comment';" + lineBreak;
-        Assert.assertEquals(expectedDDL, script);
+        Assertions.assertEquals(expectedDDL, script);
     }
 
     // Other tests
 
     @Test
     public void generateChangeOwnerQuery_whenProvidedView_thenShouldGenerateQuerySuccessfully() {
-        Assert.assertEquals("ALTER TABLE " + testSchema.getName() + ".\"" + testView.getName() + "\" OWNER TO someOwner",
+        Assertions.assertEquals("ALTER TABLE " + testSchema.getName() + ".\"" + testView.getName() + "\" OWNER TO someOwner",
             testView.generateChangeOwnerQuery("someOwner", new HashMap<>()));
     }
 
@@ -247,7 +229,7 @@ public class PostgreTableBaseTest extends DBeaverUnitTest {
                                 "SCHEMA \"public\"" + lineBreak + "\t" +
                                 "VERSION null";
         String actualDDL = postgreExtension.getObjectDefinitionText(monitor, Collections.emptyMap());
-        Assert.assertEquals(expectedDDL, actualDDL);
+        Assertions.assertEquals(expectedDDL, actualDDL);
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.model.DBPImage;
 import org.jkiss.dbeaver.model.impl.AbstractDescriptor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
+import org.jkiss.dbeaver.tools.transfer.DTConstants;
 import org.jkiss.dbeaver.tools.transfer.IDataTransferNode;
 import org.jkiss.dbeaver.tools.transfer.IDataTransferSettings;
 import org.jkiss.utils.ArrayUtils;
@@ -51,7 +52,7 @@ public class DataTransferNodeDescriptor extends AbstractDescriptor {
     private final DBPImage icon;
     private final NodeType nodeType;
     private final ObjectType implType;
-    private final ObjectType settingsType;
+    private ObjectType settingsType;
     private final boolean advanced;
     private final List<ObjectType> sourceTypes = new ArrayList<>();
     private final List<DataTransferProcessorDescriptor> processors = new ArrayList<>();
@@ -75,9 +76,13 @@ public class DataTransferNodeDescriptor extends AbstractDescriptor {
         loadNodeConfigurations(config);
     }
 
+    void overrideSettingsType(@NotNull ObjectType settingsType) {
+        this.settingsType = settingsType;
+    }
+
     void loadNodeConfigurations(@NotNull IConfigurationElement config) {
         List<DataTransferProcessorDescriptor> procList = new ArrayList<>();
-        for (IConfigurationElement processorConfig : ArrayUtils.safeArray(config.getChildren("processor"))) {
+        for (IConfigurationElement processorConfig : ArrayUtils.safeArray(config.getChildren(DTConstants.PROP_PROCESSOR_TYPE))) {
             procList.add(new DataTransferProcessorDescriptor(this, processorConfig));
         }
         procList.sort(Comparator.comparing(DataTransferProcessorDescriptor::getName));

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.model.ai.engine.AIEngine;
 import org.jkiss.utils.CommonUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,26 +82,10 @@ public class AIEngineRegistry {
             }
             list.add(entry.getValue());
         }
+        list.sort(Comparator
+            .comparing(AIEngineDescriptor::isPromoted).reversed()
+            .thenComparing(AIEngineDescriptor::getLabel, String.CASE_INSENSITIVE_ORDER));
         return list;
-    }
-
-    @Nullable
-    public AIEngineDescriptor getDefaultCompletionEngineDescriptor() {
-        return getCompletionEngines().stream().filter(AIEngineDescriptor::isDefault).findFirst().orElse(null);
-    }
-
-    @NotNull
-    public AIEngine createEngine(@NotNull String id) throws DBException {
-        AIEngineDescriptor descriptor = getEngineDescriptor(id);
-        if (descriptor == null) {
-            log.trace("Active engine is not present in the configuration, switching to default active engine");
-            AIEngineDescriptor defaultCompletionEngineDescriptor = getDefaultCompletionEngineDescriptor();
-            if (defaultCompletionEngineDescriptor == null) {
-                throw new DBException("AI engine '" + id + "' not found");
-            }
-            descriptor = defaultCompletionEngineDescriptor;
-        }
-        return descriptor.createEngineInstance();
     }
 
     public boolean isEngineSupports(@NotNull String id, @NotNull Class<?> api) {
@@ -133,4 +116,14 @@ public class AIEngineRegistry {
         return engine;
     }
 
+    @Nullable
+    public AIEngineDescriptor getDescriptorByEngineClass(@NotNull Class<?> engineClass) {
+        return descriptorMap.entrySet().stream()
+            .filter(entry -> {
+                return engineClass.equals(entry.getValue().getEngineObjectType().getObjectClass());
+            })
+            .findFirst()
+            .map(Map.Entry::getValue)
+            .orElse(null);
+    }
 }

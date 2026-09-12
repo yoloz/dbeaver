@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,40 +20,63 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.cli.*;
-import org.jkiss.dbeaver.model.cli.model.CommandLineAuthenticator;
+import org.jkiss.dbeaver.model.cli.help.CLIGlobalOption;
 import org.jkiss.dbeaver.model.cli.model.option.EclipseOptions;
 import org.jkiss.dbeaver.model.cli.model.option.HiddenOptions;
+import org.jkiss.utils.CommonUtils;
 import picocli.CommandLine;
 
-public abstract class AbstractTopLevelCommand implements Runnable, CommandLine.IExitCodeGenerator {
+public abstract class AbstractTopLevelCommand extends CLIAbstractCommand implements CommandLine.IExitCodeGenerator {
     private final Log log = Log.getLog(getClass());
 
+    public static final String HELP_OPTION = "--help";
+    public static final String NOSPASH_OPTION = "-nosplash";
+    public static final String DEBUG_LOGS_OPTION = "--debug-logs";
+    public static final String TRACE_LOGS_OPTION = "--trace-logs";
+    public static final String OUTPUT_LOG_OPTION = "--output-log";
+
     @CommandLine.Option(names = {"-dump"},
-        description = "Print instance thread dump.")
+        description = "Print instance thread dump")
     private boolean dump;
 
 
     @CommandLine.Option(
-        names = {"-h", "-help", "--help"},
-        description = "Show this help message and exit.",
+        names = {"-h", "-help", HELP_OPTION},
+        description = "Show this help message and exit",
         usageHelp = true,
         scope = CommandLine.ScopeType.INHERIT
     )
     private boolean help;
 
     @CommandLine.Option(
-        names = {"-V", "--version"},
-        description = "Print version information and exit.",
+        names = {"-v", "-V", "--version"},
+        description = "Print version information and exit",
         versionHelp = true,
         scope = CommandLine.ScopeType.INHERIT
     )
     private boolean version;
 
-    @CommandLine.Option(names = {"--debug-logs"},
-        description = "Enable debug logging.",
+    @CLIGlobalOption
+    @CommandLine.Option(names = {DEBUG_LOGS_OPTION},
+        description = "Enable debug logging",
         scope = CommandLine.ScopeType.INHERIT
     )
     private boolean debugLogs;
+
+    @CommandLine.Option(names = {TRACE_LOGS_OPTION},
+        description = "Enable trace logging",
+        scope = CommandLine.ScopeType.INHERIT,
+        hidden = true
+    )
+    private boolean traceLogs;
+
+    @CLIGlobalOption
+    @CommandLine.Option(names = {OUTPUT_LOG_OPTION},
+        arity = "1",
+        description = "Status/log output format",
+        scope = CommandLine.ScopeType.INHERIT
+    )
+    private String outputLog;
 
     @CommandLine.Mixin
     private EclipseOptions eclipseOptions;
@@ -65,13 +88,13 @@ public abstract class AbstractTopLevelCommand implements Runnable, CommandLine.I
     @Nullable
     protected final ApplicationInstanceController controller;
     @NotNull
-    protected final CommandLineContext context;
+    protected final CLIContext context;
 
     private int code = CLIConstants.EXIT_CODE_OK;
 
     protected AbstractTopLevelCommand(
         @Nullable ApplicationInstanceController controller,
-        @NotNull CommandLineContext context,
+        @NotNull CLIContext context,
         @NotNull CLIRunMeta meta
     ) {
         this.controller = controller;
@@ -80,9 +103,13 @@ public abstract class AbstractTopLevelCommand implements Runnable, CommandLine.I
     }
 
     @Override
-    public void run() {
-        if (debugLogs) {
+    public void run() throws CLIException {
+        applyLogFormat();
+        if (debugLogs || traceLogs) {
             Log.setLogHandler(null);
+            if (traceLogs) {
+                Log.enableTraceLogs(true);
+            }
         }
         try {
             if (dump) {
@@ -102,13 +129,28 @@ public abstract class AbstractTopLevelCommand implements Runnable, CommandLine.I
         }
     }
 
+    private void applyLogFormat() throws CLIException {
+        if (CommonUtils.isEmpty(outputLog)) {
+            return;
+        }
+        CLILogFormat format = CLILogFormat.byName(outputLog);
+        if (format == null) {
+            throw new CLIException(
+                "Invalid " + OUTPUT_LOG_OPTION + " value '" + outputLog + "'. Expected '"
+                    + CLILogFormat.TEXT.getFormatName() + "' or '" + CLILogFormat.JSON.getFormatName() + "'",
+                CLIConstants.EXIT_CODE_ILLEGAL_ARGUMENTS
+            );
+        }
+        context.setLogFormat(format);
+    }
+
     @Override
     public int getExitCode() {
         return code;
     }
 
     @NotNull
-    public CommandLineContext getContext() {
+    public CLIContext context() {
         return context;
     }
 
@@ -120,10 +162,5 @@ public abstract class AbstractTopLevelCommand implements Runnable, CommandLine.I
     @NotNull
     public CLIRunMeta getMeta() {
         return meta;
-    }
-
-    @Nullable
-    public CommandLineAuthenticator getAuthenticator() {
-        return null;
     }
 }

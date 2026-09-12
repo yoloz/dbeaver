@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.sql.*;
 import org.jkiss.dbeaver.model.sql.data.SQLQueryDataContainer;
 import org.jkiss.dbeaver.model.sql.parser.SQLSemanticProcessor;
+import org.jkiss.dbeaver.model.sql.registry.SQLCommandHandlerDescriptor;
 import org.jkiss.dbeaver.model.sql.registry.SQLCommandsRegistry;
 import org.jkiss.dbeaver.model.sql.registry.SQLPragmaHandlerDescriptor;
 import org.jkiss.dbeaver.model.struct.DBSDataContainer;
@@ -80,6 +81,7 @@ import org.jkiss.dbeaver.ui.editors.sql.SQLPreferenceConstants.StatisticsTabOnEx
 import org.jkiss.dbeaver.ui.editors.sql.SQLResultsConsumer;
 import org.jkiss.dbeaver.ui.editors.sql.internal.SQLEditorActivator;
 import org.jkiss.dbeaver.ui.editors.sql.internal.SQLEditorMessages;
+import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.dbeaver.utils.RuntimeUtils;
 import org.jkiss.utils.CommonUtils;
 
@@ -96,8 +98,7 @@ import java.util.Map;
  *
  * @author Serge Rider
  */
-public class SQLQueryJob extends DataSourceJob
-{
+public class SQLQueryJob extends DataSourceJob {
     private static final Log log = Log.getLog(SQLQueryJob.class);
 
     public static final Object STATS_RESULTS = new Object();
@@ -168,6 +169,11 @@ public class SQLQueryJob extends DataSourceJob
         }
     }
 
+    @Override
+    public String toString() {
+        return "SQLQueryJob (" + queries + ")";
+    }
+
     public void setFetchResultSets(boolean fetchResultSets)
     {
         this.fetchResultSets = fetchResultSets;
@@ -209,8 +215,9 @@ public class SQLQueryJob extends DataSourceJob
         this.fetchFlags = fetchFlags;
     }
 
+    @NotNull
     @Override
-    protected IStatus run(DBRProgressMonitor monitor)
+    protected IStatus run(@NotNull DBRProgressMonitor monitor)
     {
         RuntimeUtils.setThreadName("SQL script execution");
         statistics = new DBCStatistics();
@@ -269,7 +276,8 @@ public class SQLQueryJob extends DataSourceJob
                         log.error(lastError);
                         boolean isQueue = isQueue();
                         DBPPlatformUI.UserResponse response = ExecutionQueueErrorJob.showError(
-                            isQueue ? "SQL script execution" : "SQL query execution",
+                            (isQueue ? "SQL script execution" : "SQL query execution") +
+                                "\n" +  GeneralUtils.getFirstMessage(lastError),
                             lastError,
                             isQueue);
 
@@ -435,6 +443,10 @@ public class SQLQueryJob extends DataSourceJob
         }
         if (element instanceof SQLControlCommand controlCommand) {
             try {
+                SQLCommandHandlerDescriptor descriptor = SQLCommandsRegistry.getInstance().getCommandHandler(controlCommand.getCommandId());
+                if (descriptor != null && descriptor.isInteractive()) {
+                    controlCommand.setData(listener);
+                }
                 SQLControlResult controlResult = scriptContext.executeControlCommand(session.getProgressMonitor(), controlCommand);
                 if (controlResult.getTransformed() != null) {
                     element = controlResult.getTransformed();
@@ -521,6 +533,7 @@ public class SQLQueryJob extends DataSourceJob
 
         long startTime = System.currentTimeMillis();
         boolean startQueryAlerted = false;
+        boolean executionCanceled = false;
 
         // Modify query (filters + parameters)
         String queryText = originalQuery.getText();//.trim();
@@ -626,11 +639,16 @@ public class SQLQueryJob extends DataSourceJob
             }
         }
         catch (Throwable ex) {
-            if (!(ex instanceof DBException)) {
+            if (DBExecUtils.isExecutionCanceled(dataSource, ex) || monitor.isCanceled()) {
+                executionCanceled = true;
+            } else if (!(ex instanceof DBException)) {
                 log.error("Unexpected error while processing SQL", ex);
+                curResult.setError(ex);
+                lastError = ex;
+            } else {
+                curResult.setError(ex);
+                lastError = ex;
             }
-            curResult.setError(ex);
-            lastError = ex;
         }
         finally {
             curResult.setQueryTime(System.currentTimeMillis() - startTime);
@@ -640,6 +658,10 @@ public class SQLQueryJob extends DataSourceJob
             }
 
             monitor.done();
+        }
+
+        if (executionCanceled) {
+            return false;
         }
 
         lastGoodQuery = originalQuery;
@@ -780,6 +802,9 @@ public class SQLQueryJob extends DataSourceJob
                                 try {
                                     hasResultSet = fetchQueryData(session, resultSet, curResult, curResult.addExecuteResult(true), dataReceiver, true);
                                 } catch (DBCException e) {
+                                    if (DBExecUtils.isExecutionCanceled(session.getDataSource(), e) || monitor.isCanceled()) {
+                                        throw e;
+                                    }
                                     if (rowsFetched == 0) {
                                         throw e;
                                     } else {
@@ -1001,6 +1026,22 @@ public class SQLQueryJob extends DataSourceJob
                                 // Multiple source entities
                                 sourceName += "(+)";
                                 break;
+                            }
+                        }
+                    }
+                    // Fallback: extract table name from parsed SQL query AST.
+                    // Some drivers (e.g. Oracle JDBC thin) do not return table names
+                    // from ResultSetMetaData.getTableName(), so we use JSQLParser results instead.
+                    if (CommonUtils.isEmpty(sourceName)) {
+                        SQLQuery sqlQuery = result.getStatement();
+                        DBCEntityMetaData entityMeta = sqlQuery.getEntityMetadata(false);
+                        if (entityMeta != null) {
+                            sourceName = entityMeta.getEntityName();
+                        } else if (!sqlQuery.getAllSelectEntitiesNames().isEmpty()) {
+                            // Query has JOINs - use first table name with (+) marker
+                            sourceName = sqlQuery.getAllSelectEntitiesNames().getFirst();
+                            if (sqlQuery.getAllSelectEntitiesNames().size() > 1) {
+                                sourceName += "(+)";
                             }
                         }
                     }

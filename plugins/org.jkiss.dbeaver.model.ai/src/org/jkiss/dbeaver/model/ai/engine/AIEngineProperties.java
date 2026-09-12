@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
  */
 package org.jkiss.dbeaver.model.ai.engine;
 
+import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.model.ai.AIConfigurationProfile;
 
 public interface AIEngineProperties {
+
+    int DEFAULT_TIMEOUT = 30;
 
     String getModel();
 
@@ -31,8 +35,16 @@ public interface AIEngineProperties {
 
     boolean isLoggingEnabled();
 
-    void resolveSecrets() throws DBException;
+    void setLoggingEnabled(boolean loggingEnabled);
 
-    void saveSecrets() throws DBException;
+    int getTimeout();
+
+    void setTimeout(int timeout);
+
+    void resolveSecrets(@NotNull AIConfigurationProfile profile) throws DBException;
+
+    void saveSecrets(@NotNull AIConfigurationProfile profile) throws DBException;
+
+    void deleteSecrets(@NotNull AIConfigurationProfile profile) throws DBException;
 
 }

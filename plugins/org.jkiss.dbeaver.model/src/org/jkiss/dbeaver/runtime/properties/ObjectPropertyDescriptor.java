@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,9 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
         ObjectPropertyGroupDescriptor parent,
         Property propInfo,
         Method getter,
-        String locale)
-    {
+        String locale,
+        boolean collectLocalizedNames
+    ) {
         super(source, parent, getter, propInfo.id(), propInfo.order());
         this.propInfo = propInfo;
 
@@ -131,14 +132,25 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
                 log.warn("Can't create label provider", e);
             }
         }
-
-        this.propName = getLocalizedString(propInfo.name(), Property.RESOURCE_TYPE_NAME, getId(), !propInfo.hidden(), locale);
-        this.propDescription = CommonUtils.isEmpty(propInfo.description()) ?
-                propName :
-                getLocalizedString(propInfo.name(), Property.RESOURCE_TYPE_DESCRIPTION, propName, false, locale);
-        this.propHint = CommonUtils.isEmpty(propInfo.hint()) ?
-            null :
-            getLocalizedString(propInfo.name(), Property.RESOURCE_TYPE_HINT, null, false, locale);
+        if (collectLocalizedNames) {
+            this.propName = getLocalizedString(propInfo.name(), Property.RESOURCE_TYPE_NAME, getId(), !propInfo.hidden(), locale);
+            this.propDescription = CommonUtils.isEmpty(propInfo.description())
+                ? propName
+                : getLocalizedString(
+                    propInfo.name(),
+                    Property.RESOURCE_TYPE_DESCRIPTION,
+                    Property.DEFAULT_LOCAL_STRING.equals(propInfo.description()) ? propName : propInfo.description(),
+                    false,
+                    locale
+                );
+            this.propHint = CommonUtils.isEmpty(propInfo.hint()) ?
+                null :
+                getLocalizedString(propInfo.name(), Property.RESOURCE_TYPE_HINT, null, false, locale);
+        } else {
+            propName = getId();
+            propDescription = Property.DEFAULT_LOCAL_STRING.equals(propInfo.description()) ? propName : propInfo.description();
+            propHint = null;
+        }
     }
 
     @Override
@@ -169,6 +181,11 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
     public boolean isNumeric() {
         Class<?> propType = getGetter().getReturnType();
         return propType != null && BeanUtils.isNumericType(propType);
+    }
+
+    @Nullable
+    public PropertyConstraints getConstraints() {
+        return PropertyConstraints.from(propInfo);
     }
 
     public boolean isDateTime() {
@@ -521,6 +538,24 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
                     value = CommonUtils.toInt(value);
                 } else if (argType == Double.TYPE || argType == Double.class) {
                     value = CommonUtils.toDouble(value);
+                } else if (java.util.Collection.class.isAssignableFrom(argType)) {
+                    if (value == null || argType.isAssignableFrom(value.getClass())) {
+                        // Leave as is
+                    } else {
+                        // Make list from object
+                        value = List.of(value);
+                    }
+                }
+            }
+            PropertyConstraints constraints = getConstraints();
+            if (value instanceof Number number && constraints != null) {
+                if (constraints.min() != null && number.doubleValue() < constraints.min()) {
+                    throw new IllegalArgumentException(
+                        "Property '" + getDisplayName() + "' value must be at least " + constraints.min());
+                }
+                if (constraints.max() != null && number.doubleValue() > constraints.max()) {
+                    throw new IllegalArgumentException(
+                        "Property '" + getDisplayName() + "' value must be at most " + constraints.max());
                 }
             }
             setter.invoke(object, value);
@@ -535,6 +570,7 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
         return getId() + " (" + propInfo.name() + ")";
     }
 
+    @NotNull
     @Override
     public Class<?> getDataType()
     {
@@ -545,6 +581,11 @@ public class ObjectPropertyDescriptor extends ObjectAttributeDescriptor
     public boolean isRequired()
     {
         return propInfo.required();
+    }
+
+    @Override
+    public boolean isDesktop() {
+        return propInfo.desktop();
     }
 
     @Override

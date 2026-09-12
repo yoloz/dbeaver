@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ext.databricks.DatabricksConstants;
 import org.jkiss.dbeaver.ext.databricks.DatabricksDataSource;
+import org.jkiss.dbeaver.ext.databricks.model.types.DatabricksDataTypeCache;
 import org.jkiss.dbeaver.ext.generic.model.*;
 import org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaModel;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
@@ -37,6 +38,8 @@ import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
+import org.jkiss.dbeaver.model.impl.jdbc.cache.JDBCBasicDataTypeCache;
+import org.jkiss.dbeaver.model.impl.jdbc.struct.JDBCDataType;
 import org.jkiss.dbeaver.model.impl.sql.QueryTransformerLimit;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.sql.format.SQLFormatUtils;
@@ -90,7 +93,7 @@ public class DatabricksMetaModel extends GenericMetaModel implements DBCQueryTra
     ) throws DBException {
         List<GenericSchema> schemas = new ArrayList<>();
         try (JDBCPreparedStatement dbStat = session.prepareStatement(
-            "SHOW SCHEMAS" + (catalog == null ? "" : " IN " + catalog.getName())
+            "SHOW SCHEMAS" + (catalog == null ? "" : " IN " + DBUtils.getQuotedIdentifier(catalog))
         )) {
             dbStat.executeStatement();
             try (JDBCResultSet dbResult = dbStat.getResultSet()) {
@@ -166,9 +169,10 @@ public class DatabricksMetaModel extends GenericMetaModel implements DBCQueryTra
         return super.prepareTableLoadStatement(session, owner, object, objectName);
     }
 
+    @NotNull
     @Override
     public GenericTableBase createTableOrViewImpl(
-        GenericStructContainer container,
+        @NotNull GenericStructContainer container,
         @Nullable String tableName,
         @Nullable String tableType,
         @Nullable JDBCResultSet dbResult) {
@@ -241,5 +245,12 @@ public class DatabricksMetaModel extends GenericMetaModel implements DBCQueryTra
             this.schema = schema;
             this.name = name;
         }
+    }
+
+    @Override
+    public JDBCBasicDataTypeCache<GenericStructContainer, ? extends JDBCDataType> createDataTypeCache(
+        @NotNull GenericStructContainer container
+    ) {
+        return new DatabricksDataTypeCache(container);
     }
 }

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.LocalCacheProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
-import org.jkiss.dbeaver.registry.DataSourceUtils;
 import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.ui.BaseThemeSettings;
 import org.jkiss.dbeaver.ui.DBeaverIcons;
@@ -53,6 +52,7 @@ import org.jkiss.dbeaver.ui.internal.registry.NavigatorExtensionsRegistry;
 import org.jkiss.dbeaver.ui.navigator.INavigatorModelView;
 import org.jkiss.dbeaver.ui.navigator.INavigatorNodeActionHandler;
 import org.jkiss.dbeaver.ui.navigator.NavigatorPreferences;
+import org.jkiss.dbeaver.utils.DataSourceUtils;
 import org.jkiss.utils.ByteNumberFormat;
 import org.jkiss.utils.CommonUtils;
 
@@ -148,7 +148,7 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
         // Compute width required to draw all actions
         int width = (actions.size() - 1) * ELEMENT_MARGIN;
         for (INavigatorNodeActionHandler action : actions) {
-            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(getView(), node));
+            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(node));
             Rectangle size = image.getBounds();
             width += size.width;
         }
@@ -163,7 +163,7 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
         // Draw actions
         for (int i = actions.size() - 1; i >= 0; i--) {
             INavigatorNodeActionHandler action = actions.get(i);
-            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(getView(), node));
+            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(node));
             Rectangle size = image.getBounds();
 
             if (bounds.width < size.width) {
@@ -362,7 +362,7 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
             if (node instanceof DBNDataSource) {
                 INavigatorNodeActionHandler overActionButton = getActionButton(node, tree, event);
                 if (overActionButton != null) {
-                    return overActionButton.getNodeActionToolTip(view, node);
+                    return overActionButton.getNodeActionToolTip(node);
                 }
             }
         }
@@ -376,7 +376,7 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
             // Detect active action
             INavigatorNodeActionHandler overActionButton = getActionButton(node, tree, event);
             if (overActionButton != null) {
-                overActionButton.handleNodeAction(view, node, event, defaultAction);
+                overActionButton.handleNodeAction(node, defaultAction);
             }
         }
     }
@@ -420,7 +420,7 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
 
         for (int i = actions.size() - 1; i >= 0; i--) {
             INavigatorNodeActionHandler action = actions.get(i);
-            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(getView(), node));
+            Image image = DBeaverIcons.getImage(action.getNodeActionIcon(node));
             Rectangle size = image.getBounds();
 
             if (client.width < size.width || event.y < client.y || event.y >= client.y + client.height) {
@@ -569,8 +569,9 @@ public class StatisticsNavigatorNodeRenderer extends DefaultNavigatorNodeRendere
             this.treeItem = treeItem;
         }
 
+        @NotNull
         @Override
-        protected IStatus run(DBRProgressMonitor monitor) {
+        protected IStatus run(@NotNull DBRProgressMonitor monitor) {
             try {
                 monitor.beginTask("Collect database statistics", 1);
                 if (object instanceof DBPObjectStatisticsCollector) {

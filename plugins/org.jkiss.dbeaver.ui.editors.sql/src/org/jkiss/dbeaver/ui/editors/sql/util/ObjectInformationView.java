@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,8 +110,9 @@ public class ObjectInformationView {
 
         final DBPNamedObject[] targetObject = {input};
         AbstractJob resolveObject = new AbstractJob("Resolving object") {
+            @NotNull
             @Override
-            protected IStatus run(DBRProgressMonitor monitor) {
+            protected IStatus run(@NotNull DBRProgressMonitor monitor) {
                 if (input instanceof DBSObjectReference objectReference) {
                     try {
                         targetObject[0] = objectReference.resolveObject(monitor);
@@ -191,8 +192,9 @@ public class ObjectInformationView {
         itemListControl.setLayoutData(gridData);
         final Object[] columnNodes = new Object[1];
         AbstractJob abstractJob = new AbstractJob("Populating table tip columns") {
+            @NotNull
             @Override
-            protected IStatus run(DBRProgressMonitor monitor) {
+            protected IStatus run(@NotNull DBRProgressMonitor monitor) {
                 monitor.beginTask("Load table columns", 1);
                 try {
                     columnNodes[0] = getColumnNodes(monitor, node);
@@ -235,7 +237,12 @@ public class ObjectInformationView {
                         UIUtils.asyncExec(() -> {
                             Shell shell = tableComposite.getShell();
                             Point sz = shell.getMinimumSize();
-                            int extraHeight = ((Table) itemListControl.getItemsViewer().getControl()).getHeaderHeight();
+                            int extraHeight = 0;
+                            if (itemListControl != null && !itemListControl.isDisposed()
+                                && itemListControl.getItemsViewer() != null && !itemListControl.getItemsViewer().getControl()
+                                .isDisposed()) {
+                                extraHeight = ((Table) itemListControl.getItemsViewer().getControl()).getHeaderHeight();
+                            }
                             shell.setMinimumSize(sz.x,
                                 Math.min(
                                     sz.y + UIUtils.getFontHeight(BaseThemeSettings.instance.baseFontBold) * columnNodeList.size()

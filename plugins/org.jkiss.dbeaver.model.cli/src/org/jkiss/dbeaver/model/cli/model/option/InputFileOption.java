@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,17 @@ import picocli.CommandLine;
 
 import java.nio.file.Path;
 
-public class InputFileOption {
+public class InputFileOption extends AbstractFileOption {
     @Nullable
     @CommandLine.Option(
         names = {"-in", "-input-file"},
         arity = "1",
         description = "Argument value that can be written in the file."
     )
-    private Path inputFile;
+    private String inputFile;
 
     @Nullable
     public Path getInputFile() {
-        return inputFile;
+        return getPath(inputFile);
     }
-
 }

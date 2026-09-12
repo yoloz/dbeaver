@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.jkiss.dbeaver.ext.generic.views;
 
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -76,7 +77,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
     private Text urlText;
 
     private boolean isCustom;
-    private DatabaseURL.MetaURL metaURL;
+    private DatabaseURL.Pattern urlPattern;
     private Collection<String> controlGroupsByUrl;
     private Composite settingsGroup;
 
@@ -109,7 +110,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         GridData gd = new GridData(GridData.FILL_BOTH);
         addrGroup.setLayoutData(gd);
 
-        settingsGroup = UIUtils.createControlGroup(addrGroup, GenericMessages.dialog_connection_general_tab, 4, GridData.FILL_HORIZONTAL, 0);
+        settingsGroup = UIUtils.createTitledComposite(addrGroup, GenericMessages.dialog_connection_general_tab, 4, GridData.FILL_HORIZONTAL);
         GridLayout gl = new GridLayout(4, false);
         settingsGroup.setLayout(gl);
 
@@ -117,7 +118,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             SelectionAdapter typeSwitcher = new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
-                    if (controlGroupsByUrl.size() > 0) {
+                    if (!controlGroupsByUrl.isEmpty()) {
                         setupConnectionModeSelection(urlText, typeURLRadio.getSelection(), controlGroupsByUrl);
                     }
                     saveAndUpdate();
@@ -127,15 +128,16 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
             
             Label urlLabel = UIUtils.createControlLabel(settingsGroup, GenericMessages.dialog_connection_jdbc_url_);
-            urlLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            urlLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             urlText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
             gd.horizontalSpan = 3;
             gd.grabExcessHorizontalSpace = true;
-            gd.widthHint = 355;
+            gd.widthHint = 200;
             urlText.setLayoutData(gd);
             urlText.addModifyListener(e -> site.updateButtons());
+            urlText.setData(URL_TEXT_DATA_ERROR_DECORATOR_KEY, new ControlDecoration(urlText, SWT.BOTTOM | SWT.LEFT));
 
             addControlToGroup(GROUP_URL, urlLabel);
             addControlToGroup(GROUP_URL, urlText);
@@ -143,7 +145,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         {
             Label hostLabel = new Label(settingsGroup, SWT.NONE);
             hostLabel.setText(GenericMessages.dialog_connection_host_label);
-            hostLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            hostLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             hostText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -154,7 +156,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
             Label portLabel = new Label(settingsGroup, SWT.NONE);
             portLabel.setText(GenericMessages.dialog_connection_port_label);
-            portLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            portLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             portText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.CENTER);
@@ -180,7 +182,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                 serverLabel.setText(GenericMessages.dialog_connection_server_label);
             }
 
-            serverLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            serverLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             serverText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -207,7 +209,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                 dbLabel = new Label(settingsGroup, SWT.NONE);
                 dbLabel.setText(GenericMessages.dialog_connection_database_schema_label);
             }
-            dbLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            dbLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             dbText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -229,7 +231,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         {
             Label pathLabel = new Label(settingsGroup, SWT.NONE);
             pathLabel.setText(GenericMessages.dialog_connection_path_label);
-            pathLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+            pathLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 
             pathText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -244,7 +246,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             gl.marginHeight = 0;
             gl.marginWidth = 0;
             buttonsPanel.setLayout(gl);
-            gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+            gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
             //gd.widthHint = 150;
             buttonsPanel.setLayoutData(gd);
 
@@ -302,7 +304,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
     @Nullable
     private String showDatabaseFileSelectorDialog(int style) {
-        if (metaURL.getAvailableProperties().contains(DBConstants.PROP_FILE)) {
+        if (this.urlPattern.hasProperty(DBConstants.PROP_FILE)) {
             FileDialog dialog = new FileDialog(getShell(), SWT.SINGLE | style);
             String text = pathText.getText();
             dialog.setFileName(text);
@@ -360,10 +362,11 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         if (isCustomURL()) {
             return !CommonUtils.isEmpty(urlText.getText());
         } else {
-            if (metaURL == null) {
+            if (this.urlPattern == null) {
                 return false;
             }
-            for (String prop : metaURL.getRequiredProperties()) {
+
+            for (String prop : this.urlPattern.getMandatoryPropertyNames()) {
                 if (isConnectionPropertyOptional(prop)) {
                     continue;
                 }
@@ -420,7 +423,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         DBPConnectionConfiguration connectionInfo = dataSource.getConnectionConfiguration();
         this.parseSampleURL(site.getDriver());
         final boolean useURL = connectionInfo.getConfigurationType() == DBPDriverConfigurationType.URL;
-        if (controlGroupsByUrl.size() > 0) {
+        if (!controlGroupsByUrl.isEmpty()) {
             setupConnectionModeSelection(urlText, useURL, controlGroupsByUrl);
         }
         site.updateButtons();
@@ -504,9 +507,9 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
     }
 
     @Override
-    public void saveSettings(DBPDataSourceContainer dataSource) {
+    public void saveSettings(@NotNull DBPDataSourceContainer dataSource) {
         DBPConnectionConfiguration connectionInfo = dataSource.getConnectionConfiguration();
-        final Set<String> properties = metaURL == null ? Collections.emptySet() : metaURL.getAvailableProperties();
+        final Set<String> properties = this.urlPattern == null ? Collections.emptySet() : this.urlPattern.getAvailablePropertyNames();
 
         connectionInfo.setConfigurationType(
             typeURLRadio != null && typeURLRadio.getSelection() ? DBPDriverConfigurationType.URL : DBPDriverConfigurationType.MANUAL);
@@ -540,18 +543,26 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         }
     }
 
-    private void parseSampleURL(DBPDriver driver) {
-        metaURL = null;
+    private void parseSampleURL(@NotNull DBPDriver driver) {
+        this.urlPattern = null;
 
-        boolean useCustomUrl = CommonUtils.isEmpty(driver.getSampleURL());
+        String sampleURL = driver.getSampleURL();
+        boolean useCustomUrl = CommonUtils.isEmpty(sampleURL);
 
         if (!useCustomUrl) {
             try {
-                metaURL = DatabaseURL.parseSampleURL(driver.getSampleURL());
+                this.urlPattern = DatabaseURL.getUrlPattern(sampleURL);
             } catch (DBException e) {
                 setErrorMessage(e.getMessage());
+                log.debug(
+                    "Failed to obtain driver sample url pattern for " + driver.getName() + " (" + sampleURL + ")",
+                    e
+                );
+                useCustomUrl = true;
             }
-            final Set<String> properties = metaURL.getAvailableProperties();
+        }
+        if (!useCustomUrl) {
+            final Set<String> properties = this.urlPattern.getAvailablePropertyNames();
             boolean isSampleUrlUsable = properties.contains(DBConstants.PROP_HOST) ||
                 properties.contains(DBConstants.PROP_DATABASE) ||
                 properties.contains(DBConstants.PROP_SERVER) ||
@@ -664,6 +675,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         }
     }
 
+    @Nullable
     @Override
     public IDialogPage[] getDialogPages(boolean extrasOnly, boolean forceCreate) {
         return new IDialogPage[] {
