@@ -83,7 +83,7 @@ public class GBase8aUserEditorPrivileges extends GBase8aUserEditorAbstract {
         leftPane.setLayoutData(new GridData(GridData.FILL_BOTH));
         leftPane.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).create());
         {
-            Composite catalogGroup = UIUtils.createControlGroup(leftPane, GBase8aUIMessages.editors_user_editor_privileges_group_catalogs, 1, GridData.FILL_BOTH, 0);
+            Composite catalogGroup = UIUtils.createTitledComposite(leftPane, GBase8aUIMessages.editors_user_editor_privileges_group_catalogs, 1, GridData.FILL_BOTH, 0);
 
             catalogsTable = new Table(catalogGroup, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
             catalogsTable.setHeaderVisible(true);
@@ -123,7 +123,7 @@ public class GBase8aUserEditorPrivileges extends GBase8aUserEditorAbstract {
         }
 
         {
-            Composite tablesGroup = UIUtils.createControlGroup(leftPane, GBase8aUIMessages.editors_user_editor_privileges_group_tables, 1, GridData.FILL_BOTH, 0);
+            Composite tablesGroup = UIUtils.createTitledComposite(leftPane, GBase8aUIMessages.editors_user_editor_privileges_group_tables, 1, GridData.FILL_BOTH, 0);
 
             tablesTable = new Table(tablesGroup, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
             tablesTable.setHeaderVisible(true);
@@ -299,17 +299,17 @@ public class GBase8aUserEditorPrivileges extends GBase8aUserEditorAbstract {
         }
         isLoaded = true;
         LoadingJob.createService(
-                        new DatabaseLoadService<>(GBase8aUIMessages.editors_user_editor_privileges_service_load_privileges, getExecutionContext()) {
-                            @Override
-                            public List<GBase8aPrivilege> evaluate(DBRProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-                                try {
-                                    return getDatabaseObject().getDataSource().getPrivileges(monitor);
-                                } catch (DBException e) {
-                                    throw new InvocationTargetException(e);
-                                }
-                            }
-                        },
-                        pageControl.createPrivilegesLoadVisualizer()).schedule();
+                new DatabaseLoadService<>(GBase8aUIMessages.editors_user_editor_privileges_service_load_privileges, getExecutionContext()) {
+                    @Override
+                    public List<GBase8aPrivilege> evaluate(DBRProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                        try {
+                            return getDatabaseObject().getDataSource().getPrivileges(monitor);
+                        } catch (DBException e) {
+                            throw new InvocationTargetException(e);
+                        }
+                    }
+                },
+                pageControl.createPrivilegesLoadVisualizer()).schedule();
     }
 
     @Override

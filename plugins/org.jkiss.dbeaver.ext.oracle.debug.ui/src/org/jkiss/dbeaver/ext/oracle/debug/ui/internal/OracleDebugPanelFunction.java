@@ -75,7 +75,7 @@ public class OracleDebugPanelFunction implements DBGConfigurationPanel {
     }
 
     private void createFunctionGroup(Composite parent) {
-        Group functionGroup = UIUtils.createControlGroup(parent, "Function", 2, GridData.VERTICAL_ALIGN_BEGINNING, SWT.DEFAULT);
+        Composite functionGroup = UIUtils.createTitledComposite(parent, "Function", 2, GridData.VERTICAL_ALIGN_BEGINNING, SWT.DEFAULT);
 //        functionText = UIUtils.createLabelText(functionGroup, "Function", "", SWT.READ_ONLY);
         UIUtils.createControlLabel(functionGroup, "Function");
         functionCombo = new CSmartSelector<>(functionGroup, SWT.BORDER | SWT.DOWN | SWT.READ_ONLY, new LabelProvider() {
@@ -126,7 +126,7 @@ public class OracleDebugPanelFunction implements DBGConfigurationPanel {
     }
 
     private void createParametersGroup(Composite parent) {
-        Group composite = UIUtils.createControlGroup(parent, "Function parameters", 2, GridData.FILL_BOTH, SWT.DEFAULT);
+        Composite composite = UIUtils.createTitledComposite(parent, "Function parameters", 2, GridData.FILL_BOTH, SWT.DEFAULT);
         parametersTable = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
         final GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
         gd.minimumHeight = PARAMETERS_TABLE_MAX_HEIGHT;
@@ -181,8 +181,8 @@ public class OracleDebugPanelFunction implements DBGConfigurationPanel {
 
     @Override
     public void loadConfiguration(DBPDataSourceContainer dataSource, Map<String, Object> configuration) {
-        String functionName = CommonUtils.toString(configuration.get(OracleDebugConstants.ATTR_FUNCTION_NAME));
-        if (functionName != null && dataSource != null) {
+//        String functionName = CommonUtils.toString(configuration.get(OracleDebugConstants.ATTR_FUNCTION_NAME));
+        if (dataSource != null) {
             try {
                 container.getRunnableContext().run(true, true, monitor -> {
                     try {

@@ -70,7 +70,7 @@ public class GBase8aUserEditorGeneral extends GBase8aUserEditorAbstract {
 
         newUser = !getDatabaseObject().isPersisted();
         {
-            Composite loginGroup = UIUtils.createControlGroup(container, GBase8aUIMessages.editors_user_editor_general_group_login, 2, GridData.FILL_HORIZONTAL, 0);
+            Composite loginGroup = UIUtils.createTitledComposite(container, GBase8aUIMessages.editors_user_editor_general_group_login, 2, GridData.FILL_HORIZONTAL, 0);
 
             userNameText = UIUtils.createLabelText(loginGroup, GBase8aUIMessages.editors_user_editor_general_label_user_name, getDatabaseObject().getUserName());
             userNameText.setEditable(newUser);
@@ -93,7 +93,7 @@ public class GBase8aUserEditorGeneral extends GBase8aUserEditorAbstract {
         }
 
         {
-            Composite limitsGroup = UIUtils.createControlGroup(container, GBase8aUIMessages.editors_user_editor_general_group_limits, 2, GridData.FILL_HORIZONTAL, 0);
+            Composite limitsGroup = UIUtils.createTitledComposite(container, GBase8aUIMessages.editors_user_editor_general_group_limits, 2, GridData.FILL_HORIZONTAL, 0);
 
             Spinner maxQueriesText = UIUtils.createLabelSpinner(limitsGroup, GBase8aUIMessages.editors_user_editor_general_spinner_max_queries, getDatabaseObject().getMaxQuestions(), 0, Integer.MAX_VALUE);
             ControlPropertyCommandListener.create(this, maxQueriesText, UserPropertyHandler.MAX_QUERIES);

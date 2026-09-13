@@ -3,7 +3,6 @@ package org.jkiss.dbeaver.ext.gbase8a;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.gbase8a.model.GBase8aDataSource;
-import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.DatabaseURL;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
@@ -21,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GBase8aDataSourceProvider extends JDBCDataSourceProvider implements DBPNativeClientLocationManager {
+public class GBase8aDataSourceProvider extends JDBCDataSourceProvider<GBase8aDataSource> implements DBPNativeClientLocationManager {
 
     private static final Map<String, String> connectionsProps = new HashMap<>();
 
@@ -29,6 +28,10 @@ public class GBase8aDataSourceProvider extends JDBCDataSourceProvider implements
         connectionsProps.put("zeroDateTimeBehavior", "convertToNull");
         connectionsProps.put("characterEncoding", GeneralUtils.UTF8_ENCODING);
         connectionsProps.put("tinyInt1isBit", "false");
+    }
+
+    public GBase8aDataSourceProvider() {
+        super(GBase8aDataSource.class);
     }
 
     public static Map<String, String> getConnectionsProps() {
@@ -46,7 +49,7 @@ public class GBase8aDataSourceProvider extends JDBCDataSourceProvider implements
     }
 
 
-    public String getConnectionURL(DBPDriver driver, DBPConnectionConfiguration connectionInfo) {
+    public String getConnectionURL(DBPDriver driver, DBPConnectionConfiguration connectionInfo) throws DBException {
         if (connectionInfo.getConfigurationType() == DBPDriverConfigurationType.URL) {
             return connectionInfo.getUrl();
         }
@@ -77,8 +80,8 @@ public class GBase8aDataSourceProvider extends JDBCDataSourceProvider implements
 
     @NotNull
     @Override
-    public DBPDataSource openDataSource(@NotNull DBRProgressMonitor monitor, @NotNull DBPDataSourceContainer container)
-            throws DBException{
+    public GBase8aDataSource openDataSource(@NotNull DBRProgressMonitor monitor, @NotNull DBPDataSourceContainer container)
+            throws DBException {
         return new GBase8aDataSource(monitor, container);
     }
 

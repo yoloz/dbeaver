@@ -64,7 +64,7 @@ public class PrivilegeTableControl extends Composite {
         gl.horizontalSpacing = 0;
         setLayout(gl);
 
-        Composite privsGroup = UIUtils.createControlGroup(this, title, 1, GridData.FILL_BOTH, 0);
+        Composite privsGroup = UIUtils.createTitledComposite(this, title, 1, GridData.FILL_BOTH, 0);
         GridData gd = (GridData) privsGroup.getLayoutData();
         gd.horizontalSpan = 2;
 

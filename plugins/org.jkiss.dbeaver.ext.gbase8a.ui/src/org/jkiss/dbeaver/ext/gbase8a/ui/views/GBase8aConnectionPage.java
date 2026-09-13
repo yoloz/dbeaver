@@ -88,7 +88,7 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
     public void createControl(Composite composite) {
         ModifyListener textListener = e -> {
             if (activated) {
-                updateUrl();
+                super.updateUrl(urlText);
                 site.updateButtons();
             }
         };
@@ -98,7 +98,7 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
         GridData gd = new GridData(GridData.FILL_BOTH);
         addrGroup.setLayoutData(gd);
 
-        Group serverGroup = UIUtils.createControlGroup(
+        Composite serverGroup = UIUtils.createTitledComposite(
                 addrGroup,
                 UIConnectionMessages.dialog_connection_server_label,
                 4,
@@ -109,7 +109,7 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
             @Override
             public void widgetSelected(SelectionEvent e) {
                 setupConnectionModeSelection(urlText, typeURLRadio.getSelection(), GROUP_CONNECTION_ARR);
-                updateUrl();
+                updateUrl(urlText);
             }
         };
         createConnectionModeSwitcher(serverGroup, typeSwitcher);
@@ -162,7 +162,7 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
 
         createAuthPanel(addrGroup, 1);
 
-        Group advancedGroup = UIUtils.createControlGroup(
+        Composite advancedGroup = UIUtils.createTitledComposite(
                 addrGroup,
                 GBase8aUIMessages.dialog_connection_group_advanced,
                 2,
@@ -201,15 +201,15 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
         setControl(addrGroup);
     }
 
-    private void updateUrl() {
-        DBPDataSourceContainer dataSourceContainer = site.getActiveDataSource();
-        saveSettings(dataSourceContainer);
-        if (typeURLRadio != null && typeURLRadio.getSelection()) {
-            urlText.setText(dataSourceContainer.getConnectionConfiguration().getUrl());
-        } else {
-            urlText.setText(dataSourceContainer.getDriver().getConnectionURL(site.getActiveDataSource().getConnectionConfiguration()));
-        }
-    }
+//    private void updateUrl() {
+//        DBPDataSourceContainer dataSourceContainer = site.getActiveDataSource();
+//        saveSettings(dataSourceContainer);
+//        if (typeURLRadio != null && typeURLRadio.getSelection()) {
+//            urlText.setText(dataSourceContainer.getConnectionConfiguration().getUrl());
+//        } else {
+//            urlText.setText(dataSourceContainer.getDriver().getConnectionURL(site.getActiveDataSource().getConnectionConfiguration()));
+//        }
+//    }
 
     @Override
     public boolean isComplete() {
@@ -264,7 +264,7 @@ public class GBase8aConnectionPage extends ConnectionPageWithAuth implements IDi
         }
         setupConnectionModeSelection(urlText, useURL, GROUP_CONNECTION_ARR);
         // updateUrl里会调用saveSettings，如果有自定义Properties需要在此之前加载
-        updateUrl();
+        updateUrl(urlText);
         activated = true;
     }
 

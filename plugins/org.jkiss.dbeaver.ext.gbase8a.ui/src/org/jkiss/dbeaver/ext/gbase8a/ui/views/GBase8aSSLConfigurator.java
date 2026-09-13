@@ -58,7 +58,7 @@ public class GBase8aSSLConfigurator extends SSLConfiguratorTrustStoreUI {
         }
 
         {
-            Group advGroup = UIUtils.createControlGroup(composite, GBase8aUIMessages.gbase8a_ssl_configurator_legend_advanced, 2, GridData.FILL_HORIZONTAL, -1);
+            Composite advGroup = UIUtils.createTitledComposite(composite, GBase8aUIMessages.gbase8a_ssl_configurator_legend_advanced, 2, GridData.FILL_HORIZONTAL, -1);
             requireSSQL = UIUtils.createLabelCheckbox(advGroup, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_require_ssl, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_require_ssl_tip, false);
             veryServerCert = UIUtils.createLabelCheckbox(advGroup, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_verify_server_certificate, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_verify_server_certificate_tip, true);
             allowPublicKeyRetrieval = UIUtils.createLabelCheckbox(advGroup, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_allow_public_key, GBase8aUIMessages.gbase8a_ssl_configurator_checkbox_allow_public_key_tip, false);
