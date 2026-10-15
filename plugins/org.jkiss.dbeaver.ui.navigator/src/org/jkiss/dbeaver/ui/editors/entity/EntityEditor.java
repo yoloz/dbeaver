@@ -1084,6 +1084,11 @@ public class EntityEditor extends MultiPageDatabaseEditor
         composite.setLayout(GridLayoutFactory.fillDefaults().create());
 
         NodeBreadcrumbViewer viewer = new NodeBreadcrumbViewer(composite, SWT.TOP);
+        viewer.setContextMenuSite(getSite());
+        viewer.setSelectionSiteSupplier(() -> {
+            IEditorPart editor = getActiveEditor();
+            return editor != null ? editor.getSite() : getSite();
+        });
         viewer.setInput(getEditorInput().getNavigatorNode());
 
         DBPPreferenceStore store = DBWorkbench.getPlatform().getPreferenceStore();

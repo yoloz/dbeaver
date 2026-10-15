@@ -56,6 +56,7 @@ import org.jkiss.dbeaver.model.runtime.features.DBRFeatureRegistry;
 import org.jkiss.dbeaver.registry.DataSourceProviderRegistry;
 import org.jkiss.dbeaver.registry.WorkbenchHandlerRegistry;
 import org.jkiss.dbeaver.runtime.DBWorkbench;
+import org.jkiss.dbeaver.ui.NativeThemeUtils;
 import org.jkiss.dbeaver.ui.UIExecutionQueue;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.actions.datasource.DataSourceHandler;
@@ -65,7 +66,6 @@ import org.jkiss.dbeaver.ui.app.standalone.internal.WorkbenchPatcher;
 import org.jkiss.dbeaver.ui.editors.DatabaseEditorPreferences;
 import org.jkiss.dbeaver.ui.editors.EditorUtils;
 import org.jkiss.dbeaver.utils.GeneralUtils;
-import org.jkiss.dbeaver.utils.RuntimeUtils;
 
 import java.util.StringJoiner;
 
@@ -146,6 +146,7 @@ public class ApplicationWorkbenchWindowAdvisor extends IDEWorkbenchWindowAdvisor
     @Override
     public void preWindowOpen() {
         log.debug("Configure workbench window");
+        NativeThemeUtils.installThemeListener(Display.getCurrent());
 
         // Show Product Config, if applicable
         showProductConfigDialog();
@@ -184,34 +185,19 @@ public class ApplicationWorkbenchWindowAdvisor extends IDEWorkbenchWindowAdvisor
     }
 
     private void showProductConfigDialog() {
-        if (!ProductConfigUtils.isAvailable() || !ProductConfigRegistry.getInstance().hasNewFeatures()) {
+        if (!ProductConfigUtils.isAvailable() || !ProductConfigRegistry.getInstance().hasNewFeatures() || ProductConfigUtils.isProductConfigSuppressed()) {
             // Only show when the persisted configuration lacks any features defined in the registry, e.g. fresh start
             return;
         }
-        runWithSplashHidden(() -> {
-            var dialog = new ProductConfigWizardDialog(
-                getWindowConfigurer().getWindow(),
-                ProductConfigWizard.Origin.AUTOMATIC
-            );
-            if (dialog.open() == IDialogConstants.CANCEL_ID) {
-                DBRFeatureRegistry.getInstance().endTracking();
-                System.exit(0);
-            }
-        });
-    }
 
-    private static void runWithSplashHidden(@NotNull Runnable runnable) {
-        var splash = WorkbenchPlugin.getSplashShell(Display.getCurrent());
-        if (splash != null && !splash.isDisposed()) {
-            splash.setVisible(false);
-        }
-        try {
-            runnable.run();
-        } finally {
-            // Don't show splash back on Linux because setVisible blocks indefinitely for some reason
-            if (splash != null && !splash.isDisposed() && !RuntimeUtils.isLinux()) {
-                splash.setVisible(true);
-            }
+        WorkbenchPlugin.unsetSplashShell(Display.getCurrent());
+        var dialog = new ProductConfigWizardDialog(
+            getWindowConfigurer().getWindow(),
+            ProductConfigWizard.Origin.AUTOMATIC
+        );
+        if (dialog.open() == IDialogConstants.CANCEL_ID) {
+            DBRFeatureRegistry.getInstance().endTracking();
+            System.exit(0);
         }
     }
 
