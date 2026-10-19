@@ -154,18 +154,13 @@
                 <driver
                         id="vertica_yzsec"
                         label="Vertica(YZSec)"
-                        icon="icons/vertica_icon.png"
-                        iconBig="icons/vertica_icon_big.png"
                         class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
                         sampleURL="jdbc:yzsec://{host}:{port}/{database}"
                         defaultPort="10000"
-                        webURL="https://www.vertica.com/download/vertica/client-drivers/"
+                        dataSourceType="vertica"
                         description="YZSec JDBC driver for Vertica database"
                         supportedConfigurationTypes="MANUAL,URL"
                         categories="sql,analytic,columns">
-                    <replace provider="generic" driver="vertica"/>
-                    <replace provider="vertica" driver="vertica-jdbc"/>
-                    <replace provider="vertica" driver="vertica-jdbc-6"/>
 
 <!--                    <file type="license" path="drivers/vertica/LICENSE.txt" bundle="drivers.vertica"/>-->
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>

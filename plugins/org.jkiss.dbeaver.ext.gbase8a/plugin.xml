@@ -258,9 +258,7 @@
                         sampleURL="jdbc:yzsec://{host}:{port}/{database}"
                         useURL="false"
                         defaultPort="10000"
-                        webURL="http://www.gbase.cn"
-                        icon="icons/gbase8a_icon.png"
-                        iconBig="icons/gbase8a_icon_big.png"
+                        dataSourceType="gbase8a"
                         description="YZSec JDBC driver for GBase8a MPP"
                         promoted="1"
                         categories="sql">

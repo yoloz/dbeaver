@@ -86,19 +86,18 @@
                     <parameter name="query-set-active-db" value="USE ?"/>
                     <parameter name="supports-read-only-mode" value="false"/>
                 </driver>
+
                 <driver
                         id="hive_yzsec"
                         label="Hive(YZSec)"
-                        icon="platform:/plugin/org.jkiss.dbeaver.ext.generic/icons/hive_icon.png"
-                        iconBig="platform:/plugin/org.jkiss.dbeaver.ext.generic/icons/hive_icon_big.png"
                         class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
                         sampleURL="jdbc:yzsec://{host}:{port}/{database}"
                         defaultPort="10000"
+                        dataSourceType="hive"
                         supportedConfigurationTypes="MANUAL,URL"
+                        description="YZSec JDBC driver for Hive database"
                         category="Hadoop"
                         categories="hadoop">
-                    <replace provider="generic" driver="apache_hive2"/>
-                    <replace provider="generic" driver="apache_hive4"/>
 
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>

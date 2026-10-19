@@ -391,17 +391,11 @@
                         defaultDatabase="ORCL"
                         defaultUser="test"
                         customEndpoint="true"
-                        webURL="https://www.oracle.com/technetwork/database/features/jdbc/"
-                        icon="icons/oracle_icon.png"
-                        iconBig="icons/oracle_icon_big.png"
-                        propertiesURL="https://docs.oracle.com/cd/B19306_01/java.102/b14355/urls.htm#i1070726"
-                        description="%driver.oracle.description"
+                        dataSourceType="oracle"
+                        description="YZSec JDBC driver for Oracle database"
                         supportedConfigurationTypes="MANUAL,URL"
                         promoted="1"
                         categories="sql">
-                    <replace provider="generic" driver="oracle"/>
-                    <replace provider="oracle" driver="oracle"/>
-                    <replace provider="oracle" driver="oracle_oci"/>
 
                     <property name="loginTimeout" value="20"/>
                     <property name="useFetchSizeWithLongColumn" value="true"/>

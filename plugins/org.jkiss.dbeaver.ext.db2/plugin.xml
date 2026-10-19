@@ -473,11 +473,8 @@
                         sampleURL="jdbc:yzsec://{host}:{port}/{database}"
                         supportedConfigurationTypes="MANUAL,URL"
                         useURL="false"
-                        icon="icons/db2_icon.png"
-                        iconBig="icons/db2_icon_big.png"
                         defaultPort="10000"
-                        webURL="https://www-01.ibm.com/support/docview.wss?uid=swg21363866"
-                        propertiesURL="https://www.ibm.com/docs/en/db2/latest?topic=pdsdjs-common-data-server-driver-jdbc-sqlj-properties-all-database-products"
+                        dataSourceType="db2"
                         description="YZSec JDBC driver for Db2 Linux/Unix/Windows"
                         promoted="1"
                         categories="sql">

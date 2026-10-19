@@ -247,15 +247,13 @@
                 <driver
                         id="dameng_yzsec"
                         label="Dameng(YZSec)"
-                        icon="icons/dm_icon.png"
-                        iconBig="icons/dm_icon_big.png"
                         class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
                         sampleURL="jdbc:yzsec://{host}:{port}/{database}"
                         useURL="false"
                         defaultPort="10000"
                         defaultDataBase="SYSDBA"
                         defaultUser="SYSDBA"
-                        webURL="https://eco.dameng.com/document/dm/zh-cn/pm/jdbc-rogramming-guide.html"
+                        dataSourceType="dameng"
                         description="YZSec JDBC driver for Dameng database"
                         categories="sql">
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
