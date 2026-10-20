@@ -21,27 +21,65 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.IFindReplaceTarget;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.ISaveablePart2;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.internal.IWorkbenchGraphicConstants;
 import org.eclipse.ui.internal.WorkbenchImages;
@@ -55,7 +93,20 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ModelPreferences;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.app.DBPProject;
-import org.jkiss.dbeaver.model.data.*;
+import org.jkiss.dbeaver.model.data.DBDAttributeBinding;
+import org.jkiss.dbeaver.model.data.DBDAttributeBindingCustom;
+import org.jkiss.dbeaver.model.data.DBDAttributeConstraint;
+import org.jkiss.dbeaver.model.data.DBDAttributeTransformerDescriptor;
+import org.jkiss.dbeaver.model.data.DBDBinaryFormatter;
+import org.jkiss.dbeaver.model.data.DBDDataFilter;
+import org.jkiss.dbeaver.model.data.DBDDisplayFormat;
+import org.jkiss.dbeaver.model.data.DBDReferenceNavigation;
+import org.jkiss.dbeaver.model.data.DBDReferenceUtils;
+import org.jkiss.dbeaver.model.data.DBDRegistry;
+import org.jkiss.dbeaver.model.data.DBDRowIdentifier;
+import org.jkiss.dbeaver.model.data.DBDValueDefaultGenerator;
+import org.jkiss.dbeaver.model.data.DBDValueRow;
+import org.jkiss.dbeaver.model.data.ResultSetValuePath;
 import org.jkiss.dbeaver.model.data.hints.DBDCellHintProvider;
 import org.jkiss.dbeaver.model.data.hints.DBDValueHint;
 import org.jkiss.dbeaver.model.data.hints.DBDValueHintContext;
@@ -66,7 +117,15 @@ import org.jkiss.dbeaver.model.data.order.OrderingUtils;
 import org.jkiss.dbeaver.model.data.resultset.DBDDataUpdateListener;
 import org.jkiss.dbeaver.model.data.resultset.ResultSetSaveSettings;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
-import org.jkiss.dbeaver.model.exec.*;
+import org.jkiss.dbeaver.model.exec.DBCException;
+import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
+import org.jkiss.dbeaver.model.exec.DBCExecutionPurpose;
+import org.jkiss.dbeaver.model.exec.DBCLogicalOperator;
+import org.jkiss.dbeaver.model.exec.DBCResultSet;
+import org.jkiss.dbeaver.model.exec.DBCSession;
+import org.jkiss.dbeaver.model.exec.DBCStatistics;
+import org.jkiss.dbeaver.model.exec.DBCTransactionManager;
+import org.jkiss.dbeaver.model.exec.DBExecUtils;
 import org.jkiss.dbeaver.model.impl.local.StatResultSet;
 import org.jkiss.dbeaver.model.messages.ModelMessages;
 import org.jkiss.dbeaver.model.preferences.DBPPreferenceListener;
@@ -78,10 +137,26 @@ import org.jkiss.dbeaver.model.runtime.DBRRunnableWithProgress;
 import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
 import org.jkiss.dbeaver.model.runtime.load.DatabaseLoadService;
 import org.jkiss.dbeaver.model.runtime.load.ILoadService;
-import org.jkiss.dbeaver.model.sql.*;
+import org.jkiss.dbeaver.model.sql.DBSQLException;
+import org.jkiss.dbeaver.model.sql.SQLQuery;
+import org.jkiss.dbeaver.model.sql.SQLQueryContainer;
+import org.jkiss.dbeaver.model.sql.SQLScriptElement;
+import org.jkiss.dbeaver.model.sql.SQLUtils;
 import org.jkiss.dbeaver.model.sql.parser.SQLSemanticProcessor;
-import org.jkiss.dbeaver.model.struct.*;
-import org.jkiss.dbeaver.model.virtual.*;
+import org.jkiss.dbeaver.model.struct.DBSAttributeBase;
+import org.jkiss.dbeaver.model.struct.DBSDataContainer;
+import org.jkiss.dbeaver.model.struct.DBSDataManipulator;
+import org.jkiss.dbeaver.model.struct.DBSEntity;
+import org.jkiss.dbeaver.model.struct.DBSEntityAssociation;
+import org.jkiss.dbeaver.model.struct.DBSEntityConstraint;
+import org.jkiss.dbeaver.model.struct.DBSEntityReferrer;
+import org.jkiss.dbeaver.model.virtual.DBVColorOverride;
+import org.jkiss.dbeaver.model.virtual.DBVEntity;
+import org.jkiss.dbeaver.model.virtual.DBVEntityAttribute;
+import org.jkiss.dbeaver.model.virtual.DBVEntityConstraint;
+import org.jkiss.dbeaver.model.virtual.DBVEntityForeignKey;
+import org.jkiss.dbeaver.model.virtual.DBVTransformSettings;
+import org.jkiss.dbeaver.model.virtual.DBVUtils;
 import org.jkiss.dbeaver.registry.ApplicationPolicyProvider;
 import org.jkiss.dbeaver.registry.configurator.UIPropertyConfiguratorDescriptor;
 import org.jkiss.dbeaver.registry.configurator.UIPropertyConfiguratorRegistry;
@@ -91,22 +166,50 @@ import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.runtime.DBeaverNotifications;
 import org.jkiss.dbeaver.runtime.jobs.DataSourceJob;
 import org.jkiss.dbeaver.tools.transfer.ui.internal.DTUIMessages;
-import org.jkiss.dbeaver.ui.*;
-import org.jkiss.dbeaver.ui.controls.*;
+import org.jkiss.dbeaver.ui.ActionUtils;
+import org.jkiss.dbeaver.ui.ConComposite;
+import org.jkiss.dbeaver.ui.DBeaverIcons;
+import org.jkiss.dbeaver.ui.DataEditorFeatures;
+import org.jkiss.dbeaver.ui.EmptyAction;
+import org.jkiss.dbeaver.ui.IActionConstants;
+import org.jkiss.dbeaver.ui.IHelpContextIds;
+import org.jkiss.dbeaver.ui.UIConfirmation;
+import org.jkiss.dbeaver.ui.UIFonts;
+import org.jkiss.dbeaver.ui.UIIcon;
+import org.jkiss.dbeaver.ui.UIStyles;
+import org.jkiss.dbeaver.ui.UITask;
+import org.jkiss.dbeaver.ui.UITextUtils;
+import org.jkiss.dbeaver.ui.UIUtils;
+import org.jkiss.dbeaver.ui.controls.CustomSashForm;
+import org.jkiss.dbeaver.ui.controls.TabFolderReorder;
+import org.jkiss.dbeaver.ui.controls.ToolbarSeparatorContribution;
+import org.jkiss.dbeaver.ui.controls.VerticalButton;
+import org.jkiss.dbeaver.ui.controls.VerticalFolder;
 import org.jkiss.dbeaver.ui.controls.autorefresh.AutoRefreshControl;
 import org.jkiss.dbeaver.ui.controls.resultset.actions.*;
 import org.jkiss.dbeaver.ui.controls.resultset.colors.CustomizeColorsAction;
 import org.jkiss.dbeaver.ui.controls.resultset.colors.GroupRowStripingAction;
 import org.jkiss.dbeaver.ui.controls.resultset.colors.ResetAllColorAction;
 import org.jkiss.dbeaver.ui.controls.resultset.colors.ResetRowColorAction;
-import org.jkiss.dbeaver.ui.controls.resultset.handler.*;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.ResultSetHandlerCopyAs;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.ResultSetHandlerCopySpecial;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.ResultSetHandlerMain;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.ResultSetHandlerOpenWith;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.ResultSetHandlerTogglePanel;
+import org.jkiss.dbeaver.ui.controls.resultset.handler.SavePreviewDialog;
 import org.jkiss.dbeaver.ui.controls.resultset.internal.ResultSetMessages;
 import org.jkiss.dbeaver.ui.controls.resultset.panel.ResultSetPanelDescriptor;
 import org.jkiss.dbeaver.ui.controls.resultset.valuefilter.FilterValueEditPopup;
 import org.jkiss.dbeaver.ui.controls.resultset.view.EmptyPresentation;
 import org.jkiss.dbeaver.ui.controls.resultset.view.ErrorPresentation;
 import org.jkiss.dbeaver.ui.controls.resultset.view.StatisticsPresentation;
-import org.jkiss.dbeaver.ui.controls.resultset.virtual.*;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.EditVirtualEntityDialog;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualAttributeAddAction;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualAttributeDeleteAction;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualAttributeEditAction;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualEntityEditAction;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualForeignKeyEditAction;
+import org.jkiss.dbeaver.ui.controls.resultset.virtual.VirtualUniqueKeyEditAction;
 import org.jkiss.dbeaver.ui.css.CSSUtils;
 import org.jkiss.dbeaver.ui.data.IValueController;
 import org.jkiss.dbeaver.ui.dialogs.ConfirmationDialog;
@@ -121,14 +224,38 @@ import org.jkiss.dbeaver.utils.RuntimeUtils;
 import org.jkiss.utils.ArrayUtils;
 import org.jkiss.utils.CommonUtils;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -5548,7 +5675,7 @@ public class ResultSetViewer extends Viewer
         }
 
         private void updateResultsInUI() {
-            final Throwable error = getError();
+            Throwable error = getError();
             if (getStatistics() != null) {
                 model.setStatistics(getStatistics());
             }
@@ -5568,7 +5695,27 @@ public class ResultSetViewer extends Viewer
                 boolean panelUpdated = false;
                 final boolean metadataChanged = !scroll && model.isMetadataChanged();
                 if (error != null) {
+                    String callbackurl = null, ruleName = null, instName = null, userName = null;
                     String errorMessage = error.getMessage();
+                    // errorMessage may extra pack other prefix
+                    int urlStart = errorMessage != null ? errorMessage.indexOf("https") : -1;
+                    if (urlStart < 0) {
+                        urlStart = errorMessage != null ? errorMessage.indexOf("http") : -1;
+                    }
+                    if (urlStart >= 0) {
+                        String urlPart = errorMessage.substring(urlStart);
+                        String[] parts = urlPart.split("\\|", 5);
+                        if (parts.length >= 5) {
+                            callbackurl = parts[0];
+                            ruleName = parts[1];
+                            instName = parts[2];
+                            userName = parts[3];
+                            errorMessage = errorMessage.substring(0, urlStart) + parts[4];
+                            SQLException se = new SQLException(errorMessage);
+                            se.setStackTrace(error.getStackTrace());
+                            error = se;
+                        }
+                    }
                     setStatus(errorMessage, DBPMessageType.ERROR);
 
                     String sqlText;
@@ -5592,7 +5739,7 @@ public class ResultSetViewer extends Viewer
                         }
                     }
 
-                    if (getPreferenceStore().getBoolean(ResultSetPreferences.RESULT_SET_SHOW_ERRORS_IN_DIALOG)) {
+                    if (getPreferenceStore().getBoolean(ResultSetPreferences.RESULT_SET_SHOW_ERRORS_IN_DIALOG) && callbackurl == null) {
                         DBWorkbench.getPlatformUI().showError("Error executing query", "Query execution failed", error);
                     } else {
                         if (CommonUtils.isEmpty(errorMessage)) {
@@ -5604,6 +5751,25 @@ public class ResultSetViewer extends Viewer
                         }
                         showErrorPresentation(sqlText, errorMessage, error);
                         log.error(errorMessage, error);
+                    }
+                    if (callbackurl != null) {
+                        MessageDialog dialog = new MessageDialog(
+                                getControl().getShell(),
+                                ResultSetMessages.controls_resultset_rule_violation_error_dialog_title,
+                                null,
+                                errorMessage,
+                                MessageDialog.ERROR,
+                                new String[]{ResultSetMessages.controls_resultset_rule_violation_button_ok, ResultSetMessages.controls_resultset_rule_violation_button_request_bypass},
+                                0
+                        );
+                        int result = dialog.open();
+                        if (result == 0) {
+                            // 点击"确定"，直接返回，不显示规则对话框
+                            return;
+                        } else if (result == 1) {
+                            // 点击"申请放行"，显示规则违反对话框
+                            showRuleViolationDialog(callbackurl, ruleName, instName, userName, errorMessage);
+                        }
                     }
                 } else {
                     if (!metadataChanged) {
@@ -5669,6 +5835,198 @@ public class ResultSetViewer extends Viewer
                     }
                 }
             }
+        }
+    }
+
+    private void showRuleViolationDialog(
+            String callbackUrl,
+            String ruleName,
+            String instName,
+            String userName,
+            String errorMessage
+    ) {
+        if (callbackUrl == null) {
+            return;
+        }
+        Shell shell = getControl().getShell();
+        Dialog dialog = new Dialog(shell) {
+            private Text reasonText;
+
+            @Override
+            protected void configureShell(Shell newShell) {
+                super.configureShell(newShell);
+                newShell.setText(ResultSetMessages.controls_resultset_rule_violation_dialog_title);
+            }
+
+            @Override
+            protected Point getInitialSize() {
+                return new Point(400, 250);
+            }
+
+            @Override
+            protected Control createDialogArea(Composite parent) {
+                Composite area = (Composite) super.createDialogArea(parent);
+                Composite container = new Composite(area, SWT.NONE);
+                container.setLayoutData(new GridData(GridData.FILL_BOTH));
+                container.setLayout(new GridLayout(2, false));
+
+//                Label ruleLabel = new Label(container, SWT.NONE);
+//                ruleLabel.setText("规则名称:");
+//                Label ruleValue = new Label(container, SWT.NONE);
+//                ruleValue.setText(ruleName);
+//                ruleValue.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+
+                Label instLabel = new Label(container, SWT.NONE);
+                instLabel.setText(ResultSetMessages.controls_resultset_rule_violation_label_instance);
+                Label instValue = new Label(container, SWT.NONE);
+                instValue.setText(instName);
+                instValue.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+
+                Label userLabel = new Label(container, SWT.NONE);
+                userLabel.setText(ResultSetMessages.controls_resultset_rule_violation_label_user);
+                Label userValue = new Label(container, SWT.NONE);
+                userValue.setText(userName);
+                userValue.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+//
+//                Label errorLabel = new Label(container, SWT.NONE);
+//                errorLabel.setText("错误信息:");
+//                Text errorValue = new Text(container, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.BORDER);
+//                errorValue.setText(errorMessage != null ? errorMessage : "");
+//                GridData evGD = new GridData(GridData.FILL_HORIZONTAL);
+//                evGD.heightHint = 60;
+//                errorValue.setLayoutData(evGD);
+//                errorValue.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+
+                Label reasonLabel = new Label(container, SWT.NONE);
+                reasonLabel.setText(ResultSetMessages.controls_resultset_rule_violation_label_reason);
+                reasonText = new Text(container, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+                GridData rtGD = new GridData(GridData.FILL_HORIZONTAL);
+                rtGD.heightHint = 80;
+                reasonText.setLayoutData(rtGD);
+
+                return area;
+            }
+
+            @Override
+            protected void createButtonsForButtonBar(Composite parent) {
+                createButton(parent, IDialogConstants.OK_ID, ResultSetMessages.controls_resultset_rule_violation_button_send, true);
+                createButton(parent, IDialogConstants.CANCEL_ID, ResultSetMessages.controls_resultset_rule_violation_button_cancel, false);
+            }
+
+            @Override
+            protected void okPressed() {
+                String reason = reasonText.getText();
+                if (CommonUtils.isEmptyTrimmed(reason)) {
+                    UIUtils.showMessageBox(getShell(), ResultSetMessages.controls_resultset_rule_violation_warning_title, ResultSetMessages.controls_resultset_rule_violation_warning_message, SWT.ICON_WARNING);
+                    return;
+                }
+                setReturnCode(IDialogConstants.OK_ID);
+                close();
+
+                new AbstractJob(ResultSetMessages.controls_resultset_rule_violation_job_name) {
+                    @Override
+                    protected IStatus run(@NotNull DBRProgressMonitor monitor) {
+                        HttpsURLConnection connection = null;
+                        try {
+                            String body = "{\"ruleName\":\"" + escapeJson(ruleName)
+                                    + "\",\"instName\":\"" + escapeJson(instName)
+                                    + "\",\"userName\":\"" + escapeJson(userName)
+                                    + "\",\"reason\":\"" + escapeJson(reason) + "\"}";
+                            // Trust-all SSL context only skips the certificate chain trust check;
+                            // the SAN/hostname check is enforced separately by the SSL engine, so we
+                            // also disable it via a permissive HostnameVerifier.
+                            connection = (HttpsURLConnection) new URL(callbackUrl).openConnection();
+                            connection.setSSLSocketFactory(createTrustAllSslContext().getSocketFactory());
+                            connection.setHostnameVerifier((HostnameVerifier) (hostname, session) -> true);
+                            connection.setConnectTimeout(10_000);
+                            connection.setReadTimeout(10_000);
+                            connection.setRequestMethod("POST");
+                            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                            connection.setDoOutput(true);
+                            try (OutputStream os = connection.getOutputStream()) {
+                                os.write(body.getBytes(StandardCharsets.UTF_8));
+                            }
+                            int code = connection.getResponseCode();
+                            String responseBody;
+                            try (InputStream is = code < 400 ? connection.getInputStream() : connection.getErrorStream()) {
+                                responseBody = is == null ? "" : new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                            }
+                            code = parseJsonInt(responseBody, "code");
+                            if (code != 200) {
+                                String msg = parseJsonString(responseBody, "msg");
+                                UIUtils.asyncExec(() ->
+                                        UIUtils.showMessageBox(shell, ResultSetMessages.controls_resultset_rule_violation_send_failed_title, msg, SWT.ICON_ERROR));
+                            } else {
+                                UIUtils.asyncExec(() ->
+                                        UIUtils.showMessageBox(shell, ResultSetMessages.controls_resultset_rule_violation_send_success_title, ResultSetMessages.controls_resultset_rule_violation_send_success_message, SWT.ICON_INFORMATION));
+                            }
+                        } catch (Exception e) {
+                            UIUtils.asyncExec(() ->
+                                    UIUtils.showMessageBox(shell, ResultSetMessages.controls_resultset_rule_violation_error_title, NLS.bind(ResultSetMessages.controls_resultset_rule_violation_error_generic, GeneralUtils.makeStandardErrorMessage(e)), SWT.ICON_ERROR));
+                        } finally {
+                            if (connection != null) {
+                                connection.disconnect();
+                            }
+                        }
+                        return Status.OK_STATUS;
+                    }
+                }.schedule();
+            }
+        };
+        dialog.setBlockOnOpen(true);
+        dialog.open();
+    }
+
+    private static String escapeJson(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private static int parseJsonInt(String json, String key) {
+        String pattern = "\"" + key + "\"\\s*:\\s*(\\d+)";
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(json);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        return -1;
+    }
+
+    private static String parseJsonString(String json, String key) {
+        String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]*)\"";
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(json);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return "";
+    }
+
+    @NotNull
+    private static SSLContext createTrustAllSslContext() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                        }
+
+                        @Override
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            }, new SecureRandom());
+            return sslContext;
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create trust-all SSL context", e);
         }
     }
 

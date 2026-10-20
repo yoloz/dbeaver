@@ -483,6 +483,25 @@ public class ResultSetMessages extends NLS {
     public static String find_and_replace_overlay_tooltip;
     public static String find_and_replace_find_all_tooltip;
 
+    public static String controls_resultset_rule_violation_dialog_title;
+    public static String controls_resultset_rule_violation_label_instance;
+    public static String controls_resultset_rule_violation_label_user;
+    public static String controls_resultset_rule_violation_label_reason;
+    public static String controls_resultset_rule_violation_button_send;
+    public static String controls_resultset_rule_violation_button_cancel;
+    public static String controls_resultset_rule_violation_warning_title;
+    public static String controls_resultset_rule_violation_warning_message;
+    public static String controls_resultset_rule_violation_job_name;
+    public static String controls_resultset_rule_violation_send_failed_title;
+    public static String controls_resultset_rule_violation_send_success_title;
+    public static String controls_resultset_rule_violation_send_success_message;
+    public static String controls_resultset_rule_violation_error_title;
+    public static String controls_resultset_rule_violation_error_connect;
+    public static String controls_resultset_rule_violation_error_generic;
+    public static String controls_resultset_rule_violation_error_dialog_title;
+    public static String controls_resultset_rule_violation_button_ok;
+    public static String controls_resultset_rule_violation_button_request_bypass;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, ResultSetMessages.class);
