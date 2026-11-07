@@ -11,7 +11,8 @@ Bundle-Activator: org.jkiss.dbeaver.ui.editors.data.internal.DataEditorsActivato
 Require-Bundle: org.jkiss.dbeaver.data.transfer.ui,
  org.jkiss.dbeaver.ui.editors.entity;visibility:=reexport,
  org.jkiss.dbeaver.ui.navigator;visibility:=reexport,
- org.jkiss.dbeaver.registry
+ org.jkiss.dbeaver.registry,
+ org.jkiss.dbeaver.model.jdbc
 Export-Package: org.jkiss.dbeaver.registry.functions,
  org.jkiss.dbeaver.ui,
  org.jkiss.dbeaver.ui.controls,
