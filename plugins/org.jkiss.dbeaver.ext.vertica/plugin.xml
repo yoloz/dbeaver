@@ -4,7 +4,7 @@
 <plugin>
 
     <extension point="org.jkiss.dbeaver.generic.meta">
-        <meta id="vertica" class="org.jkiss.dbeaver.ext.vertica.model.VerticaMetaModel" driverClass="com.vertica.jdbc.Driver"/>
+        <meta id="vertica" class="org.jkiss.dbeaver.ext.vertica.model.VerticaMetaModel" driverClass="com.vertica.jdbc.Driver,com.yzsec.dsg.sdk.jdbc.YzSecDriver"/>
     </extension>
 
     <extension point="org.jkiss.dbeaver.dataSourceProvider">
@@ -161,6 +161,7 @@
                         description="YZSec JDBC driver for Vertica database"
                         supportedConfigurationTypes="MANUAL,URL"
                         categories="sql,analytic,columns">
+                    <parameter name="meta-model" value="vertica"/>
 
 <!--                    <file type="license" path="drivers/vertica/LICENSE.txt" bundle="drivers.vertica"/>-->
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>

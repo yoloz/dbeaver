@@ -24,6 +24,7 @@ import org.jkiss.dbeaver.ext.cdata.model.CDataMetaModel;
 import org.jkiss.dbeaver.ext.cdata.registry.CDataDriverCatalog;
 import org.jkiss.dbeaver.ext.cdata.registry.CDataDriverDescriptor;
 import org.jkiss.dbeaver.ext.cdata.registry.CDataDriverInfo;
+import org.jkiss.dbeaver.ext.generic.GenericConstants;
 import org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.connection.DBPDriverLibrary;
@@ -76,6 +77,7 @@ public class CDataDataSourceProvider extends GenericDataSourceProvider<CDataData
         driver.setDescription("CData " + driverInfo.tier().name().toLowerCase(Locale.ENGLISH) + " JDBC driver");
         driver.setSampleURL("jdbc:" + driverInfo.jdbcName() + ":");
         driver.setSingleConnection(true);
+        driver.setDriverParameter(GenericConstants.PARAM_META_MODEL, "cdata", true);
         driver.setCategories(List.of("cdata"));
         driver.setWebURL(driverInfo.purchaseUrl());
         DriverLibraryMavenArtifact jarLib = new DriverLibraryMavenArtifact(

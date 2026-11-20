@@ -3,7 +3,7 @@
 <plugin>
 
     <extension point="org.jkiss.dbeaver.generic.meta">
-        <meta id="cdata" class="org.jkiss.dbeaver.ext.cdata.model.CDataMetaModel" driverClass="cdata.jdbc.*"/>
+        <meta id="cdata" class="org.jkiss.dbeaver.ext.cdata.model.CDataMetaModel" dialect="cdata"/>
     </extension>
     <extension point="org.jkiss.dbeaver.sqlDialect">
         <dialect

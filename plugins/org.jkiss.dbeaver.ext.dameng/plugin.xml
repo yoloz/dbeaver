@@ -240,6 +240,7 @@
                         webURL="https://eco.dameng.com/document/dm/zh-cn/pm/jdbc-rogramming-guide.html"
                         description="%driver.dameng.description"
                         categories="sql">
+                    <parameter name="meta-model" value="dameng"/>
                     <file type="jar" path="maven:/com.dameng:DmJdbcDriver18:RELEASE[8.1.3.62]" bundle="!drivers.dameng"/>
                     <file type="license" path="licenses/external/asl-2.0.txt"/>
                     <file type="jar" path="drivers/dameng" bundle="drivers.dameng"/>
@@ -256,6 +257,7 @@
                         dataSourceType="dameng"
                         description="YZSec JDBC driver for Dameng database"
                         categories="sql">
+                    <parameter name="meta-model" value="dameng"/>
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
                     <!--<file type="license" path="licenses/external/asl-2.0.txt"/>-->
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
@@ -264,10 +266,11 @@
 
         </datasource>
     </extension>
-    <!--<extension point="org.jkiss.dbeaver.generic.meta">
+    <extension point="org.jkiss.dbeaver.generic.meta">
         <meta id="dameng" class="org.jkiss.dbeaver.ext.dameng.model.DamengMetaModel"
-              driverClass="dm.jdbc.driver.DmDriver"/>
-    </extension>-->
+              driverClass="dm.jdbc.driver.DmDriver,com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+              dialect="dameng"/>
+    </extension>
     <extension point="org.jkiss.dbeaver.objectManager">
         <manager class="org.jkiss.dbeaver.ext.dameng.edit.DamengSchemaManager"
                  objectType="org.jkiss.dbeaver.ext.dameng.model.DamengSchema"/>
