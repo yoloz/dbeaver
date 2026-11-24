@@ -744,6 +744,19 @@
                     <file type="jar" path="drivers/intersystems" bundle="drivers.intersystems"/>
                 </driver>
                 <driver
+                        id="iris_yzsec"
+                        dataSourceType="intersystems_iris"
+                        label="InterSystems IRIS(YZSec)"
+                        class="com.yzsec.dsg.sdk.jdbc.YzSecDriver"
+                        sampleURL="jdbc:yzsec://{host}:{port}/{database}"
+                        defaultPort="10000"
+                        description="YZSec JDBC driver for InterSystems IRIS"
+                        supportedConfigurationTypes="MANUAL,URL"
+                        categories="sql,object">
+                    <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
+                    <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
+                </driver>
+                <driver
                     id="ingres"
                     dataSourceType="ingres"
                     label="Ingres"
