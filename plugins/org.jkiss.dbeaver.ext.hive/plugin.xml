@@ -5,7 +5,7 @@
 
     <extension point="org.jkiss.dbeaver.generic.meta">
         <meta id="hive" class="org.jkiss.dbeaver.ext.hive.model.HiveMetaModel"
-              driverClass="org.apache.hive.jdbc.HiveDriver,com.yzsec.dsg.sdk.jdbc.YzSecDriver" dialect="hive"/>
+              driverClass="org.apache.hive.jdbc.HiveDriver" dialect="hive"/>
     </extension>
 
     <extension point="org.jkiss.dbeaver.dataSourceProvider">
@@ -99,6 +99,7 @@
                         category="Hadoop"
                         categories="hadoop">
 
+                    <parameter name="meta-model" value="hive"/>
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
 

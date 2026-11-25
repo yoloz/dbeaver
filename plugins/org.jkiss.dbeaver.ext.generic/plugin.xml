@@ -753,6 +753,7 @@
                         description="YZSec JDBC driver for InterSystems IRIS"
                         supportedConfigurationTypes="MANUAL,URL"
                         categories="sql,object">
+                    <parameter name="meta-model" value="standard"/>
                     <file type="jar" path="maven:/com.yzsec.dsg:dsg-sdk-jdbc:RELEASE[3.6]" bundle="!drivers.yzsec"/>
                     <file type="jar" path="drivers/yzsec" bundle="drivers.yzsec"/>
                 </driver>
